@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────
+   CERTIFLOW DESIGN SYSTEM (Tailwind CSS v4)
+   Linear + Canva + Stripe inspired palette
+   ───────────────────────────────────────────── */
+
+:root {
+  --color-background: #FAFAF8;
+  --color-surface: #FFFFFF;
+  --color-primary: #635BFF;
+  --color-primary-hover: #5146E6;
+  --color-primary-light: #EBE9FF;
+  --color-primary-subtle: #F5F4FF;
+
+  --color-text: #111111;
+  --color-text-secondary: #666666;
+  --color-text-tertiary: #999999;
+
+  --color-border: #E7E7E3;
+  --color-border-hover: #D1D1CD;
+
+  --color-success: #16803C;
+  --color-success-light: #ECFDF3;
+  --color-warning: #B7791F;
+  --color-warning-light: #FFFBEB;
+  --color-danger: #D92D20;
+  --color-danger-light: #FEF3F2;
+}
+
+/* ── Base Styles ─────────────────────────── */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  line-height: 1.6;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* ── Global Layout Containers ────────────── */
+.container-marketing {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+@media (min-width: 768px) {
+  .container-marketing {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-marketing {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .container-marketing {
+    max-width: 1360px;
+  }
+}
+
+/* ── Section Spacing ─────────────────────── */
+.section-padding {
+  padding-top: 4.5rem;
+  padding-bottom: 4.5rem;
+}
+
+@media (min-width: 768px) {
+  .section-padding {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-padding {
+    padding-top: 8rem;
+    padding-bottom: 8rem;
+  }
+}
+
+/* ── Typography Scale ────────────────────── */
+.text-hero {
+  font-size: clamp(2.5rem, 4.5vw + 0.5rem, 4.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  font-weight: 700;
+}
+
+.text-section {
+  font-size: clamp(1.875rem, 3vw + 0.25rem, 2.75rem);
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+.text-body-lg {
+  font-size: clamp(1rem, 1.1vw, 1.1875rem);
+  line-height: 1.6;
+}
+
+/* ── Gradient Text ───────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #635BFF 0%, #8B5CF6 50%, #4338CA 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Background Grid Texture ─────────────── */
+.bg-grid-pattern {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+}
+
+/* ── Selection & Focus ───────────────────── */
+::selection {
+  background: var(--color-primary-light);
+  color: var(--color-text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
