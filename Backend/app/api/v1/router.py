@@ -10,6 +10,11 @@ from app.api.v1.mapping_profiles import router as mapping_profiles_router
 from app.api.v1.certificates import router as certificates_router
 from app.api.v1.issuance_jobs import router as issuance_jobs_router
 from app.api.v1.public import router as public_router
+from app.api.v1.email_templates import router as email_templates_router
+from app.api.v1.email import router as email_router
+from app.api.v1.email_jobs import router as email_jobs_router
+from app.api.v1.email_deliveries import router as email_deliveries_router
+from app.api.v1.webhooks import router as webhooks_router
 
 api_v1_router = APIRouter()
 
@@ -23,3 +28,8 @@ api_v1_router.include_router(mapping_profiles_router)
 api_v1_router.include_router(certificates_router)
 api_v1_router.include_router(issuance_jobs_router)
 api_v1_router.include_router(public_router)
+api_v1_router.include_router(email_templates_router)
+api_v1_router.include_router(email_router)
+api_v1_router.include_router(email_jobs_router)
+api_v1_router.include_router(email_deliveries_router)
+api_v1_router.include_router(webhooks_router)

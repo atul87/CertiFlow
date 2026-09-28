@@ -73,12 +73,13 @@ async def public_verify_certificate_file(
 @router.get(
     "/certificates/{verification_code}/download",
     summary="Public download of certificate PDF",
-    description="Allows public certificate download if public download is enabled by the issuer.",
+    description="Allows public certificate download if public download is enabled or via a signed token URL.",
 )
 async def public_download_certificate(
     verification_code: str,
+    token: Optional[str] = None,
 ):
-    pdf_bytes, filename = await VerificationService.get_public_pdf_bytes(verification_code)
+    pdf_bytes, filename = await VerificationService.get_public_pdf_bytes(verification_code, token=token)
     return StreamingResponse(
         io.BytesIO(pdf_bytes),
         media_type="application/pdf",

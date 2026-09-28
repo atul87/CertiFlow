@@ -315,3 +315,32 @@ class CertificateRepository:
         )
         return res.modified_count, failed_ids
 
+    @classmethod
+    async def update_email_delivery_status(
+        cls,
+        certificate_id: str,
+        status: str,
+        delivery_id: str,
+        sent_at: Optional[datetime] = None,
+    ) -> Optional[Dict[str, Any]]:
+        try:
+            cid = ObjectId(certificate_id)
+        except Exception:
+            return None
+        now = sent_at or datetime.now(timezone.utc)
+        doc = await cls._collection().find_one_and_update(
+            {"_id": cid},
+            {
+                "$set": {
+                    "email_delivery": {
+                        "status": status,
+                        "delivery_id": str(delivery_id),
+                        "last_sent_at": now,
+                    },
+                    "updated_at": now,
+                }
+            },
+            return_document=ReturnDocument.AFTER,
+        )
+        return _serialize_cert(doc)
+

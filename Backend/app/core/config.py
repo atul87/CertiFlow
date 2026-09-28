@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     VERSION: str = "0.1.0"
     APP_BASE_URL: str = "http://localhost:3000"
+    BASE_URL: str = "http://localhost:8000"
 
     API_V1_PREFIX: str = "/api/v1"
 
@@ -47,6 +48,18 @@ class Settings(BaseSettings):
     RATE_LIMIT_PUBLIC_VERIFY_PER_MINUTE: int = 60
     VERIFICATION_CACHE_TTL_SECONDS: int = 300
     PUBLIC_DOWNLOAD_ENABLED: bool = True
+
+    # Email Delivery & Notification System (P6)
+    EMAIL_PROVIDER: str = "mock"
+    EMAIL_WORKER_CONCURRENCY: int = 5
+    EMAIL_SEND_TIMEOUT: int = 30
+    EMAIL_MAX_RETRIES: int = 3
+    MAX_EMAIL_ATTACHMENT_SIZE_MB: int = 10
+    SIGNED_URL_SECRET: str = "certiflow-signed-download-url-secret-key-32chars!"
+    SIGNED_URL_EXPIRY_HOURS: int = 24
+    WEBHOOK_SIGNING_SECRET: str = "certiflow-webhook-signature-secret-key!"
+    DEFAULT_SENDER_NAME: str = "CertiFlow"
+    DEFAULT_SENDER_EMAIL: str = "certificates@certiflow.io"
 
     # CORS
     CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://127.0.0.1:3000"]

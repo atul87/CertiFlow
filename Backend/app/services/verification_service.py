@@ -473,18 +473,27 @@ class VerificationService:
         )
 
     @classmethod
-    async def get_public_pdf_bytes(cls, verification_code: str) -> tuple[bytes, str]:
-        if not settings.PUBLIC_DOWNLOAD_ENABLED:
+    async def get_public_pdf_bytes(cls, verification_code: str, token: Optional[str] = None) -> tuple[bytes, str]:
+        from app.services.signed_url_service import SignedURLService
+
+        if token:
+            if not SignedURLService.verify_token(verification_code, token):
+                raise ForbiddenError(message="Invalid or expired download link", code="INVALID_SIGNED_URL")
+        elif not settings.PUBLIC_DOWNLOAD_ENABLED:
             raise ForbiddenError(message="Public download of certificates is disabled", code="PUBLIC_DOWNLOAD_DISABLED")
 
-        doc = await CertificateRepository.get_by_verification_code(verification_code.upper().strip())
+        clean_code = verification_code.upper().strip()
+        doc = await CertificateRepository.get_by_verification_code(clean_code)
+        if not doc:
+            # Fallback check by certificate ID if an ID was passed in URL
+            doc = await CertificateRepository.get_by_id(verification_code)
         if not doc:
             raise NotFoundError(message="Certificate not found", code="CERTIFICATE_NOT_FOUND")
 
         if doc.get("status") == "revoked":
             raise ValidationError(message="Cannot download a revoked certificate", code="CERTIFICATE_REVOKED")
 
-        pdf_key = doc.get("file", {}).get("pdf_key")
+        pdf_key = doc.get("file", {}).get("pdf_key") or doc.get("storage_key") or doc.get("pdf_storage_key")
         if not pdf_key:
             raise NotFoundError(message="Certificate file not found", code="PDF_NOT_FOUND")
 

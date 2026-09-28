@@ -6,6 +6,7 @@ from app.core.database import DatabaseManager
 from app.queue.redis import get_redis_settings
 from app.workers.certificate_worker import generate_bulk_certificates_task
 from app.workers.zip_worker import create_zip_task
+from app.workers.email_worker import send_certificate_email_task, process_bulk_email_job_task
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,8 @@ class WorkerSettings:
     functions = [
         generate_bulk_certificates_task,
         create_zip_task,
+        send_certificate_email_task,
+        process_bulk_email_job_task,
     ]
     on_startup = startup
     on_shutdown = shutdown

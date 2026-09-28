@@ -136,6 +136,13 @@ class StorageService:
             return f.read()
 
     @classmethod
+    async def download_file(cls, storage_key: str) -> bytes:
+        data = cls.read_file(storage_key)
+        if data is None:
+            raise FileNotFoundError(f"Storage key {storage_key} not found")
+        return data
+
+    @classmethod
     def delete_file(cls, storage_key: str) -> bool:
         path = cls.get_file_path(storage_key)
         if path.is_file():

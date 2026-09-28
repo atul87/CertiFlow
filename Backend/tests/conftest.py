@@ -21,6 +21,7 @@ async def test_db_lifecycle(request):
         return
 
     settings.MONGODB_DATABASE = TEST_DB_NAME
+    settings.APP_ENV = "test"
     await DatabaseManager.connect()
     try:
         if DatabaseManager.db is not None:

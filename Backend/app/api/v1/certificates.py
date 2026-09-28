@@ -39,7 +39,12 @@ from app.schemas.certificate import (
     CertificateRevokeRequest,
     CertificateVerifyResponse,
 )
+from app.schemas.email import (
+    SendCertificateEmailRequest,
+    EmailDeliveryResponse,
+)
 from app.services.certificate_service import CertificateService
+from app.services.email_service import EmailService
 from app.repositories.certificate_repository import CertificateRepository
 
 router = APIRouter(tags=["Certificates"])
@@ -376,4 +381,66 @@ async def verify_certificate(code: str, request: Request):
         issued_at=None,
         status=result.status,
     )
+
+
+# ---------------------------------------------------------------------------
+# Certificate Email Delivery (P6.22 / P6.46)
+# ---------------------------------------------------------------------------
+
+@router.post(
+    "/certificates/{cert_id}/email",
+    response_model=APIResponse[EmailDeliveryResponse],
+    status_code=status.HTTP_201_CREATED,
+    summary="Send certificate by email",
+)
+async def send_certificate_email(
+    cert_id: str,
+    data: Optional[SendCertificateEmailRequest] = None,
+    context: Dict[str, Any] = Depends(get_current_user_and_org),
+):
+    org_id = context.get("org_id") or context["organization"]["id"]
+    user_id = context.get("user_id") or context["user"]["id"]
+
+    template_id = data.template_id if data else None
+    delivery_mode = data.delivery_mode.value if data else "link"
+    recipient_email = data.recipient_email if data else None
+
+    delivery = await EmailService.send_certificate_email(
+        certificate_id=cert_id,
+        org_id=org_id,
+        template_id=template_id,
+        delivery_mode=delivery_mode,
+        recipient_email_override=recipient_email,
+        user_id=user_id,
+    )
+    return APIResponse.ok(EmailDeliveryResponse(**delivery))
+
+
+@router.post(
+    "/certificates/{cert_id}/resend-email",
+    response_model=APIResponse[EmailDeliveryResponse],
+    status_code=status.HTTP_201_CREATED,
+    summary="Resend certificate by email",
+)
+async def resend_certificate_email(
+    cert_id: str,
+    data: Optional[SendCertificateEmailRequest] = None,
+    context: Dict[str, Any] = Depends(get_current_user_and_org),
+):
+    org_id = context.get("org_id") or context["organization"]["id"]
+    user_id = context.get("user_id") or context["user"]["id"]
+
+    template_id = data.template_id if data else None
+    delivery_mode = data.delivery_mode.value if data else "link"
+    recipient_email = data.recipient_email if data else None
+
+    delivery = await EmailService.resend_certificate_email(
+        certificate_id=cert_id,
+        org_id=org_id,
+        template_id=template_id,
+        delivery_mode=delivery_mode,
+        recipient_email_override=recipient_email,
+        user_id=user_id,
+    )
+    return APIResponse.ok(EmailDeliveryResponse(**delivery))
 

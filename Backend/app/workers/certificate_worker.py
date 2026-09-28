@@ -110,6 +110,20 @@ async def generate_bulk_certificates_task(
             await IssuanceJobRepository.increment_counts(job_id, inc_completed=1, inc_pending=-1)
             processed_count += 1
 
+            # P6: Auto-email if organization email settings has auto_email_on_issuance enabled
+            try:
+                from app.repositories.email_settings_repository import EmailSettingsRepository
+                from app.services.email_service import EmailService
+                email_settings = await EmailSettingsRepository.get_by_org(org_id)
+                if email_settings and email_settings.get("auto_email_on_issuance"):
+                    await EmailService.send_certificate_email(
+                        certificate_id=cert_res.id,
+                        org_id=org_id,
+                        user_id=user_id,
+                    )
+            except Exception as email_err:
+                logger.warning("Auto-email trigger failed for cert %s: %s", cert_res.id, email_err)
+
         except asyncio.TimeoutError:
             logger.warning("Render timeout for item %s in job %s", item_id, job_id)
             err = {

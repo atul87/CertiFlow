@@ -350,16 +350,113 @@ Redis Cache     MongoDB Lookup
 
 ---
 
-## 10. Running Automated Tests
+## 10. Phase 6 — Email Delivery, Notifications & Certificate Distribution
+
+Phase 6 implements a robust, asynchronous, multi-tenant email delivery system for automated and bulk certificate distribution.
+
+### Core Architecture
+
+```text
+Certificate Generated (P3/P4)
+              │
+              ▼
+   P6 Email Queue (Redis / ARQ)
+              │
+              ▼
+        Email Worker
+  ┌───────────┴───────────┐
+  ▼                       ▼
+Mock Provider       SMTP / API
+  │                       │
+  ▼                       ▼
+Recipient           Recipient
+  │                       │
+  └───────────┬───────────┘
+              ▼
+      Provider Webhooks
+  (delivered / bounced / complaint)
+              │
+              ▼
+  Email Delivery Status & Timeline
+```
+
+### Key Capabilities
+
+1. **Provider Abstraction**: Extensible interface (`EmailProvider`) supporting `MockEmailProvider` and `SMTPEmailProvider` (with STARTTLS and error code normalization).
+2. **Organization Email Settings**: Per-tenant sender configuration, custom SMTP credentials (secrets never returned in API responses), and `auto_email_on_issuance` toggle.
+3. **Template Engine & Variable Security**: Strict placeholder validation against allowed certificate/recipient/org variables (`{{recipient_name}}`, `{{certificate_number}}`, `{{verification_url}}`, `{{download_url}}`, etc.) with strict HTML-escaping to prevent XSS and template injection.
+4. **Three Delivery Modes**:
+   - `link`: HMAC-SHA256 signed temporary download URL.
+   - `attachment`: Direct PDF attachment with size limit checks (`MAX_EMAIL_ATTACHMENT_SIZE_MB=10`) and filename sanitization.
+   - `both`: Download link + PDF attachment.
+5. **Bulk Email Jobs & Progress Tracking**: Separate asynchronous job coordinator (`email_jobs` + `email_deliveries`) supporting controlled worker concurrency, rate limiting, and progress metrics.
+6. **Provider Webhooks & Idempotency**: Webhook endpoint (`/api/v1/webhooks/email/{provider}`) with signature verification, deduplication (`provider_event_id`), and lifecycle event tracking (`email_events`).
+7. **Bounce & Complaint Handling**: Automatic addition of hard bounces and spam complaints to organization suppression list (`email_suppressions`), with pre-send suppression checks protecting sender reputation.
+
+### P6 API Endpoints
+
+#### Email Templates
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/email/templates` | Create reusable email template with variable validation |
+| `GET` | `/api/v1/email/templates` | List organization email templates |
+| `GET` | `/api/v1/email/templates/{id}` | Get email template details |
+| `PUT` | `/api/v1/email/templates/{id}` | Update email template |
+| `DELETE` | `/api/v1/email/templates/{id}` | Delete email template |
+
+#### Settings, Preview & Suppression List
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/v1/email/settings` | Get organization email settings (secrets masked) |
+| `PUT` | `/api/v1/email/settings` | Update email provider settings (admin/owner only) |
+| `POST` | `/api/v1/email/preview` | Preview email rendering with certificate context |
+| `POST` | `/api/v1/email/test` | Send test email |
+| `GET` | `/api/v1/email/suppressions` | List suppressed email addresses |
+| `POST` | `/api/v1/email/suppressions` | Add email address to suppression list |
+| `DELETE` | `/api/v1/email/suppressions/{email}` | Remove email from suppression list |
+
+#### Certificate Email Issuance
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/certificates/{id}/email` | Queue certificate email delivery |
+| `POST` | `/api/v1/certificates/{id}/resend-email` | Resend certificate email (preserves audit history) |
+
+#### Bulk Email Jobs & Deliveries
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/email-jobs` | Create and start bulk email job |
+| `GET` | `/api/v1/email-jobs` | List bulk email jobs with pagination |
+| `GET` | `/api/v1/email-jobs/{id}` | Get bulk email job details |
+| `GET` | `/api/v1/email-jobs/{id}/progress` | Real-time progress and delivery rate metrics |
+| `POST` | `/api/v1/email-jobs/{id}/pause` | Pause email job |
+| `POST` | `/api/v1/email-jobs/{id}/resume` | Resume paused email job |
+| `POST` | `/api/v1/email-jobs/{id}/cancel` | Cancel email job |
+| `GET` | `/api/v1/email-deliveries` | List deliveries with status/certificate filtering |
+| `GET` | `/api/v1/email-deliveries/{id}` | Get delivery details with event audit timeline |
+| `POST` | `/api/v1/email-deliveries/{id}/retry` | Retry failed email delivery |
+
+#### Provider Webhooks
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/webhooks/email/{provider}` | Webhook for delivery, bounce, and complaint notifications |
+
+---
+
+## 11. Running Automated Tests
 
 ```bash
-# Run pure unit tests (instant, 64 tests, no DB needed)
+# Run pure unit tests (instant, 80 tests, no DB needed)
 pytest -m no_db
 
-# Run full integration test suite (50 tests against MongoDB)
+# Run full integration test suite (57 tests against MongoDB)
 pytest tests/integration/
 
-# Run complete test suite (114 tests)
+# Run complete test suite (137 tests)
 pytest
 ```
 

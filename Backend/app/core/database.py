@@ -226,6 +226,50 @@ class DatabaseManager:
             IndexModel([("organization_id", ASCENDING), ("timestamp", ASCENDING)], name="idx_verif_events_org_ts"),
         ])
 
+        # 19. Email Templates collection (P6)
+        email_tmpl_col = db["email_templates"]
+        await email_tmpl_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("name", ASCENDING)], name="idx_email_tmpl_org_name"),
+            IndexModel([("organization_id", ASCENDING), ("status", ASCENDING)], name="idx_email_tmpl_org_status"),
+        ])
+
+        # 20. Email Settings collection (P6)
+        email_settings_col = db["email_settings"]
+        await email_settings_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING)], unique=True, name="uniq_email_settings_org"),
+        ])
+
+        # 21. Email Deliveries collection (P6)
+        email_deliv_col = db["email_deliveries"]
+        await email_deliv_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("created_at", ASCENDING)], name="idx_email_deliv_org_created"),
+            IndexModel([("organization_id", ASCENDING), ("status", ASCENDING)], name="idx_email_deliv_org_status"),
+            IndexModel([("certificate_id", ASCENDING)], name="idx_email_deliv_cert_id"),
+            IndexModel([("recipient_email", ASCENDING)], name="idx_email_deliv_recipient"),
+            IndexModel([("provider_message_id", ASCENDING)], name="idx_email_deliv_msg_id", sparse=True),
+            IndexModel([("email_job_id", ASCENDING)], name="idx_email_deliv_job_id", sparse=True),
+        ])
+
+        # 22. Email Jobs collection (P6)
+        email_jobs_col = db["email_jobs"]
+        await email_jobs_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("created_at", ASCENDING)], name="idx_email_jobs_org_created"),
+            IndexModel([("organization_id", ASCENDING), ("status", ASCENDING)], name="idx_email_jobs_org_status"),
+        ])
+
+        # 23. Email Events collection (P6)
+        email_events_col = db["email_events"]
+        await email_events_col.create_indexes([
+            IndexModel([("delivery_id", ASCENDING), ("timestamp", ASCENDING)], name="idx_email_events_deliv_ts"),
+            IndexModel([("provider_event_id", ASCENDING)], unique=True, sparse=True, name="uniq_email_events_provider_event_id"),
+        ])
+
+        # 24. Email Suppressions collection (P6)
+        email_supp_col = db["email_suppressions"]
+        await email_supp_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("email", ASCENDING)], unique=True, name="uniq_email_supp_org_email"),
+        ])
+
         logger.info("MongoDB indexes verified successfully.")
 
 
