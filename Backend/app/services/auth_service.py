@@ -65,6 +65,10 @@ class AuthService:
             owner_id=user["id"]
         )
 
+        # Initialize default SaaS subscription (Starter trial)
+        from app.services.subscription_service import SubscriptionService
+        await SubscriptionService.initialize_org_subscription(org["id"], trial=True)
+
         # 5. Issue JWT access token + refresh token
         access_token = create_access_token(user_id=user["id"], org_id=org["id"])
         raw_refresh, token_hash, expires_at = generate_refresh_token(user_id=user["id"], org_id=org["id"])

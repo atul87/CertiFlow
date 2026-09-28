@@ -273,6 +273,10 @@ class CertificateService:
                 logger.info("Idempotency hit for key=%s", idempotency_key)
                 return CertificateResponse(**existing)
 
+        # Quota check — P10
+        from app.services.quota_service import QuotaService
+        await QuotaService.check_certificate_quota(org_id=org_id, quantity=1)
+
         # 1. Load template version (must be published)
         version_doc = await TemplateVersionRepository.get_by_id(
             str(request.template_version_id), org_id
@@ -458,6 +462,28 @@ class CertificateService:
             )
         except Exception as e:
             logger.warning("Failed to dispatch certificate.generated webhook: %s", e)
+
+        # 18. Usage Metering — P10
+        try:
+            from app.services.usage_service import UsageService
+            await UsageService.record_usage(
+                org_id=org_id,
+                metric="certificates_generated",
+                quantity=1,
+                resource_id=cert_id,
+                source="certificate_service.generate",
+            )
+            total_bytes = len(pdf_bytes) + len(render_result["preview_bytes"])
+            if total_bytes > 0:
+                await UsageService.record_usage(
+                    org_id=org_id,
+                    metric="storage_bytes",
+                    quantity=total_bytes,
+                    resource_id=cert_id,
+                    source="certificate_storage",
+                )
+        except Exception as e:
+            logger.warning("Failed to record usage for cert %s: %s", cert_id, e)
 
         return CertificateResponse(**updated)
 

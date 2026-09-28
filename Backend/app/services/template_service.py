@@ -33,6 +33,10 @@ class TemplateService:
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None
     ) -> TemplateResponse:
+        # 0. Check template quota — P10
+        from app.services.quota_service import QuotaService
+        await QuotaService.check_template_quota(org_id=org_id)
+
         # 1. Create main template document
         template_doc = await TemplateRepository.create(
             organization_id=org_id,

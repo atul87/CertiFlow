@@ -614,21 +614,110 @@ P9 elevates CertiFlow from a functional multi-tenant application to a battle-tes
 
 ---
 
-## 14. Running Automated Tests
+## 15. Phase 10 — Production Deployment, SaaS Infrastructure, Metering & Billing (P10)
+
+P10 transforms CertiFlow from production-hardened software into a commercial, highly scalable, multi-tenant SaaS platform with end-to-end billing, subscription management, usage metering, quota enforcement, cost controls, admin operations, and CI/CD pipelines.
+
+### 15.1 Decoupled Architecture
+
+CertiFlow follows a strict decoupled architecture: **Plan → Subscription → Entitlement → Usage → Quota**. Billing logic is never mixed directly into certificate generation or worker routines.
+
+```text
+User / Org Action
+      ↓
+EntitlementService.can_access_feature() / get_limit()
+      ↓
+QuotaService.check_certificate_quota()
+      ↓
+CertificateService.generate() / Worker Pipeline
+      ↓
+UsageService.record_usage()
+      ↓
+[usage_counters] (Atomic $inc in YYYY-MM) + [usage_events] (Immutable Audit Log)
+```
+
+### 15.2 Plan Catalog & Entitlement Matrix
+
+| Feature / Limit | Free Community | Starter | Professional | Business | Enterprise |
+|---|---|---|---|---|---|
+| **Monthly Price (INR)** | ₹0 | ₹499 | ₹1,999 | ₹7,999 | Custom |
+| **Certificates / Mo** | 100 | 1,000 | 5,000 | 25,000 | 100,000+ |
+| **Asset Storage** | 1 GB | 5 GB | 25 GB | 100 GB | 1 TB |
+| **Templates** | 3 | 10 | 50 | 200 | 1,000 |
+| **Team Seats** | 2 | 5 | 15 | 50 | 500 |
+| **Developer REST API** | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **Outbound Webhooks** | ❌ | 2 | 10 | 50 | 200 |
+| **Custom RBAC Roles** | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **Priority Queue** | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **White-Label Email** | ❌ | ❌ | ✅ | ✅ | ✅ |
+
+### 15.3 Subscription Lifecycle & Webhook Idempotency
+
+- **Default Trial**: Every newly registered organization receives an automatic 14-day trial of the **Starter** plan.
+- **Statuses**: `trialing` → `active` → `past_due` (with a 7-day grace period where generated certificates remain accessible) → `cancelled` / `expired`.
+- **Safe Downgrades**: Downgrading to a lower plan preserves all historical templates and certificates while blocking new creation beyond the lower tier's quota.
+- **Webhook Replay Protection**: Inbound webhooks (`POST /api/v1/billing/webhooks/{provider}`) use HMAC SHA-256 signature verification and enforce idempotency through a unique MongoDB index on `(provider, event_id)`. Re-delivering the same event is safe and produces no duplicate invoices or side effects.
+
+### 15.4 Usage Metering & Quota Warning System
+
+- **Atomic Increments**: Monthly counters are updated atomically via MongoDB `$inc` on `usage_counters` keyed by `(organization_id, metric, period)`.
+- **Soft Warnings & Hard Limits**:
+  - `80%` quota: Warning flag set on dashboard.
+  - `90%` quota: Critical warning banner triggered.
+  - `100%` quota: Hard limit reached; operations blocked with HTTP `403 Forbidden` (`CERTIFICATE_QUOTA_EXCEEDED`).
+- **Promotional Overrides**: Platform admins can grant temporary or promotional quota additions (e.g. +10,000 certificates for 30 days) with automatic expiration tracking.
+
+### 15.5 Infrastructure & CI/CD Artifacts
+
+- **Multi-Stage Dockerfiles**:
+  - `Dockerfile.api`: Production FastAPI image with unprivileged `appuser`, font dependencies, and curl health check.
+  - `Dockerfile.worker`: Background ARQ worker container with ReportLab/Pillow fonts, graceful `SIGTERM` stop signal handling, and high-concurrency settings.
+- **Docker Compose Orchestration**:
+  - `docker-compose.prod.yml`: Multi-replica API and worker cluster with resource limits, Redis persistence (AOF), healthcheck policies, and container network isolation.
+- **GitHub Actions CI/CD Pipeline**:
+  - `.github/workflows/ci.yml`: Automated backend linting (flake8), comprehensive pytest suite with coverage against live MongoDB/Redis service containers, Docker image build validation, and Next.js frontend builds.
+- **Operational Runbooks**:
+  - `docs/runbooks/api-outage.md`: API triage, container diagnostics, and rolling zero-downtime restarts.
+  - `docs/runbooks/billing-outage.md`: Inbound webhook desynchronization, HMAC troubleshooting, and grace period handling.
+  - `docs/runbooks/disaster-recovery.md`: RPO $\le 1$h / RTO $\le 4$h database backup restoration and worker re-queueing procedures.
+  - `docs/runbooks/worker-failure.md`: Queue backpressure, stalled job item recovery, and horizontal autoscaling.
+
+### 15.6 P10 Production Endpoints Summary
+
+| Category | Method | Endpoint | Description |
+|---|---|---|---|
+| **Plans** | `GET` | `/api/v1/plans` | Public catalog of active plans and full entitlement matrices |
+| | `GET` | `/api/v1/plans/{plan_id}` | Detailed plan features and limits |
+| **Subscriptions** | `GET` | `/api/v1/subscription` | Current organization subscription, status, and trial timeline |
+| | `POST` | `/api/v1/subscription/checkout` | Create checkout session for plan upgrade or renewal |
+| | `POST` | `/api/v1/subscription/cancel` | Schedule subscription cancellation at period end |
+| | `POST` | `/api/v1/subscription/resume` | Resume active subscription scheduled for cancellation |
+| **Billing & Usage** | `GET` | `/api/v1/billing/usage` | Monthly usage progress meters, percent used, and warning levels |
+| | `GET` | `/api/v1/billing/invoices` | List payment invoices and receipts |
+| | `GET` | `/api/v1/billing/invoices/{id}` | Retrieve individual invoice receipt details |
+| | `GET` | `/api/v1/billing/cost-estimate` | Internal unit cost estimate and infrastructure breakdown |
+| | `POST` | `/api/v1/billing/webhooks/{provider}` | Inbound webhook receiver with HMAC verification & idempotency |
+| **SaaS Admin** | `GET` | `/api/v1/admin/overview` | Platform-wide KPIs, MRR calculation, and subscription stats |
+| | `POST` | `/api/v1/admin/organizations/{id}/subscription` | Manually override subscription tier or status (Support) |
+| | `POST` | `/api/v1/admin/organizations/{id}/entitlements/grant` | Grant temporary or promotional quota override |
+| | `POST` | `/api/v1/admin/organizations/{id}/suspend` | Suspend organization for abuse or non-payment |
+| | `POST` | `/api/v1/admin/organizations/{id}/restore` | Restore suspended organization to active standing |
+
+---
+
+## 16. Running Automated Tests
 
 ```bash
-# Run pure unit tests (instant, 120 tests, no DB needed)
+# Run pure unit tests (instant, 126 tests, no DB needed)
 .venv\Scripts\pytest -m no_db
 
-# Run full integration test suite (79 tests against MongoDB)
-.venv\Scripts\pytest tests/integration/
+# Run billing, subscription, and quota test suites
+.venv\Scripts\pytest tests/unit/test_billing_and_quotas.py tests/integration/test_billing_and_subscriptions.py tests/security/test_billing_security.py
 
-# Run security test suite (16 dedicated security tests)
-.venv\Scripts\pytest tests/security/
-
-# Run complete test suite (215 tests passing, 0 regressions)
+# Run complete test suite (232 tests passing, 0 regressions)
 .venv\Scripts\pytest
 ```
+
 
 
 

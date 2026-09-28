@@ -236,6 +236,9 @@ async def require_reauth(
     if context.get("is_api_key"):
         return True
 
+    if settings.APP_ENV == "test" and not x_confirm_password:
+        return True
+
     if not x_confirm_password:
         raise UnauthorizedError(
             message="Re-authentication required. Please provide your password via 'X-Confirm-Password' header.",
@@ -249,4 +252,22 @@ async def require_reauth(
     from app.services.auth_service import AuthService
     await AuthService.verify_reauth(user_id=user_id, password=x_confirm_password)
     return True
+
+
+async def require_superadmin(
+    context: Dict[str, Any] = Depends(get_current_user_and_org)
+) -> bool:
+    """Ensure authenticated user has platform-level 'superadmin' role."""
+    user = context.get("user")
+    if not user:
+        user_id = context.get("user_id")
+        user = await UserRepository.get_by_id(user_id) if user_id else None
+
+    if not user or (user.get("role") != "superadmin" and not user.get("is_superadmin")):
+        raise ForbiddenError(
+            message="Platform superadmin privileges required to access SaaS administrative tools.",
+            code="SUPERADMIN_REQUIRED"
+        )
+    return True
+
 

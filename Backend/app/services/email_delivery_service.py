@@ -243,6 +243,19 @@ class EmailDeliveryService:
                 except Exception:
                     pass
 
+                # Usage metering — P10
+                try:
+                    from app.services.usage_service import UsageService
+                    await UsageService.record_usage(
+                        org_id=str(org_id),
+                        metric="emails_sent",
+                        quantity=1,
+                        resource_id=delivery_id,
+                        source="email_delivery_service"
+                    )
+                except Exception as e_use:
+                    logger.warning("Failed to record email usage: %s", e_use)
+
                 return updated
             else:
                 return await cls._handle_failure(

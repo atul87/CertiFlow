@@ -82,6 +82,10 @@ class IssuanceService:
                 code="NO_VALID_RECIPIENTS",
             )
 
+        # 4b. Check certificate quota for bulk issuance — P10
+        from app.services.quota_service import QuotaService
+        await QuotaService.check_certificate_quota(org_id=org_id, quantity=len(valid_rows))
+
         # 5. Create Issuance Job in database
         job_doc = await IssuanceJobRepository.create(
             organization_id=org_id,

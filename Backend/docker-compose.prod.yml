@@ -1,0 +1,153 @@
+version: '3.8'
+
+services:
+  # ----------------------------------------------------------------------
+  # CertiFlow FastAPI Core API Service
+  # ----------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: certiflow/api:latest
+    restart: always
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_NAME=CertiFlow Production API
+      - APP_ENV=production
+      - DEBUG=false
+      - API_V1_PREFIX=/api/v1
+      - MONGODB_URI=${MONGODB_URI}
+      - MONGODB_DATABASE=${MONGODB_DATABASE:-certiflow_production}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - REFRESH_TOKEN_EXPIRE_DAYS=30
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - BILLING_PROVIDER=${BILLING_PROVIDER:-mock}
+      - BILLING_SECRET_KEY=${BILLING_SECRET_KEY}
+      - BILLING_WEBHOOK_SECRET=${BILLING_WEBHOOK_SECRET}
+      - CORS_ORIGINS=${CORS_ORIGINS:-["https://app.certiflow.io","https://certiflow.io"]}
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - certiflow_shared_storage:/app/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - certiflow-network
+
+  # ----------------------------------------------------------------------
+  # Bulk Certificate Generation Worker
+  # ----------------------------------------------------------------------
+  worker-certificate:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    image: certiflow/worker:latest
+    restart: always
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 3072M
+        reservations:
+          cpus: '0.5'
+          memory: 1024M
+    environment:
+      - APP_NAME=CertiFlow Certificate Worker
+      - APP_ENV=production
+      - MONGODB_URI=${MONGODB_URI}
+      - MONGODB_DATABASE=${MONGODB_DATABASE:-certiflow_production}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - WORKER_CONCURRENCY=10
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - certiflow_shared_storage:/app/storage
+    networks:
+      - certiflow-network
+
+  # ----------------------------------------------------------------------
+  # Email Notification & Delivery Worker
+  # ----------------------------------------------------------------------
+  worker-email:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    image: certiflow/worker:latest
+    restart: always
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+    environment:
+      - APP_NAME=CertiFlow Email Worker
+      - APP_ENV=production
+      - MONGODB_URI=${MONGODB_URI}
+      - MONGODB_DATABASE=${MONGODB_DATABASE:-certiflow_production}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - EMAIL_PROVIDER=${EMAIL_PROVIDER:-mock}
+      - EMAIL_WORKER_CONCURRENCY=5
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - certiflow_shared_storage:/app/storage
+    networks:
+      - certiflow-network
+
+  # ----------------------------------------------------------------------
+  # Redis Queue & Rate Limit Broker
+  # ----------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: certiflow-prod-redis
+    restart: always
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 1024mb
+      --maxmemory-policy noeviction
+    volumes:
+      - certiflow_prod_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - certiflow-network
+
+volumes:
+  certiflow_shared_storage:
+    driver: local
+  certiflow_prod_redis_data:
+    driver: local
+
+networks:
+  certiflow-network:
+    driver: bridge

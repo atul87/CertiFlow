@@ -382,6 +382,62 @@ class DatabaseManager:
             IndexModel([("last_seen", ASCENDING)], name="idx_worker_heartbeats_last_seen"),
         ])
 
+        # 40. Plans collection (P10)
+        plans_col = db["plans"]
+        await plans_col.create_indexes([
+            IndexModel([("plan_id", ASCENDING)], unique=True, name="uniq_plans_plan_id"),
+            IndexModel([("status", ASCENDING)], name="idx_plans_status"),
+        ])
+
+        # 41. Subscriptions collection (P10)
+        subs_col = db["subscriptions"]
+        await subs_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING)], unique=True, name="uniq_subscriptions_org"),
+            IndexModel([("status", ASCENDING)], name="idx_subscriptions_status"),
+            IndexModel([("provider_subscription_id", ASCENDING)], name="idx_subscriptions_provider_id"),
+        ])
+
+        # 42. Billing Customers collection (P10)
+        billing_cust_col = db["billing_customers"]
+        await billing_cust_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING)], unique=True, name="uniq_billing_cust_org"),
+            IndexModel([("provider", ASCENDING), ("provider_customer_id", ASCENDING)], name="idx_billing_cust_provider_id"),
+        ])
+
+        # 43. Billing Events collection (P10) - Idempotency
+        billing_events_col = db["billing_events"]
+        await billing_events_col.create_indexes([
+            IndexModel([("provider", ASCENDING), ("event_id", ASCENDING)], unique=True, name="uniq_billing_events_prov_id"),
+            IndexModel([("organization_id", ASCENDING), ("created_at", ASCENDING)], name="idx_billing_events_org_created"),
+        ])
+
+        # 44. Invoices collection (P10)
+        invoices_col = db["invoices"]
+        await invoices_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("created_at", ASCENDING)], name="idx_invoices_org_created"),
+            IndexModel([("provider_invoice_id", ASCENDING)], name="idx_invoices_provider_id"),
+            IndexModel([("status", ASCENDING)], name="idx_invoices_status"),
+        ])
+
+        # 45. Usage Events collection (P10)
+        usage_events_col = db["usage_events"]
+        await usage_events_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("metric", ASCENDING), ("period", ASCENDING)], name="idx_usage_events_org_metric_period"),
+            IndexModel([("created_at", ASCENDING)], name="idx_usage_events_created"),
+        ])
+
+        # 46. Usage Counters collection (P10)
+        usage_counters_col = db["usage_counters"]
+        await usage_counters_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("metric", ASCENDING), ("period", ASCENDING)], unique=True, name="uniq_usage_counters_key"),
+        ])
+
+        # 47. Entitlement Overrides collection (P10)
+        entitlement_overrides_col = db["entitlement_overrides"]
+        await entitlement_overrides_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("feature", ASCENDING)], name="idx_entitlement_overrides_org_feat"),
+        ])
+
         logger.info("MongoDB indexes verified successfully.")
 
 

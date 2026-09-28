@@ -16,6 +16,8 @@ async def lifespan(app: FastAPI):
     # Startup
     setup_logging()
     await DatabaseManager.connect()
+    from app.repositories.plan_repository import PlanRepository
+    await PlanRepository.ensure_default_plans()
     yield
     # Shutdown
     await QueueManager.close()

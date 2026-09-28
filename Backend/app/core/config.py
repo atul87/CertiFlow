@@ -90,8 +90,20 @@ class Settings(BaseSettings):
     ENABLE_PROMETHEUS_METRICS: bool = True
     STUCK_JOB_TIMEOUT_SECONDS: int = 600
     HEARTBEAT_INTERVAL_SECONDS: int = 30
-    BUILD_COMMIT: str = "certiflow-p9-prod"
+    BUILD_COMMIT: str = "certiflow-p10-prod"
     ENABLE_SECURITY_HEADERS: bool = True
+
+    # Production Deployment, SaaS & Billing (P10)
+    BILLING_PROVIDER: str = "mock"
+    BILLING_SECRET_KEY: str = "sk_test_certiflow_mock_billing_secret_key_32c"
+    BILLING_WEBHOOK_SECRET: str = "whsec_mock_billing_webhook_secret_key_32c"
+    BILLING_CURRENCY: str = "INR"
+    DEFAULT_TRIAL_DAYS: int = 14
+    BILLING_GRACE_PERIOD_DAYS: int = 7
+    BILLING_WARNING_THRESHOLDS: List[int] = [80, 90, 100]
+    COST_PER_CERTIFICATE: float = 0.05
+    COST_PER_EMAIL: float = 0.01
+    COST_PER_GB_STORAGE_MONTHLY: float = 2.0
 
     # CORS
     CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://127.0.0.1:3000"]

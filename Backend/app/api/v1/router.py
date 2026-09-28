@@ -25,6 +25,10 @@ from app.api.v1.teams import router as teams_router
 from app.api.v1.api_keys import router as api_keys_router
 from app.api.v1.service_accounts import router as service_accounts_router
 from app.api.v1.api_usage import router as api_usage_router
+from app.api.v1.plans import router as plans_router
+from app.api.v1.subscriptions import router as subscriptions_router
+from app.api.v1.billing import router as billing_router
+from app.api.v1.admin import router as admin_router
 
 api_v1_router = APIRouter()
 
@@ -53,4 +57,8 @@ api_v1_router.include_router(analytics_router)
 api_v1_router.include_router(reports_router)
 api_v1_router.include_router(activity_router)
 api_v1_router.include_router(api_usage_router)
+api_v1_router.include_router(plans_router)
+api_v1_router.include_router(subscriptions_router)
+api_v1_router.include_router(billing_router)
+api_v1_router.include_router(admin_router)
 
