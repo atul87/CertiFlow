@@ -215,25 +215,22 @@ export function FeatureDynamicFields() {
             <div className="flex gap-2">
               <button
                 onClick={() => setActiveStage("csv")}
-                className={`px-3 py-1 text-[12px] rounded-lg border font-medium transition-colors ${
-                  activeStage === "csv" ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]" : "bg-white text-gray-600 border-[var(--color-border)]"
-                }`}
+                className={`px-3 py-1 text-[12px] rounded-lg border font-medium transition-colors ${activeStage === "csv" ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]" : "bg-white text-gray-600 border-[var(--color-border)]"
+                  }`}
               >
                 1. CSV Columns
               </button>
               <button
                 onClick={() => setActiveStage("template")}
-                className={`px-3 py-1 text-[12px] rounded-lg border font-medium transition-colors ${
-                  activeStage === "template" ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]" : "bg-white text-gray-600 border-[var(--color-border)]"
-                }`}
+                className={`px-3 py-1 text-[12px] rounded-lg border font-medium transition-colors ${activeStage === "template" ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]" : "bg-white text-gray-600 border-[var(--color-border)]"
+                  }`}
               >
                 2. Template Tags
               </button>
               <button
                 onClick={() => setActiveStage("result")}
-                className={`px-3 py-1 text-[12px] rounded-lg border font-medium transition-colors ${
-                  activeStage === "result" ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]" : "bg-white text-gray-600 border-[var(--color-border)]"
-                }`}
+                className={`px-3 py-1 text-[12px] rounded-lg border font-medium transition-colors ${activeStage === "result" ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]" : "bg-white text-gray-600 border-[var(--color-border)]"
+                  }`}
               >
                 3. Final Render
               </button>
@@ -327,7 +324,8 @@ export function FeatureDynamicFields() {
    Layout: Visual Left / Text Right
    ───────────────────────────────────────────── */
 export function FeatureAutoFit() {
-  const [currentSize, setCurrentSize] = useState<72 | 68 | 64>(64);
+  const textFitSizes = [72, 68, 64] as const;
+  const [currentSize, setCurrentSize] = useState<(typeof textFitSizes)[number]>(64);
 
   return (
     <section className="section-padding border-t border-[var(--color-border)] bg-white">
@@ -352,15 +350,14 @@ export function FeatureAutoFit() {
               </div>
 
               <div className="flex items-center justify-center gap-3 mt-5">
-                {[72, 68, 64].map((sz) => (
+                {textFitSizes.map((sz) => (
                   <button
                     key={sz}
-                    onClick={() => setCurrentSize(sz as any)}
-                    className={`px-3 py-1 rounded text-[12px] font-mono border transition-colors ${
-                      currentSize === sz
+                    onClick={() => setCurrentSize(sz)}
+                    className={`px-3 py-1 rounded text-[12px] font-mono border transition-colors ${currentSize === sz
                         ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
                         : "bg-white text-gray-600 border-[var(--color-border)]"
-                    }`}
+                      }`}
                   >
                     {sz}px {sz === 64 ? "✓ Perfect Fit" : "Overflowing"}
                   </button>

@@ -28,11 +28,11 @@
   --color-danger-light: #FEF3F2;
 }
 
-/* ── Base Styles ─────────────────────────── */
 html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
 }
 
 body {
@@ -40,6 +40,7 @@ body {
   color: var(--color-text);
   line-height: 1.6;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  overflow-x: clip;
 }
 
 /* ── Global Layout Containers ────────────── */

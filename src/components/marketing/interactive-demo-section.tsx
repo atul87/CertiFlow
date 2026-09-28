@@ -23,6 +23,10 @@ const sampleAttendees = [
   { name: "Priya Singh", course: "AI Mastery 2026", date: "27 Sep 2026", id: "CERT-003" },
 ];
 
+type DemoStep = 1 | 2 | 3 | 4;
+
+const toDemoStep = (value: number): DemoStep => Math.min(4, Math.max(1, value)) as DemoStep;
+
 export function InteractiveDemoSection() {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
   const [selectedAttendee, setSelectedAttendee] = useState(0);
@@ -52,14 +56,13 @@ export function InteractiveDemoSection() {
             ].map((s) => (
               <button
                 key={s.num}
-                onClick={() => setCurrentStep(s.num as any)}
-                className={`py-2 px-1 text-[13px] font-semibold rounded-lg border transition-all text-center ${
-                  currentStep === s.num
+                onClick={() => setCurrentStep(toDemoStep(s.num))}
+                className={`py-2 px-1 text-[13px] font-semibold rounded-lg border transition-all text-center ${currentStep === s.num
                     ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)] shadow-xs"
                     : currentStep > s.num
-                    ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                    : "bg-[var(--color-background)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:bg-gray-100"
-                }`}
+                      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                      : "bg-[var(--color-background)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:bg-gray-100"
+                  }`}
               >
                 {currentStep > s.num ? `✓ ${s.label.split(" ")[1]}` : s.label}
               </button>
@@ -161,11 +164,10 @@ export function InteractiveDemoSection() {
                       <button
                         key={a.name}
                         onClick={() => setSelectedAttendee(i)}
-                        className={`px-3 py-1 text-[12px] font-medium rounded-md transition-colors ${
-                          selectedAttendee === i
+                        className={`px-3 py-1 text-[12px] font-medium rounded-md transition-colors ${selectedAttendee === i
                             ? "bg-[var(--color-primary)] text-white shadow-xs"
                             : "text-[var(--color-text-secondary)] hover:text-black"
-                        }`}
+                          }`}
                       >
                         {a.name.split(" ")[0]}
                       </button>
@@ -236,7 +238,7 @@ export function InteractiveDemoSection() {
               variant="ghost"
               size="sm"
               disabled={currentStep === 1}
-              onClick={() => setCurrentStep((prev) => Math.max(1, prev - 1) as any)}
+              onClick={() => setCurrentStep((prev) => toDemoStep(prev - 1))}
               className="gap-1"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -250,7 +252,7 @@ export function InteractiveDemoSection() {
             {currentStep < 4 ? (
               <Button
                 size="sm"
-                onClick={() => setCurrentStep((prev) => Math.min(4, prev + 1) as any)}
+                onClick={() => setCurrentStep((prev) => toDemoStep(prev + 1))}
                 className="gap-1"
               >
                 Next Step

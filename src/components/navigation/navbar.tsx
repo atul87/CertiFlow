@@ -40,10 +40,9 @@ export function Navbar({ onWatchDemo }: NavbarProps) {
         className={`
           sticky top-0 left-0 right-0 z-40 h-[72px]
           transition-all duration-200
-          ${
-            scrolled
-              ? "bg-white/85 backdrop-blur-md border-b border-[var(--color-border)] shadow-xs"
-              : "bg-transparent"
+          ${scrolled
+            ? "bg-white/85 backdrop-blur-md border-b border-[var(--color-border)] shadow-xs"
+            : "bg-transparent"
           }
         `}
       >
@@ -155,7 +154,11 @@ export function Navbar({ onWatchDemo }: NavbarProps) {
           >
             <div className="flex justify-between items-center pb-6 border-b border-[var(--color-border)]">
               <span className="text-[18px] font-bold">CERTIFLOW</span>
-              <button onClick={() => setMobileOpen(false)} className="p-2">
+              <button
+                onClick={() => setMobileOpen(false)}
+                aria-label="Close menu"
+                className="p-2"
+              >
                 <X className="w-6 h-6" />
               </button>
             </div>

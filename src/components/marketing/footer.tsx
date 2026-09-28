@@ -29,10 +29,10 @@ export function Footer() {
               Product
             </p>
             <ul className="space-y-2.5 text-[14px]">
-              <li><Link href="/#features" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Features</Link></li>
-              <li><Link href="/#templates" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Templates</Link></li>
-              <li><Link href="/#pricing" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Pricing</Link></li>
-              <li><Link href="/#demo" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Demo</Link></li>
+              <li><Link href="/features" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Features</Link></li>
+              <li><Link href="/templates" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Templates</Link></li>
+              <li><Link href="/pricing" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Pricing</Link></li>
+              <li><Link href="/demo" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Demo</Link></li>
             </ul>
           </div>
 
@@ -55,10 +55,10 @@ export function Footer() {
               Resources
             </p>
             <ul className="space-y-2.5 text-[14px]">
-              <li><Link href="/#demo" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Documentation</Link></li>
-              <li><Link href="/#demo" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Guides</Link></li>
+              <li><Link href="/resources" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Documentation</Link></li>
+              <li><Link href="/resources" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Guides</Link></li>
               <li><Link href="/#faq" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">FAQ</Link></li>
-              <li><Link href="/#demo" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Blog</Link></li>
+              <li><Link href="/resources" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Knowledge Base</Link></li>
             </ul>
           </div>
 
@@ -70,7 +70,7 @@ export function Footer() {
             <ul className="space-y-2.5 text-[14px]">
               <li><Link href="/about" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">About</Link></li>
               <li><Link href="/contact" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Contact</Link></li>
-              <li><Link href="/#security" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Security</Link></li>
+              <li><Link href="/security" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Security</Link></li>
               <li><Link href="/privacy" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Privacy</Link></li>
               <li><Link href="/terms" className="text-[var(--color-text-secondary)] hover:text-black transition-colors">Terms</Link></li>
             </ul>

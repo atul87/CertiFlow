@@ -78,11 +78,14 @@ export function Dashboard() {
               <Link href="/app" className="px-3 py-1.5 font-semibold text-[var(--color-primary)] bg-[var(--color-primary-subtle)] rounded-md">
                 Projects
               </Link>
+              <Link href="/app/certificates" className="px-3 py-1.5 text-[var(--color-text-secondary)] hover:text-[var(--color-text)] rounded-md transition-colors">
+                Certificates Vault
+              </Link>
               <Link href="/templates" className="px-3 py-1.5 text-[var(--color-text-secondary)] hover:text-[var(--color-text)] rounded-md transition-colors">
                 Templates
               </Link>
-              <Link href="/verify/CERT-001" className="px-3 py-1.5 text-[var(--color-text-secondary)] hover:text-[var(--color-text)] rounded-md transition-colors">
-                Registry
+              <Link href="/app/settings" className="px-3 py-1.5 text-[var(--color-text-secondary)] hover:text-[var(--color-text)] rounded-md transition-colors">
+                Settings
               </Link>
             </nav>
           </div>

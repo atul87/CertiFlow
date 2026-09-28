@@ -41,10 +41,11 @@ export default function LoginPage() {
         <div className="bg-white border border-[var(--color-border)] rounded-2xl p-6 sm:p-8 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-[13px] font-medium text-[var(--color-text)] mb-1.5">
+              <label htmlFor="login-email" className="block text-[13px] font-medium text-[var(--color-text)] mb-1.5">
                 Work Email
               </label>
               <input
+                id="login-email"
                 type="email"
                 required
                 value={email}
@@ -56,14 +57,15 @@ export default function LoginPage() {
 
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <label className="block text-[13px] font-medium text-[var(--color-text)]">
+                <label htmlFor="login-password" className="block text-[13px] font-medium text-[var(--color-text)]">
                   Password
                 </label>
-                <a href="#" className="text-[12px] text-[var(--color-primary)] hover:underline">
+                <Link href="/forgot-password" className="text-[12px] text-[var(--color-primary)] hover:underline">
                   Forgot password?
-                </a>
+                </Link>
               </div>
               <input
+                id="login-password"
                 type="password"
                 required
                 value={password}

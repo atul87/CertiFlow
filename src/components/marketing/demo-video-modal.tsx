@@ -69,7 +69,7 @@ export function DemoVideoModal({ isOpen, onClose }: DemoVideoModalProps) {
 
   // Video playback timer
   useEffect(() => {
-    let interval: any;
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (isOpen && isPlaying) {
       interval = setInterval(() => {
         setSeconds((prev) => {
@@ -113,6 +113,7 @@ export function DemoVideoModal({ isOpen, onClose }: DemoVideoModalProps) {
             </div>
             <button
               onClick={onClose}
+              aria-label="Close demo"
               className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
             >
               <X className="w-4 h-4" />
