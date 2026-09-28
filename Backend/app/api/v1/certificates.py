@@ -26,6 +26,7 @@ import io
 from app.api.deps import (
     get_current_user_and_org,
     require_role,
+    require_permission,
     get_client_ip,
     get_client_user_agent,
 )
@@ -91,26 +92,29 @@ async def preview_certificate(
         "Runs the full generation pipeline: validate → render → PDF → store → "
         "record.  Supports idempotency via the `Idempotency-Key` header."
     ),
+    dependencies=[Depends(require_permission("certificates.create"))],
 )
 async def generate_certificate(
     data: CertificateGenerateRequest,
     request: Request,
     context: Dict[str, Any] = Depends(get_current_user_and_org),
 ):
-    user = context["user"]
-    org_id = context["organization"]["id"]
+    user = context.get("user") or {}
+    user_id = context.get("user_id") or user.get("id", "")
+    org_id = context.get("org_id") or (context.get("organization") or {}).get("id", "")
     idempotency_key: Optional[str] = request.headers.get("Idempotency-Key")
     ip = get_client_ip(request)
     ua = get_client_user_agent(request)
     cert = await CertificateService.generate(
         request=data,
         org_id=org_id,
-        user_id=user["id"],
+        user_id=user_id,
         idempotency_key=idempotency_key,
         ip_address=ip,
         user_agent=ua,
     )
     return APIResponse.ok(cert)
+
 
 
 # ---------------------------------------------------------------------------
@@ -121,6 +125,7 @@ async def generate_certificate(
     "/certificates",
     response_model=APIResponse[CertificateListResponse],
     summary="List certificates with advanced search & filters",
+    dependencies=[Depends(require_permission("certificates.read"))],
 )
 async def list_certificates(
     page: int = Query(1, ge=1),

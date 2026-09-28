@@ -66,6 +66,17 @@ class Settings(BaseSettings):
     REPORT_EXPIRY_HOURS: int = 24
     MAX_REPORT_ROWS: int = 100000
 
+    # Teams, RBAC, API Keys & Webhooks (P8)
+    INVITATION_EXPIRY_DAYS: int = 7
+    API_KEY_PREFIX_LIVE: str = "ck_live_"
+    API_KEY_PREFIX_TEST: str = "ck_test_"
+    API_KEY_DEFAULT_RATE_LIMIT_READ: int = 1000
+    API_KEY_DEFAULT_RATE_LIMIT_WRITE: int = 100
+    WEBHOOK_TIMEOUT_SECONDS: int = 10
+    WEBHOOK_MAX_RETRIES: int = 5
+    WEBHOOK_RETRY_BACKOFF_BASE: int = 60
+    IDEMPOTENCY_TTL_SECONDS: int = 86400
+
     # CORS
     CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
 

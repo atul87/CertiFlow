@@ -485,16 +485,99 @@ P7 turns the platform into a multi-tenant SaaS control center. It computes preci
 
 ---
 
-## 12. Running Automated Tests
+## 12. P8 — Teams, RBAC, API Keys, Developer API & Webhooks
+
+P8 evolves CertiFlow from a single-organization application into a full multi-user, multi-tenant SaaS platform with programmatic developer integrations.
+
+```text
+                    ORGANIZATION
+                         │
+          ┌──────────────┼──────────────┐
+          ↓              ↓              ↓
+        Users          Teams       API Clients
+          │              │              │
+          └──────────────┼──────────────┘
+                         ↓
+                       RBAC
+                         │
+              ┌──────────┼──────────┐
+              ↓          ↓          ↓
+             UI         API       Webhooks
+```
+
+### Key Capabilities
+
+1. **Multi-Organization & Switching**: Users can belong to multiple organizations with distinct roles. Active organization context is switchable via `POST /api/v1/organization/switch` or client-controlled `X-Organization-Id` header validated against server-side membership.
+2. **Secure Invitations & Member Lifecycle**: Single-use cryptographically secure invitation tokens (SHA-256 hashed in database). Member suspension restricts operational actions while preserving historical audit logs. Sole organization owners cannot be deleted without prior explicit ownership transfer.
+3. **Fine-Grained RBAC & Custom Roles**: Central permission registry (`PERMISSIONS`) with default system roles (`owner`, `admin`, `member`, `viewer`) and custom organization roles. Protected server-side via `require_permission(permission)`.
+4. **Teams System**: Departmental groupings (`teams`, `team_members`) for organizing workforce and permissions.
+5. **Developer API & API Keys**: High-entropy keys prefixed with `ck_live_` shown only once at creation time, securely hashed for storage. Granular scopes (`certificates:read`, `certificates:create`, etc.), sliding-window Redis rate limiting, request IDs, and request idempotency via `Idempotency-Key`.
+6. **Service Accounts**: Non-human machine accounts for ERP/LMS integrations.
+7. **Outbound Webhooks**: Event subscriptions for lifecycle triggers (`certificate.generated`, `certificate.revoked`, `certificate.restored`, `issuance_job.completed`, `email.sent`, `email.delivered`, `email.bounced`). Signed with HMAC-SHA256 (`X-Webhook-Signature`, `X-Webhook-Timestamp`), replay attack prevention, strict SSRF protection blocking loopback and cloud metadata IPs, and background ARQ worker delivery with exponential retry backoff.
+8. **API Usage Telemetry**: Latency tracking, status code distribution (2xx, 4xx, 5xx, 429), and top endpoint breakdown via `GET /api/v1/api-usage`.
+
+### P8 API Endpoints
+
+| Category | Method | Endpoint | Description |
+|---|---|---|---|
+| **Members** | `GET` | `/api/v1/organization/members` | List members with status filtering & pagination |
+| | `PATCH` | `/api/v1/organization/members/{id}` | Update member role or suspension status |
+| | `DELETE` | `/api/v1/organization/members/{id}` | Remove member (soft removal preserving audit logs) |
+| | `POST` | `/api/v1/organization/transfer-ownership` | Transfer organization ownership to an active member |
+| | `POST` | `/api/v1/organization/switch` | Switch active organization and issue scoped session tokens |
+| **Invitations** | `POST` | `/api/v1/organization/invitations` | Invite a member by email with specified role |
+| | `GET` | `/api/v1/organization/invitations` | List pending and historical organization invitations |
+| | `POST` | `/api/v1/organization/invitations/{id}/resend` | Refresh and resend an invitation token |
+| | `DELETE` | `/api/v1/organization/invitations/{id}` | Cancel/revoke a pending invitation |
+| | `POST` | `/api/v1/organization/invitations/accept` | Accept an invitation token & join organization |
+| **Roles** | `GET` | `/api/v1/roles` | List system and custom roles |
+| | `POST` | `/api/v1/roles` | Create a custom role with defined permissions |
+| | `GET` | `/api/v1/roles/{id}` | Get details of a system or custom role |
+| | `PATCH` | `/api/v1/roles/{id}` | Update custom role name, description, or permissions |
+| | `DELETE` | `/api/v1/roles/{id}` | Delete custom role (blocked if members are assigned) |
+| | `GET` | `/api/v1/roles/permissions/registry` | List all valid permissions in the platform registry |
+| **Teams** | `GET` | `/api/v1/teams` | List organization teams |
+| | `POST` | `/api/v1/teams` | Create a new team |
+| | `GET` | `/api/v1/teams/{id}` | Get team details |
+| | `PATCH` | `/api/v1/teams/{id}` | Update team name or description |
+| | `DELETE` | `/api/v1/teams/{id}` | Delete a team |
+| | `GET` | `/api/v1/teams/{id}/members` | List members of a team |
+| | `POST` | `/api/v1/teams/{id}/members` | Add an active organization member to a team |
+| | `DELETE` | `/api/v1/teams/{id}/members/{user_id}` | Remove a member from a team |
+| **API Keys** | `GET` | `/api/v1/api-keys` | List organization API keys (secrets omitted) |
+| | `POST` | `/api/v1/api-keys` | Generate high-entropy API key (returned plaintext once) |
+| | `GET` | `/api/v1/api-keys/{id}` | Get API key metadata |
+| | `POST` | `/api/v1/api-keys/{id}/revoke` | Revoke an API key immediately |
+| | `DELETE` | `/api/v1/api-keys/{id}` | Delete API key record |
+| **Service Accounts** | `GET` | `/api/v1/service-accounts` | List service accounts |
+| | `POST` | `/api/v1/service-accounts` | Create a service account for machine integrations |
+| | `GET` | `/api/v1/service-accounts/{id}` | Get service account details |
+| | `PATCH` | `/api/v1/service-accounts/{id}` | Update service account details |
+| | `DELETE` | `/api/v1/service-accounts/{id}` | Delete a service account |
+| **Outbound Webhooks** | `GET` | `/api/v1/webhooks` | List webhook subscriptions |
+| | `POST` | `/api/v1/webhooks` | Register webhook subscription with event filters |
+| | `GET` | `/api/v1/webhooks/{id}` | Get webhook endpoint details |
+| | `PATCH` | `/api/v1/webhooks/{id}` | Update URL, events, or status |
+| | `DELETE` | `/api/v1/webhooks/{id}` | Delete webhook endpoint |
+| | `POST` | `/api/v1/webhooks/{id}/test` | Send test webhook ping & verify connectivity |
+| | `POST` | `/api/v1/webhooks/{id}/rotate-secret` | Rotate HMAC signing secret |
+| | `GET` | `/api/v1/webhooks/{id}/deliveries` | List delivery history and response times |
+| | `POST` | `/api/v1/webhook-deliveries/{id}/retry` | Manually retry a failed delivery |
+| **API Usage** | `GET` | `/api/v1/api-usage` | Telemetry metrics (requests, 2xx, 4xx, 5xx, latency) |
+
+---
+
+## 13. Running Automated Tests
 
 ```bash
-# Run pure unit tests (instant, 116 tests, no DB needed)
+# Run pure unit tests (instant, 120 tests, no DB needed)
 pytest -m no_db
 
-# Run full integration test suite (65 tests against MongoDB)
+# Run full integration test suite (76 tests against MongoDB)
 pytest tests/integration/
 
-# Run complete test suite (181 tests)
+# Run complete test suite (196 tests passing, 0 regressions)
 pytest
 ```
+
 

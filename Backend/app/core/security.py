@@ -22,6 +22,9 @@ def hash_password(password: str) -> str:
     return ph.hash(password)
 
 
+get_password_hash = hash_password
+
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plain password against an Argon2id hash."""
     try:
@@ -73,6 +76,13 @@ def generate_refresh_token(
     token_hash = hash_token(raw_token)
     expires_at = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     return raw_token, token_hash, expires_at
+
+
+def create_refresh_token(user_id: str, org_id: Optional[str] = None) -> str:
+    """Helper returning only the raw refresh token string."""
+    raw_token, _, _ = generate_refresh_token(user_id, org_id)
+    return raw_token
+
 
 
 def decode_access_token(token: str) -> Dict[str, Any]:

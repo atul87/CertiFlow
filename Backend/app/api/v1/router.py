@@ -18,12 +18,25 @@ from app.api.v1.webhooks import router as webhooks_router
 from app.api.v1.analytics import router as analytics_router
 from app.api.v1.reports import router as reports_router
 from app.api.v1.activity import router as activity_router
+from app.api.v1.members import router as members_router
+from app.api.v1.invitations import router as invitations_router
+from app.api.v1.roles import router as roles_router
+from app.api.v1.teams import router as teams_router
+from app.api.v1.api_keys import router as api_keys_router
+from app.api.v1.service_accounts import router as service_accounts_router
+from app.api.v1.api_usage import router as api_usage_router
 
 api_v1_router = APIRouter()
 
 api_v1_router.include_router(health_router)
 api_v1_router.include_router(auth_router)
 api_v1_router.include_router(organizations_router)
+api_v1_router.include_router(members_router)
+api_v1_router.include_router(invitations_router)
+api_v1_router.include_router(roles_router)
+api_v1_router.include_router(teams_router)
+api_v1_router.include_router(api_keys_router)
+api_v1_router.include_router(service_accounts_router)
 api_v1_router.include_router(templates_router)
 api_v1_router.include_router(fonts_router)
 api_v1_router.include_router(imports_router)
@@ -39,3 +52,5 @@ api_v1_router.include_router(webhooks_router)
 api_v1_router.include_router(analytics_router)
 api_v1_router.include_router(reports_router)
 api_v1_router.include_router(activity_router)
+api_v1_router.include_router(api_usage_router)
+

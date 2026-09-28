@@ -98,6 +98,25 @@ class ProgressService:
                     }
                 )
 
+            # P8 Webhook dispatch
+            if org_id:
+                try:
+                    from app.services.webhook_service import WebhookService
+                    ev_type = "issuance_job.completed" if final_status == "completed" else "issuance_job.failed"
+                    await WebhookService.dispatch_event(
+                        org_id=str(org_id),
+                        event_type=ev_type,
+                        data={
+                            "job_id": job_id,
+                            "status": final_status,
+                            "total": total,
+                            "completed": completed,
+                            "failed": failed,
+                        },
+                    )
+                except Exception:
+                    pass
+
             return updated
 
         return job

@@ -336,6 +336,20 @@ class VerificationService:
             user_agent=user_agent,
         )
 
+        try:
+            from app.services.webhook_service import WebhookService
+            await WebhookService.dispatch_event(
+                org_id=org_id,
+                event_type="certificate.revoked",
+                data={
+                    "certificate_id": cert_id,
+                    "certificate_number": doc.get("certificate_number"),
+                    "reason": reason,
+                },
+            )
+        except Exception:
+            pass
+
         return CertificateResponse(**updated)
 
     @classmethod
@@ -378,6 +392,19 @@ class VerificationService:
             ip_address=ip_address,
             user_agent=user_agent,
         )
+
+        try:
+            from app.services.webhook_service import WebhookService
+            await WebhookService.dispatch_event(
+                org_id=org_id,
+                event_type="certificate.restored",
+                data={
+                    "certificate_id": cert_id,
+                    "certificate_number": doc.get("certificate_number"),
+                },
+            )
+        except Exception:
+            pass
 
         return CertificateResponse(**updated)
 

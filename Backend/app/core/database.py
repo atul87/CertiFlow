@@ -284,6 +284,89 @@ class DatabaseManager:
             IndexModel([("organization_id", ASCENDING), ("date", ASCENDING)], name="idx_analytics_daily_org_date"),
         ])
 
+        # 27. Organization Invitations collection (P8)
+        invitations_col = db["organization_invitations"]
+        await invitations_col.create_indexes([
+            IndexModel([("token_hash", ASCENDING)], unique=True, name="uniq_invitations_token_hash"),
+            IndexModel([("organization_id", ASCENDING), ("email", ASCENDING)], name="idx_invitations_org_email"),
+            IndexModel([("organization_id", ASCENDING), ("status", ASCENDING)], name="idx_invitations_org_status"),
+            IndexModel([("expires_at", ASCENDING)], name="idx_invitations_expires_at"),
+        ])
+
+        # 28. Custom & System Roles collection (P8)
+        roles_col = db["roles"]
+        await roles_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("name", ASCENDING)], unique=True, name="uniq_roles_org_name"),
+            IndexModel([("organization_id", ASCENDING)], name="idx_roles_org_id"),
+        ])
+
+        # 29. Teams collection (P8)
+        teams_col = db["teams"]
+        await teams_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("name", ASCENDING)], unique=True, name="uniq_teams_org_name"),
+            IndexModel([("organization_id", ASCENDING)], name="idx_teams_org_id"),
+        ])
+
+        # 30. Team Members collection (P8)
+        team_members_col = db["team_members"]
+        await team_members_col.create_indexes([
+            IndexModel([("team_id", ASCENDING), ("user_id", ASCENDING)], unique=True, name="uniq_team_members_team_user"),
+            IndexModel([("organization_id", ASCENDING)], name="idx_team_members_org_id"),
+            IndexModel([("user_id", ASCENDING)], name="idx_team_members_user_id"),
+        ])
+
+        # 31. API Keys collection (P8)
+        api_keys_col = db["api_keys"]
+        await api_keys_col.create_indexes([
+            IndexModel([("key_hash", ASCENDING)], unique=True, name="uniq_api_keys_hash"),
+            IndexModel([("organization_id", ASCENDING), ("status", ASCENDING)], name="idx_api_keys_org_status"),
+            IndexModel([("prefix", ASCENDING)], name="idx_api_keys_prefix"),
+        ])
+
+        # 32. Service Accounts collection (P8)
+        service_accounts_col = db["service_accounts"]
+        await service_accounts_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("name", ASCENDING)], unique=True, name="uniq_service_accounts_org_name"),
+            IndexModel([("organization_id", ASCENDING)], name="idx_service_accounts_org_id"),
+        ])
+
+        # 33. Idempotency Keys collection (P8)
+        idempotency_col = db["idempotency_keys"]
+        await idempotency_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("endpoint", ASCENDING), ("key", ASCENDING)], unique=True, name="uniq_idempotency_org_ep_key"),
+            IndexModel([("expires_at", ASCENDING)], expireAfterSeconds=0, name="idx_idempotency_ttl"),
+        ])
+
+        # 34. Webhook Endpoints collection (P8)
+        webhook_ep_col = db["webhook_endpoints"]
+        await webhook_ep_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("status", ASCENDING)], name="idx_webhook_ep_org_status"),
+            IndexModel([("organization_id", ASCENDING), ("created_at", ASCENDING)], name="idx_webhook_ep_org_created"),
+        ])
+
+        # 35. Webhook Events collection (P8)
+        webhook_events_col = db["webhook_events"]
+        await webhook_events_col.create_indexes([
+            IndexModel([("event_id", ASCENDING)], unique=True, name="uniq_webhook_events_id"),
+            IndexModel([("organization_id", ASCENDING), ("created_at", ASCENDING)], name="idx_webhook_events_org_created"),
+        ])
+
+        # 36. Webhook Deliveries collection (P8)
+        webhook_deliv_col = db["webhook_deliveries"]
+        await webhook_deliv_col.create_indexes([
+            IndexModel([("webhook_endpoint_id", ASCENDING), ("created_at", ASCENDING)], name="idx_webhook_deliv_ep_created"),
+            IndexModel([("organization_id", ASCENDING), ("created_at", ASCENDING)], name="idx_webhook_deliv_org_created"),
+            IndexModel([("event_id", ASCENDING)], name="idx_webhook_deliv_event_id"),
+            IndexModel([("status", ASCENDING)], name="idx_webhook_deliv_status"),
+        ])
+
+        # 37. API Usage Events collection (P8)
+        api_usage_col = db["api_usage_events"]
+        await api_usage_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("created_at", ASCENDING)], name="idx_api_usage_org_created"),
+            IndexModel([("api_key_id", ASCENDING), ("created_at", ASCENDING)], name="idx_api_usage_key_created"),
+        ])
+
         logger.info("MongoDB indexes verified successfully.")
 
 

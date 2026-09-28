@@ -442,6 +442,23 @@ class CertificateService:
             user_agent=user_agent,
         )
 
+        # 17. Outbound webhook dispatch — P8
+        try:
+            from app.services.webhook_service import WebhookService
+            await WebhookService.dispatch_event(
+                org_id=org_id,
+                event_type="certificate.generated",
+                data={
+                    "certificate_id": cert_id,
+                    "certificate_number": certificate_number,
+                    "verification_code": verification_code,
+                    "recipient_email": recipient_snapshot.get("email"),
+                    "recipient_name": recipient_snapshot.get("name"),
+                },
+            )
+        except Exception as e:
+            logger.warning("Failed to dispatch certificate.generated webhook: %s", e)
+
         return CertificateResponse(**updated)
 
     # ------------------------------------------------------------------

@@ -227,6 +227,22 @@ class EmailDeliveryService:
                 )
                 if job_id:
                     await EmailJobRepository.record_delivery_outcome(job_id, from_status="sending", to_status="sent")
+
+                try:
+                    from app.services.webhook_service import WebhookService
+                    await WebhookService.dispatch_event(
+                        org_id=str(org_id),
+                        event_type="email.sent",
+                        data={
+                            "delivery_id": delivery_id,
+                            "certificate_id": str(cert["id"]),
+                            "recipient_email": delivery["recipient_email"],
+                            "provider": result.provider,
+                        },
+                    )
+                except Exception:
+                    pass
+
                 return updated
             else:
                 return await cls._handle_failure(
@@ -335,6 +351,21 @@ class EmailDeliveryService:
             )
             if job_id and current_status != "delivered":
                 await EmailJobRepository.record_delivery_outcome(job_id, from_status=current_status, to_status="delivered")
+
+            try:
+                from app.services.webhook_service import WebhookService
+                await WebhookService.dispatch_event(
+                    org_id=str(org_id),
+                    event_type="email.delivered",
+                    data={
+                        "delivery_id": delivery_id,
+                        "certificate_id": str(delivery.get("certificate_id")),
+                        "recipient_email": recipient_email,
+                    },
+                )
+            except Exception:
+                pass
+
             return updated
 
         elif event_type == "bounced":
@@ -348,6 +379,22 @@ class EmailDeliveryService:
             await EmailSuppressionRepository.add_suppression(org_id, recipient_email, reason="hard_bounce")
             if job_id and current_status != "bounced":
                 await EmailJobRepository.record_delivery_outcome(job_id, from_status=current_status, to_status="bounced")
+
+            try:
+                from app.services.webhook_service import WebhookService
+                await WebhookService.dispatch_event(
+                    org_id=str(org_id),
+                    event_type="email.bounced",
+                    data={
+                        "delivery_id": delivery_id,
+                        "certificate_id": str(delivery.get("certificate_id")),
+                        "recipient_email": recipient_email,
+                        "reason": reason or "hard_bounce",
+                    },
+                )
+            except Exception:
+                pass
+
             return updated
 
         elif event_type == "complained":

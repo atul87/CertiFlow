@@ -20,6 +20,10 @@ class APIResponse(BaseModel, Generic[T]):
         return cls(success=True, data=data, error=None)
 
     @classmethod
+    def created(cls, data: T) -> "APIResponse[T]":
+        return cls(success=True, data=data, error=None)
+
+    @classmethod
     def fail(cls, code: str, message: str, details: Optional[Any] = None) -> "APIResponse[None]":
         return cls(
             success=False,

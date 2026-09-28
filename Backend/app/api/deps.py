@@ -1,20 +1,32 @@
+from __future__ import annotations
+import asyncio
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from fastapi import Depends, Header, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
+
+from app.core.config import settings
 from app.core.exceptions import UnauthorizedError, ForbiddenError
 from app.core.security import decode_access_token
+from app.security.api_keys import APIKeySecurity
+from app.security.authorization import AuthorizationService
 from app.repositories.user_repository import UserRepository
 from app.repositories.organization_repository import OrganizationRepository
+from app.repositories.member_repository import MemberRepository
+from app.repositories.api_key_repository import APIKeyRepository
 
 security_scheme = HTTPBearer(auto_error=False)
 
 
 async def get_current_user_and_org(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme)
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
+    x_organization_id: Optional[str] = Header(None, alias="X-Organization-Id"),
 ) -> Dict[str, Any]:
     """
-    Validate JWT access token and return context dict containing user and current org_id.
+    Validate authentication (Bearer JWT token OR Bearer API Key).
+    Returns authenticated user context, active organization context, and API key scopes.
     """
     if not credentials or not credentials.credentials:
         raise UnauthorizedError(
@@ -22,7 +34,54 @@ async def get_current_user_and_org(
             code="UNAUTHORIZED"
         )
 
-    token = credentials.credentials
+    token = credentials.credentials.strip()
+
+    # ---------------------------------------------------------------------------
+    # 1. API Key Authentication (ck_live_... / ck_test_...)
+    # ---------------------------------------------------------------------------
+    if token.startswith(settings.API_KEY_PREFIX_LIVE) or token.startswith(settings.API_KEY_PREFIX_TEST):
+        key_hash = APIKeySecurity.hash_key(token)
+        key_doc = await APIKeyRepository.get_by_hash(key_hash)
+        if not key_doc:
+            raise UnauthorizedError(message="Invalid API key", code="INVALID_API_KEY")
+
+        if key_doc.get("status") == "revoked":
+            raise UnauthorizedError(message="API key has been revoked", code="API_KEY_REVOKED")
+
+        if key_doc.get("status") != "active":
+            raise UnauthorizedError(message="API key is inactive", code="API_KEY_INACTIVE")
+
+        if key_doc.get("expires_at"):
+            exp = key_doc["expires_at"]
+            if isinstance(exp, str):
+                exp = datetime.fromisoformat(exp.replace("Z", "+00:00"))
+            if exp < datetime.now(timezone.utc):
+                raise UnauthorizedError(message="API key has expired", code="API_KEY_EXPIRED")
+
+        org_id = str(key_doc["organization_id"])
+        org_doc = await OrganizationRepository.get_by_id(org_id)
+        if not org_doc or org_doc.get("status") == "archived":
+            raise ForbiddenError(message="Organization is archived or inaccessible", code="ORG_INACCESSIBLE")
+
+        # Update last_used_at in background
+        asyncio.create_task(APIKeyRepository.update_last_used(key_doc["id"]))
+
+        user_id = str(key_doc.get("created_by") or "")
+        user_doc = await UserRepository.get_by_id(user_id) if user_id else None
+
+        return {
+            "user": user_doc or {"id": user_id, "name": key_doc.get("name", "API Key"), "email": ""},
+            "user_id": user_id,
+            "org_id": org_id,
+            "organization": org_doc,
+            "is_api_key": True,
+            "api_key_id": key_doc["id"],
+            "api_key_scopes": key_doc.get("scopes", []),
+        }
+
+    # ---------------------------------------------------------------------------
+    # 2. JWT Access Token Authentication
+    # ---------------------------------------------------------------------------
     try:
         payload = decode_access_token(token)
     except jwt.ExpiredSignatureError:
@@ -41,7 +100,17 @@ async def get_current_user_and_org(
     if not user.get("is_active", True):
         raise ForbiddenError(message="User account is inactive", code="ACCOUNT_INACTIVE")
 
-    org_id = payload.get("org_id")
+    # Determine organization: Header override > JWT org_id > User primary org
+    org_id = None
+    if x_organization_id:
+        # Verify membership in requested header org
+        mem = await MemberRepository.get_by_user_id(x_organization_id, user_id)
+        if mem and mem.get("status") not in ("removed",):
+            org_id = x_organization_id
+
+    if not org_id:
+        org_id = payload.get("org_id")
+
     org_doc = None
     if org_id:
         org_doc = await OrganizationRepository.get_by_id(org_id)
@@ -51,11 +120,23 @@ async def get_current_user_and_org(
             org_id = primary_org["id"]
             org_doc = primary_org
 
+    # Verify membership status in active org
+    if org_id:
+        membership = await MemberRepository.get_by_user_id(org_id, user_id)
+        if membership:
+            if membership.get("status") == "suspended":
+                raise ForbiddenError(message="Your membership in this organization is suspended", code="MEMBER_SUSPENDED")
+            if membership.get("status") == "removed":
+                raise ForbiddenError(message="You have been removed from this organization", code="MEMBER_REMOVED")
+
     return {
         "user": user,
         "user_id": user_id,
         "org_id": org_id,
         "organization": org_doc or ({"id": org_id} if org_id else None),
+        "is_api_key": False,
+        "api_key_id": None,
+        "api_key_scopes": [],
     }
 
 
@@ -72,9 +153,12 @@ async def get_current_org_id(context: Dict[str, Any] = Depends(get_current_user_
 
 def require_role(allowed_roles: List[str]):
     """
-    Dependency factory to check if the current user has one of the allowed roles in the active organization.
+    Check if the current user has one of the allowed roles in the active organization.
     """
     async def role_checker(context: Dict[str, Any] = Depends(get_current_user_and_org)) -> str:
+        if context.get("is_api_key"):
+            return "api_key"
+
         org_id = context.get("org_id")
         user_id = context.get("user_id")
         if not org_id:
@@ -93,6 +177,39 @@ def require_role(allowed_roles: List[str]):
         return user_role
 
     return role_checker
+
+
+def require_permission(required_permission: str):
+    """
+    Fine-grained permission dependency factory.
+    Evaluates system roles, custom organization roles, or API key scopes.
+    """
+    async def permission_checker(context: Dict[str, Any] = Depends(get_current_user_and_org)) -> bool:
+        org_id = context.get("org_id")
+        if not org_id:
+            raise ForbiddenError(message="Organization context required", code="NO_ORGANIZATION")
+
+        # 1. API Key Scope Validation
+        if context.get("is_api_key"):
+            scopes = context.get("api_key_scopes", [])
+            if not AuthorizationService.validate_api_key_scopes(scopes, required_permission):
+                raise ForbiddenError(
+                    message=f"This API key does not have the required scope for '{required_permission}'",
+                    code="INSUFFICIENT_SCOPE",
+                )
+            return True
+
+        # 2. User Role & Permission Validation
+        user_id = context.get("user_id")
+        role_name, perms = await AuthorizationService.get_user_effective_permissions(org_id, user_id)
+        if required_permission not in perms:
+            raise ForbiddenError(
+                message=f"Your role '{role_name}' lacks required permission '{required_permission}'",
+                code="INSUFFICIENT_PERMISSIONS",
+            )
+        return True
+
+    return permission_checker
 
 
 def get_client_ip(request: Request) -> Optional[str]:
