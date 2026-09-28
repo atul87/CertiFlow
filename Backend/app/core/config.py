@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import List, Union
+from typing import List, Union, Optional, Dict, Any
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -104,6 +104,15 @@ class Settings(BaseSettings):
     COST_PER_CERTIFICATE: float = 0.05
     COST_PER_EMAIL: float = 0.01
     COST_PER_GB_STORAGE_MONTHLY: float = 2.0
+
+    # Open Badges, W3C Verifiable Credentials & Digital Credentials (P11)
+    CREDENTIAL_ISSUER_DOMAIN: str = "https://certiflow.io"
+    CREDENTIAL_SIGNING_ALGORITHM: str = "Ed25519"
+    DEFAULT_CREDENTIAL_VALIDITY_DAYS: Optional[int] = None
+    ENABLE_DIGITAL_CREDENTIALS: bool = True
+    OPEN_BADGES_CONTEXT_URL: str = "https://w3id.org/openbadges/v3"
+    W3C_VC_CONTEXT_URL: str = "https://www.w3.org/ns/credentials/v2"
+    PUBLIC_CREDENTIAL_URL_PREFIX: str = "https://verify.certiflow.io/credentials"
 
     # CORS
     CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://127.0.0.1:3000"]

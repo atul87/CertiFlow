@@ -29,6 +29,10 @@ from app.api.v1.plans import router as plans_router
 from app.api.v1.subscriptions import router as subscriptions_router
 from app.api.v1.billing import router as billing_router
 from app.api.v1.admin import router as admin_router
+from app.api.v1.issuers import router as issuers_router
+from app.api.v1.achievements import router as achievements_router
+from app.api.v1.credentials import router as credentials_router
+from app.api.v1.public_credentials import router as public_credentials_router
 
 api_v1_router = APIRouter()
 
@@ -61,4 +65,8 @@ api_v1_router.include_router(plans_router)
 api_v1_router.include_router(subscriptions_router)
 api_v1_router.include_router(billing_router)
 api_v1_router.include_router(admin_router)
+api_v1_router.include_router(issuers_router)
+api_v1_router.include_router(achievements_router)
+api_v1_router.include_router(credentials_router)
+api_v1_router.include_router(public_credentials_router)
 

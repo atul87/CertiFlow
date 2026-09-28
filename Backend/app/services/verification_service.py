@@ -336,6 +336,18 @@ class VerificationService:
             user_agent=user_agent,
         )
 
+        # Synchronize digital credential revocation — P11
+        try:
+            from app.services.credential_status_service import CredentialStatusService
+            await CredentialStatusService.sync_revocation(
+                organization_id=org_id,
+                certificate_id=cert_id,
+                reason=reason or "Certificate revoked by authority",
+                actor_id=user_id,
+            )
+        except Exception as e:
+            logger.warning("Failed to sync credential revocation for certificate %s: %s", cert_id, e)
+
         try:
             from app.services.webhook_service import WebhookService
             await WebhookService.dispatch_event(
@@ -376,6 +388,17 @@ class VerificationService:
             organization_id=org_id,
             restored_by=user_id,
         )
+
+        # Synchronize digital credential restore — P11
+        try:
+            from app.services.credential_status_service import CredentialStatusService
+            await CredentialStatusService.sync_restore(
+                organization_id=org_id,
+                certificate_id=cert_id,
+                actor_id=user_id,
+            )
+        except Exception as e:
+            logger.warning("Failed to sync credential restore for certificate %s: %s", cert_id, e)
 
         # Invalidate verification cache
         verif_code = doc.get("verification_code")

@@ -705,16 +705,99 @@ UsageService.record_usage()
 
 ---
 
-## 16. Running Automated Tests
+## 17. P11 — Open Badges 3.0 + W3C Verifiable Credentials + Digital Credential Ecosystem
+
+P11 elevates CertiFlow from a certificate generator into a **standards-compliant, portable digital credential platform**. It builds a machine-readable credential layer directly on top of the existing certificate infrastructure without replacing or disrupting human-readable PDF artifacts.
+
+```text
+                         Certificate SaaS
+                               │
+             ┌─────────────────┴─────────────────┐
+             │                                   │
+             ▼                                   ▼
+      PDF Certificate                    Digital Credential
+             │                                   │
+             │                         ┌─────────┴─────────┐
+             │                         │                   │
+             ▼                         ▼                   ▼
+       QR Verification          Open Badges 3.0      W3C VC v2.0
+                                                         │
+                                                         ▼
+                                                  Cryptographic
+                                                    Signature (Ed25519)
+                                                         │
+                                                         ▼
+                                                   Credential
+                                                     Status
+                                                         │
+                                      ┌──────────────────┼───────────────┐
+                                      │                  │               │
+                                      ▼                  ▼               ▼
+                                  Verification        Wallet          Sharing
+```
+
+### 17.1 Core Standards & Data Models
+
+1. **Decoupled Architecture**:
+   - **Issuer Profile (`issuer_profiles`)**: Legal entity issuing credentials with stable public URLs and key discovery endpoints.
+   - **Achievement Model (`achievements`)**: Defines the accomplishment ("What was achieved?") independently of any recipient.
+   - **Credential Entity (`credentials`)**: Anchors the proof of accomplishment to a recipient with an opaque identifier (`cred_...`).
+   - **Status Registry (`credential_status`)**: Real-time revocation and suspension list entry for instant third-party validation.
+2. **Cryptographic Integrity**:
+   - **Algorithm**: Asymmetric Ed25519 digital signatures.
+   - **Canonicalization**: Deterministic RFC 8785 JSON canonicalization omitting detached `proof` block for cross-platform reproducibility.
+   - **Proof Format**: W3C Data Integrity `Ed25519Signature2020`.
+   - **Security at Rest**: Issuer private keys are encrypted at rest with Fernet (`settings.ENCRYPTION_KEY`). Never stored in plaintext.
+   - **Key Rotation**: Active keys can be rotated without invalidating historical credentials; retired public keys remain queryable in `credential_keys`.
+3. **Dual Standard Formats**:
+   - **Open Badges 3.0**: 1EdTech / IMS Global JSON-LD (`OpenBadgeCredential`, `AchievementSubject`, `Criteria`, `Evidence`).
+   - **W3C Verifiable Credentials v2.0**: W3C Recommendation (`VerifiableCredential`, `CertificationCredential`, `credentialStatus`).
+4. **Privacy-by-Default**:
+   - Public credential views reveal recipient display name and achievement criteria while strictly concealing recipient email addresses, phone numbers, and MongoDB internal IDs.
+5. **Lifecycle Synchronization**:
+   - Revoking a certificate in CertiFlow automatically synchronizes revocation to the digital credential and dedicated status registry.
+
+### 17.2 P11 Credential Endpoints Summary
+
+| Category | Method | Endpoint | Description |
+|---|---|---|---|
+| **Issuers** | `GET` | `/api/v1/issuers/profile` | Retrieve organization issuer profile and active key |
+| | `PUT` | `/api/v1/issuers/profile` | Update issuer legal name, website, and public metadata |
+| | `POST` | `/api/v1/issuers/keys/rotate` | Provision new active Ed25519 key while retiring prior key |
+| **Achievements** | `POST` | `/api/v1/achievements` | Create achievement with skills, category, and criteria |
+| | `GET` | `/api/v1/achievements` | List achievements defined by organization |
+| | `GET` | `/api/v1/achievements/{id}` | Retrieve individual achievement definition |
+| | `PUT` | `/api/v1/achievements/{id}` | Update achievement criteria, level, or skills |
+| | `DELETE` | `/api/v1/achievements/{id}` | Delete achievement definition |
+| **Credentials** | `POST` | `/api/v1/credentials` | Issue & sign digital credential for a certificate |
+| | `GET` | `/api/v1/credentials` | List organization issued digital credentials |
+| | `GET` | `/api/v1/credentials/{id}` | Detailed credential view with signature proof |
+| | `POST` | `/api/v1/credentials/{id}/revoke` | Revoke digital credential with audit reason |
+| | `POST` | `/api/v1/credentials/{id}/suspend` | Suspend credential temporarily |
+| | `POST` | `/api/v1/credentials/{id}/restore` | Restore suspended credential to active standing |
+| **Public Resolution** | `GET` | `/api/v1/public/issuers/{issuer_id}` | Public issuer profile and active/retired public keys |
+| | `GET` | `/api/v1/public/credentials/{credential_id}` | Privacy-safe public credential presentation |
+| | `GET` | `/api/v1/public/credentials/{credential_id}/verify` | Real-time signature, status, and expiration validation |
+| | `GET` | `/api/v1/public/credentials/{credential_id}/badge` | 1EdTech Open Badges 3.0 JSON-LD document |
+| | `GET` | `/api/v1/public/credentials/{credential_id}/vc` | W3C Verifiable Credentials Data Model v2.0 JSON |
+| | `GET` | `/api/v1/public/credentials/{credential_id}/status` | Public credential status list entry |
+| | `POST` | `/api/v1/public/credentials/verify` | Independent verifier for external W3C VC or Open Badge payloads |
+
+---
+
+## 18. Running Automated Tests
 
 ```bash
-# Run pure unit tests (instant, 126 tests, no DB needed)
+# Run pure unit tests (instant, no DB needed)
 .venv\Scripts\pytest -m no_db
 
-# Run billing, subscription, and quota test suites
-.venv\Scripts\pytest tests/unit/test_billing_and_quotas.py tests/integration/test_billing_and_subscriptions.py tests/security/test_billing_security.py
+# Run digital credentials, cryptography, and standards test suites
+.venv\Scripts\pytest tests/unit/test_credentials_and_cryptography.py tests/integration/test_credentials_and_issuance.py tests/security/test_credential_security.py
 
-# Run complete test suite (232 tests passing, 0 regressions)
+# Run Grand End-to-End P0-P11 Continuous Journey
+.venv\Scripts\pytest tests/integration/test_full_e2e_p0_to_p11.py -v
+
+# Run complete platform test suite (247 tests passing, 0 regressions)
 .venv\Scripts\pytest
 ```
 

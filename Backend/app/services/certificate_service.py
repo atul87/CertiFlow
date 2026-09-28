@@ -582,6 +582,19 @@ class CertificateService:
         doc = await CertificateRepository.revoke(cert_id, org_id, reason=reason)
         if not doc:
             raise NotFoundError(message="Certificate not found", code="CERTIFICATE_NOT_FOUND")
+
+        # Synchronize digital credential revocation — P11
+        try:
+            from app.services.credential_status_service import CredentialStatusService
+            await CredentialStatusService.sync_revocation(
+                organization_id=org_id,
+                certificate_id=cert_id,
+                reason=reason or "Certificate revoked by authority",
+                actor_id=user_id,
+            )
+        except Exception as e:
+            logger.warning("Failed to sync credential revocation for certificate %s: %s", cert_id, e)
+
         await AuditLogRepository.log_event(
             action="certificate.revoked",
             resource_type="certificate",

@@ -438,6 +438,60 @@ class DatabaseManager:
             IndexModel([("organization_id", ASCENDING), ("feature", ASCENDING)], name="idx_entitlement_overrides_org_feat"),
         ])
 
+        # 48. Issuer Profiles collection (P11)
+        issuer_profiles_col = db["issuer_profiles"]
+        await issuer_profiles_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING)], unique=True, name="uniq_issuer_profiles_org"),
+            IndexModel([("issuer_id", ASCENDING)], unique=True, name="uniq_issuer_profiles_issuer_id"),
+            IndexModel([("status", ASCENDING)], name="idx_issuer_profiles_status"),
+        ])
+
+        # 49. Achievements collection (P11)
+        achievements_col = db["achievements"]
+        await achievements_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("name", ASCENDING)], name="idx_achievements_org_name"),
+            IndexModel([("achievement_id", ASCENDING)], unique=True, name="uniq_achievements_id"),
+        ])
+
+        # 50. Credentials collection (P11)
+        credentials_col = db["credentials"]
+        await credentials_col.create_indexes([
+            IndexModel([("credential_id", ASCENDING)], unique=True, name="uniq_credentials_cred_id"),
+            IndexModel([("organization_id", ASCENDING), ("created_at", ASCENDING)], name="idx_credentials_org_created"),
+            IndexModel([("certificate_id", ASCENDING)], name="idx_credentials_cert_id"),
+            IndexModel([("issuer_id", ASCENDING)], name="idx_credentials_issuer_id"),
+            IndexModel([("achievement_id", ASCENDING)], name="idx_credentials_achievement_id"),
+            IndexModel([("status", ASCENDING)], name="idx_credentials_status"),
+            IndexModel([("verification_code", ASCENDING)], name="idx_credentials_verification_code"),
+        ])
+
+        # 51. Credential Status collection (P11)
+        credential_status_col = db["credential_status"]
+        await credential_status_col.create_indexes([
+            IndexModel([("credential_id", ASCENDING)], unique=True, name="uniq_credential_status_id"),
+            IndexModel([("status", ASCENDING)], name="idx_credential_status_status"),
+        ])
+
+        # 52. Credential Keys collection (P11)
+        credential_keys_col = db["credential_keys"]
+        await credential_keys_col.create_indexes([
+            IndexModel([("issuer_id", ASCENDING), ("key_id", ASCENDING)], unique=True, name="uniq_credential_keys_issuer_key"),
+            IndexModel([("organization_id", ASCENDING)], name="idx_credential_keys_org"),
+            IndexModel([("status", ASCENDING)], name="idx_credential_keys_status"),
+        ])
+
+        # 53. Credential Evidence collection (P11)
+        credential_evidence_col = db["credential_evidence"]
+        await credential_evidence_col.create_indexes([
+            IndexModel([("credential_id", ASCENDING)], name="idx_credential_evidence_cred_id"),
+        ])
+
+        # 54. Credential Events collection (P11)
+        credential_events_col = db["credential_events"]
+        await credential_events_col.create_indexes([
+            IndexModel([("credential_id", ASCENDING), ("created_at", ASCENDING)], name="idx_credential_events_cred_created"),
+        ])
+
         logger.info("MongoDB indexes verified successfully.")
 
 
