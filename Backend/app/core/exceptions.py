@@ -39,3 +39,9 @@ class ConflictError(AppException):
 class ValidationError(AppException):
     def __init__(self, message: str = "Validation failed", code: str = "VALIDATION_ERROR", details: Optional[Any] = None):
         super().__init__(code=code, message=message, status_code=422, details=details)
+
+
+class RateLimitError(AppException):
+    def __init__(self, message: str = "Too many requests. Please try again later.", code: str = "RATE_LIMIT_EXCEEDED", retry_after: int = 60, details: Optional[Any] = None):
+        super().__init__(code=code, message=message, status_code=429, details=details)
+        self.retry_after = retry_after

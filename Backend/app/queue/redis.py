@@ -40,6 +40,8 @@ class QueueManager:
             return None
         return cls._pool
 
+    get_redis = get_pool
+
     @classmethod
     async def close(cls) -> None:
         if cls._pool is not None:

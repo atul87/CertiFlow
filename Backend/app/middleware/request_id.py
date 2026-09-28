@@ -4,6 +4,7 @@ import logging
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
+from app.core.config import settings
 
 logger = logging.getLogger("certiflow.http")
 
@@ -50,4 +51,14 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
             duration_ms
         )
 
+        # 6. Record Prometheus metrics
+        if getattr(settings, "ENABLE_PROMETHEUS_METRICS", True):
+            try:
+                from app.core.metrics import metrics
+                duration_sec = time.perf_counter() - start_time
+                metrics.record_http_request(request.method, request.url.path, response.status_code, duration_sec)
+            except Exception:
+                pass
+
         return response
+

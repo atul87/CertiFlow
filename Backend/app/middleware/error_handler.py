@@ -19,8 +19,13 @@ def register_error_handlers(app: FastAPI) -> None:
             exc.status_code,
             exc.message
         )
+        headers = {}
+        if hasattr(exc, "retry_after") and exc.retry_after:
+            headers["Retry-After"] = str(exc.retry_after)
+
         return JSONResponse(
             status_code=exc.status_code,
+            headers=headers,
             content={
                 "success": False,
                 "error": {

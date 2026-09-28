@@ -9,7 +9,11 @@ from app.schemas.common import APIResponse
 from app.schemas.auth import (
     TokenResponse,
     RefreshTokenRequest,
-    AuthMeResponse
+    AuthMeResponse,
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
+    ResetPasswordRequest,
+    ResetPasswordResponse
 )
 from app.schemas.user import (
     UserRegisterRequest,
@@ -100,3 +104,41 @@ async def get_current_profile(
         org_id=context.get("org_id")
     )
     return APIResponse.ok(profile)
+
+
+@router.post(
+    "/forgot-password",
+    response_model=APIResponse[ForgotPasswordResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Request password reset token (account enumeration protected)"
+)
+async def forgot_password(
+    data: ForgotPasswordRequest,
+    request: Request
+):
+    ip = get_client_ip(request)
+    ua = get_client_user_agent(request)
+    result = await AuthService.forgot_password(data.email, ip_address=ip, user_agent=ua)
+    return APIResponse.ok(result)
+
+
+@router.post(
+    "/reset-password",
+    response_model=APIResponse[ResetPasswordResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Reset password using single-use reset token"
+)
+async def reset_password(
+    data: ResetPasswordRequest,
+    request: Request
+):
+    ip = get_client_ip(request)
+    ua = get_client_user_agent(request)
+    result = await AuthService.reset_password(
+        token=data.token,
+        new_password=data.new_password,
+        ip_address=ip,
+        user_agent=ua
+    )
+    return APIResponse.ok(result)
+

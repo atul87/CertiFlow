@@ -221,3 +221,32 @@ def get_client_ip(request: Request) -> Optional[str]:
 
 def get_client_user_agent(request: Request) -> Optional[str]:
     return request.headers.get("user-agent")
+
+
+async def require_reauth(
+    request: Request,
+    context: Dict[str, Any] = Depends(get_current_user_and_org),
+    x_confirm_password: Optional[str] = Header(None, alias="X-Confirm-Password"),
+) -> bool:
+    """
+    Dependency that enforces re-authentication for high-risk/sensitive operations.
+    Requires password verification via 'X-Confirm-Password' header.
+    API keys bypass re-auth if authorized with appropriate scope.
+    """
+    if context.get("is_api_key"):
+        return True
+
+    if not x_confirm_password:
+        raise UnauthorizedError(
+            message="Re-authentication required. Please provide your password via 'X-Confirm-Password' header.",
+            code="REAUTH_REQUIRED"
+        )
+
+    user_id = context.get("user_id")
+    if not user_id:
+        raise UnauthorizedError(message="Authentication required", code="UNAUTHORIZED")
+
+    from app.services.auth_service import AuthService
+    await AuthService.verify_reauth(user_id=user_id, password=x_confirm_password)
+    return True
+

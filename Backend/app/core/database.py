@@ -367,6 +367,21 @@ class DatabaseManager:
             IndexModel([("api_key_id", ASCENDING), ("created_at", ASCENDING)], name="idx_api_usage_key_created"),
         ])
 
+        # 38. Password Reset Tokens collection (P9)
+        reset_tokens_col = db["password_reset_tokens"]
+        await reset_tokens_col.create_indexes([
+            IndexModel([("token_hash", ASCENDING)], unique=True, name="uniq_reset_token_hash"),
+            IndexModel([("user_id", ASCENDING)], name="idx_reset_token_user"),
+            IndexModel([("expires_at", ASCENDING)], expireAfterSeconds=0, name="idx_reset_token_ttl"),
+        ])
+
+        # 39. Worker Heartbeats collection (P9)
+        heartbeats_col = db["worker_heartbeats"]
+        await heartbeats_col.create_indexes([
+            IndexModel([("worker_id", ASCENDING)], unique=True, name="uniq_worker_heartbeats_id"),
+            IndexModel([("last_seen", ASCENDING)], name="idx_worker_heartbeats_last_seen"),
+        ])
+
         logger.info("MongoDB indexes verified successfully.")
 
 

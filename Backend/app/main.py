@@ -6,6 +6,7 @@ from app.core.logging import setup_logging
 from app.core.database import DatabaseManager
 from app.queue.redis import QueueManager
 from app.middleware.request_id import RequestContextMiddleware
+from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.middleware.error_handler import register_error_handlers
 from app.api.v1.router import api_v1_router
 
@@ -35,7 +36,10 @@ def create_app() -> FastAPI:
     # 1. Custom Request ID & Structured Logging Middleware
     app.add_middleware(RequestContextMiddleware)
 
-    # 2. CORS Middleware
+    # 2. Production Security Headers Middleware
+    app.add_middleware(SecurityHeadersMiddleware)
+
+    # 3. CORS Middleware
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.CORS_ORIGINS,
@@ -48,7 +52,7 @@ def create_app() -> FastAPI:
     # 3. Register centralized error handlers
     register_error_handlers(app)
 
-    # 4. Root /health endpoint
+    # 4. Root health & metrics endpoints
     @app.get("/health", tags=["Health"], summary="Root health check")
     async def root_health():
         return {
@@ -56,6 +60,16 @@ def create_app() -> FastAPI:
             "service": "certificate-api",
             "version": settings.VERSION
         }
+
+    @app.get("/health/ready", tags=["Health"], summary="Root readiness probe")
+    async def root_health_ready():
+        from app.api.v1.health import readiness_check
+        return await readiness_check()
+
+    @app.get("/metrics", tags=["Observability"], summary="Root Prometheus metrics")
+    async def root_metrics():
+        from app.api.v1.health import get_metrics
+        return await get_metrics()
 
     # 5. Mount API v1 router
     app.include_router(api_v1_router, prefix=settings.API_V1_PREFIX)

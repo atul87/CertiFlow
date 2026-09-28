@@ -567,17 +567,68 @@ P8 evolves CertiFlow from a single-organization application into a full multi-us
 
 ---
 
-## 13. Running Automated Tests
+## 13. Phase 9 — Security, Performance & Production Hardening (P9)
+
+P9 elevates CertiFlow from a functional multi-tenant application to a battle-tested, production-hardened SaaS platform capable of surviving real-world attacks, high-load workloads, worker failures, and operational incidents.
+
+### 13.1 Security Threat Model & Protections
+
+| Attack Vector | Threat | Applied P9 Production Defense |
+|---|---|---|
+| **Credential Attacks** | Brute force login | IP + account rate limiting with progressive controls |
+| **Account Enumeration** | Timing & response side-channel | Generic timing-safe forgot-password responses |
+| **Password Reset** | Token prediction & replay | 32-byte cryptographically secure token, SHA-256 hash storage, 15-min TTL, single-use, revokes all sessions upon reset |
+| **High-Risk Actions** | Session hijacking / CSRF | Re-authentication enforced via `X-Confirm-Password` header |
+| **Cross-Tenant Access** | BOLA / IDOR violations | Strict organization scope filtering on every query + automated isolation matrix tests |
+| **Malicious Uploads** | Executable masquerading | Real magic bytes signature validation for PNG, JPEG, PDF, XLSX, Fonts, and CSV |
+| **SVG Injections** | XSS / XXE / Foreign objects | Rejection of `<script>` & `<!ENTITY>`, stripping of `onload`, `onclick`, `javascript:`, `<iframe>`, `<foreignObject>` |
+| **Archive Exploits** | Zip Slip / Zip Bomb | Rejection of `..`, drive letters, path traversal; compression ratio limit (<100:1) and total extract limit (100MB) |
+| **SSRF** | Internal network traversal | Resolution validation rejecting private RFC1918, loopback, link-local, and cloud metadata (169.254.169.254) |
+| **NoSQL Injection** | Arbitrary MongoDB operators | Recursive `NoSQLSanitizer` stripping/rejecting `$` keys (`$where`, `$regex`, `$gt`, etc.) |
+| **Clickjacking & Sniffing** | Browser vulnerabilities | Security headers middleware (`nosniff`, `DENY`, `strict-origin`, `Permissions-Policy`, `CSP`, `HSTS`) |
+
+### 13.2 Reliability, Observability & Worker Recovery
+
+- **Liveness & Readiness Probes**:
+  - `GET /health`: Fast process liveness probe.
+  - `GET /health/ready`: Validates live connectivity to MongoDB, Redis ARQ pool, and persistent storage write accessibility (returns HTTP 503 if critical dependency is degraded).
+- **Prometheus Metrics**:
+  - `GET /metrics`: Native in-memory Prometheus-compatible exporter publishing `certiflow_http_requests_total`, `certiflow_http_errors_total`, `certiflow_certificates_total`, `certiflow_emails_total`, and `certiflow_verifications_total`.
+- **Worker Heartbeats & Recovery**:
+  - Workers update `worker_heartbeats` collection periodically with status, worker ID, and timestamp.
+  - `RecoveryService.recover_stuck_jobs`: Detects background tasks stuck in `processing` exceeding the timeout threshold, automatically retries transient failures, and routes persistently failed jobs to dead-letter status.
+- **Production Version & Build Info**:
+  - `GET /api/v1/version` and `GET /api/v1/build` for deployment tracking without exposing secrets.
+
+### 13.3 P9 Production Endpoints Summary
+
+| Category | Method | Endpoint | Description |
+|---|---|---|---|
+| **Auth Hardening** | `POST` | `/api/v1/auth/forgot-password` | Request password reset token (account-enumeration protected) |
+| | `POST` | `/api/v1/auth/reset-password` | Reset password using single-use token; invalidates active sessions |
+| **Diagnostics** | `GET` | `/health` | Root process liveness check |
+| | `GET` | `/health/ready` | Orchestrator readiness probe (checks MongoDB, Redis, Storage) |
+| | `GET` | `/api/v1/version` | Application version & commit identifier |
+| | `GET` | `/api/v1/build` | Service environment & build metadata |
+| **Observability** | `GET` | `/metrics` | Prometheus metrics exporter |
+
+---
+
+## 14. Running Automated Tests
 
 ```bash
 # Run pure unit tests (instant, 120 tests, no DB needed)
-pytest -m no_db
+.venv\Scripts\pytest -m no_db
 
-# Run full integration test suite (76 tests against MongoDB)
-pytest tests/integration/
+# Run full integration test suite (79 tests against MongoDB)
+.venv\Scripts\pytest tests/integration/
 
-# Run complete test suite (196 tests passing, 0 regressions)
-pytest
+# Run security test suite (16 dedicated security tests)
+.venv\Scripts\pytest tests/security/
+
+# Run complete test suite (215 tests passing, 0 regressions)
+.venv\Scripts\pytest
 ```
+
 
 

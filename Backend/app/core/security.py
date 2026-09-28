@@ -98,3 +98,14 @@ def decode_access_token(token: str) -> Dict[str, Any]:
     if payload.get("type") != "access":
         raise jwt.InvalidTokenError("Token is not an access token")
     return payload
+
+
+def generate_password_reset_token() -> Tuple[str, str, datetime]:
+    """
+    Generate a high-entropy, short-lived password reset token.
+    Returns: (raw_token, token_hash, expires_at)
+    """
+    raw_token = secrets.token_urlsafe(32)
+    token_hash = hash_token(raw_token)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES)
+    return raw_token, token_hash, expires_at

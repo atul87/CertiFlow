@@ -77,6 +77,22 @@ class Settings(BaseSettings):
     WEBHOOK_RETRY_BACKOFF_BASE: int = 60
     IDEMPOTENCY_TTL_SECONDS: int = 86400
 
+    # Security, Performance & Production Hardening (P9)
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 15
+    LOGIN_RATE_LIMIT_PER_MINUTE: int = 10
+    MAX_UPLOAD_SIZE_MB: int = 50
+    MAX_CSV_SIZE_MB: int = 50
+    MAX_XLSX_SIZE_MB: int = 50
+    MAX_IMAGE_SIZE_MB: int = 10
+    MAX_PDF_SIZE_MB: int = 20
+    MAX_ZIP_EXTRACT_FILES: int = 1000
+    MAX_ZIP_EXTRACT_SIZE_MB: int = 100
+    ENABLE_PROMETHEUS_METRICS: bool = True
+    STUCK_JOB_TIMEOUT_SECONDS: int = 600
+    HEARTBEAT_INTERVAL_SECONDS: int = 30
+    BUILD_COMMIT: str = "certiflow-p9-prod"
+    ENABLE_SECURITY_HEADERS: bool = True
+
     # CORS
     CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
 

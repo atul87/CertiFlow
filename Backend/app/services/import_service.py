@@ -70,6 +70,12 @@ class ImportService:
 
         file_type = "csv" if ext == ".csv" else "xlsx"
 
+        from app.security.file_security import FileSecurity
+        if file_type == "xlsx" and not FileSecurity.validate_magic_bytes(content, "xlsx"):
+            raise ValidationError(message="XLSX file magic bytes do not match expected signature", code="INVALID_MAGIC_BYTES")
+        if file_type == "csv" and not FileSecurity.validate_magic_bytes(content, "csv"):
+            raise ValidationError(message="CSV file contains invalid or binary executable characters", code="INVALID_CSV_CONTENT")
+
         # 2. Verify template and version belong to this organization
         template = await TemplateRepository.get_by_id(template_id, org_id)
         if not template:

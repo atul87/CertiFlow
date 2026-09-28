@@ -36,21 +36,35 @@ class StorageService:
         # Determine/normalize mime type
         mime = content_type or mimetypes.guess_type(filename)[0] or "application/octet-stream"
 
-        # SVG validation
+        from app.security.file_security import FileSecurity
+
+        # SVG validation & sanitization
         if filename.lower().endswith(".svg") or mime == "image/svg+xml":
-            # Basic SVG content check
             try:
                 head = content[:1024].decode("utf-8", errors="ignore").lower()
                 if "<svg" not in head and "<?xml" not in head:
                     raise ValidationError(message="Invalid SVG file content", code="INVALID_SVG")
+                # Sanitize SVG for active scripts/XXE
+                sanitized_svg = FileSecurity.sanitize_svg(content)
                 return {
                     "mime_type": "image/svg+xml",
-                    "size": size_bytes,
+                    "size": len(sanitized_svg),
                     "width": 1920,
-                    "height": 1080
+                    "height": 1080,
+                    "sanitized_content": sanitized_svg,
                 }
             except Exception as e:
+                if isinstance(e, ValidationError):
+                    raise
                 raise ValidationError(message=f"Corrupted or invalid SVG: {str(e)}", code="INVALID_SVG")
+
+        # Magic bytes validation for raster images
+        if filename.lower().endswith(".png"):
+            if not FileSecurity.validate_magic_bytes(content, "png"):
+                raise ValidationError(message="File magic bytes do not match expected PNG signature", code="INVALID_IMAGE_FILE")
+        elif filename.lower().endswith((".jpg", ".jpeg")):
+            if not FileSecurity.validate_magic_bytes(content, "jpeg"):
+                raise ValidationError(message="File magic bytes do not match expected JPEG signature", code="INVALID_IMAGE_FILE")
 
         # Raster image validation (PNG, JPEG) via Pillow
         try:
@@ -61,6 +75,7 @@ class StorageService:
                         message=f"Unsupported image format: {img_format}. Allowed: PNG, JPEG, SVG.",
                         code="UNSUPPORTED_FORMAT"
                     )
+
 
                 mime_type = "image/png" if img_format == "PNG" else "image/jpeg"
                 width, height = img.size
