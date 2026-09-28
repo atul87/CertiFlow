@@ -1,4 +1,4 @@
-# CertiFlow — Backend Foundation (P0)
+# CertiFlow — Backend Foundation & Template Management (P0 & P1)
 
 Enterprise FastAPI + MongoDB backend for automated certificate generation SaaS.
 
@@ -12,7 +12,8 @@ Enterprise FastAPI + MongoDB backend for automated certificate generation SaaS.
 - **Validation**: [Pydantic v2](https://docs.pydantic.dev/) + `pydantic-settings`
 - **Security & Passwords**: Argon2id (`argon2-cffi`)
 - **Authentication**: JWT access tokens + rotated SHA-256 hashed refresh tokens
-- **Testing**: `pytest` + `pytest-asyncio` + `httpx` (25/25 automated tests)
+- **Rendering & Preview**: Pillow (PIL) + QRCode
+- **Testing**: `pytest` + `pytest-asyncio` + `httpx` (**45/45 automated tests passing**)
 - **Containerization**: Docker + Docker Compose
 
 ---
@@ -35,33 +36,52 @@ Backend/
 │   │       ├── router.py        # Centralized /api/v1 router
 │   │       ├── auth.py          # /register, /login, /refresh, /logout, /me
 │   │       ├── organizations.py # /me, PATCH /me, /me/members
+│   │       ├── templates.py     # Template CRUD, versioning, publishing, duplicate, archive, assets, preview
+│   │       ├── fonts.py         # System and custom font discovery
 │   │       └── health.py        # /health, /health/db
 │   ├── models/                  # Domain entity definitions
 │   ├── schemas/
 │   │   ├── auth.py              # TokenResponse, AuthMeResponse, RefreshTokenRequest
 │   │   ├── common.py            # APIResponse[T], APIErrorDetail
 │   │   ├── organization.py      # OrganizationResponse, OrganizationUpdate, MemberResponse
-│   │   └── user.py              # UserRegisterRequest, UserLoginRequest, UserResponse
+│   │   ├── user.py              # UserRegisterRequest, UserLoginRequest, UserResponse
+│   │   ├── template.py          # TemplateResponse, TemplateVersionResponse, Elements, Fields, Preview
+│   │   └── asset.py             # AssetResponse, FontResponse
 │   ├── services/
 │   │   ├── auth_service.py      # Registration, login, token rotation, logout
-│   │   └── organization_service.py # Multi-tenant org isolation & RBAC checks
+│   │   ├── organization_service.py # Multi-tenant org isolation & RBAC checks
+│   │   ├── template_service.py  # Template lifecycle, versioning, immutability, duplicate, archive
+│   │   ├── placeholder_service.py # {{placeholder}} syntax parsing, field extraction, substitution
+│   │   ├── template_validator.py# Canvas bounds, coordinate validation, pre-publish rules
+│   │   ├── storage_service.py   # Isolated asset filesystem storage outside MongoDB
+│   │   ├── asset_service.py     # Image upload, signature validation, metadata persistence
+│   │   └── preview_service.py   # High-fidelity lightweight certificate canvas rendering (PIL + QR)
 │   ├── repositories/
 │   │   ├── user_repository.py         # MongoDB users collection queries
 │   │   ├── organization_repository.py # MongoDB organizations & members queries
 │   │   ├── refresh_token_repository.py# Rotated hashed token storage
-│   │   └── audit_log_repository.py    # Audit logging for security compliance
+│   │   ├── audit_log_repository.py    # Audit logging for security compliance
+│   │   ├── template_repository.py     # MongoDB templates collection
+│   │   ├── template_version_repository.py # MongoDB template_versions collection
+│   │   ├── asset_repository.py        # MongoDB assets collection
+│   │   └── font_repository.py         # MongoDB fonts collection
 │   └── middleware/
 │       ├── request_id.py        # X-Request-ID propagation & HTTP access logging
 │       └── error_handler.py     # Global exception handlers returning standardized envelopes
+├── storage/                     # Isolated filesystem storage for assets outside MongoDB
 ├── tests/
 │   ├── conftest.py              # Async test client & isolated test DB fixtures
 │   ├── unit/
 │   │   ├── test_config.py       # Configuration & CORS parsing tests
-│   │   └── test_security.py     # Argon2id & JWT token unit tests
+│   │   ├── test_security.py     # Argon2id & JWT token unit tests
+│   │   ├── test_placeholders.py # Placeholder syntax, duplicate consolidation, system fields
+│   │   └── test_template_validator.py # Geometry, bounds, and pre-publish validation
 │   └── integration/
 │       ├── test_auth.py         # Full auth suite (register, login, refresh, logout)
 │       ├── test_health.py       # Health & DB connectivity checks
-│       └── test_organizations.py# Multi-tenant isolation & member tests
+│       ├── test_organizations.py# Multi-tenant isolation & member tests
+│       ├── test_templates.py    # Template CRUD, version immutability, clone, archive
+│       └── test_assets_and_preview.py # Image uploads, validation, font discovery, preview
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
@@ -90,7 +110,7 @@ pip install -r requirements.txt
 # 3. Configure environment
 copy .env.example .env
 
-# 4. Start local development server
+# 4. Start local development server with auto-reload
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -103,55 +123,101 @@ Interactive Swagger Documentation:
 ## 4. Running Automated Tests
 
 ```bash
-# Run the full test suite
+# Run the full test suite (45 tests)
 pytest -v
 ```
 
-All 25 test cases run against the isolated `certificate_platform_test` database and teardown automatically.
+All 45 test cases run against the isolated `certificate_platform_test` database and teardown automatically.
 
 ---
 
-## 5. API Response Protocol
+## 5. P1 Template Management Features
 
-### Success Standard (`200 OK` / `201 Created`)
-```json
-{
-  "success": true,
-  "data": {
-    "user": {
-      "id": "6aba0cca3979f6da1f6ab50b",
-      "email": "atul@example.com",
-      "name": "Atul",
-      "is_active": true,
-      "email_verified": false,
-      "created_at": "2026-09-28T12:00:00Z"
-    }
-  },
-  "error": null
-}
-```
+### Version Immutability
+- Once a template version is **published**, it is strictly locked and immutable.
+- Edits require creating a new draft version (e.g., `v2`). This guarantees historical certificate reproducibility.
 
-### Error Standard (`400`, `401`, `403`, `404`, `409`, `422`)
-```json
-{
-  "success": false,
-  "data": null,
-  "error": {
-    "code": "DUPLICATE_EMAIL",
-    "message": "A user with this email address already exists",
-    "details": null
-  }
-}
-```
+### Placeholder Architecture
+- Syntax: `{{variable_name}}`
+- System fields automatically classified: `{{certificate_id}}`, `{{verification_code}}`, `{{verification_url}}`, `{{issued_at}}`.
+- Recipient fields automatically extracted: `{{recipient_name}}`, `{{program_name}}`, `{{issue_date}}`, etc.
+- Duplicate placeholders supported: 1 logical field, multiple visual positions.
+
+### Asset Validation & Storage
+- Assets (backgrounds, logos, signatures, seals) are validated by MIME type, magic bytes, and dimensions before storage.
+- Stored on disk under `storage/assets/{org_id}/{template_id}/` outside MongoDB.
+
+### High-Fidelity Preview
+- `POST /api/v1/templates/{id}/preview` renders a PNG preview with sample data substitution, font rendering, and dynamic QR code generation.
 
 ---
 
-## 6. Docker Deployment
+## 6. P2 CSV / Excel Intelligence & Field Mapping
+
+### Architecture & Pipeline
+
+```text
+Upload CSV/XLSX 
+      ↓
+File Validation & Security (MIME, size, macro .xlsm rejection)
+      ↓
+Delimiter & Encoding Sniffer (comma, semicolon, tab, pipe; UTF-8, UTF-8-SIG, Windows-1252)
+      ↓
+Header & Empty Row Filter
+      ↓
+Column Profiling & Data Type Detection (string, email, date, number, url)
+      ↓
+Deterministic Field Matching Pipeline:
+  [Level 1: Exact] → [Level 2: Normalized] → [Level 3: Synonym Dictionary] → [Level 4: Data Type] → [Level 5: Fuzzy Levenshtein]
+      ↓
+Confidence Calculation (High: 90-100%, Medium: 70-89%, Low: <70%)
+      ↓
+Mapping Confirmation & Profile Persistence (`mapping_profiles`)
+      ↓
+Row-Level Data Cleaning & Validation (Email syntax, ISO YYYY-MM-DD date normalization, Long name >40 char warnings, Duplicate detection)
+      ↓
+Normalized Recipient Dataset (`import_rows`)
+      ↓
+Status: `ready` (Trusted bridge to Phase P3 Certificate Engine)
+```
+
+### MongoDB Collections Added in P2
+
+| Collection | Key Fields | Indexes |
+|---|---|---|
+| `imports` | `organization_id`, `template_id`, `template_version_id`, `filename`, `status`, `total_rows`, `valid_rows`, `invalid_rows`, `warning_rows` | `organization_id` + `created_at`, `organization_id` + `status`, `organization_id` + `template_id` |
+| `import_mappings` | `import_id`, `template_version_id`, `organization_id`, `mappings` (source_column, target_field, confidence, method) | `import_id`, `organization_id` + `template_version_id` |
+| `import_rows` | `import_id`, `organization_id`, `row_number`, `data`, `status` (valid, warning, error), `errors`, `warnings` | `import_id` + `row_number`, `import_id` + `status` |
+| `mapping_profiles` | `organization_id`, `template_id`, `name`, `mappings` | `organization_id` + `template_id`, `organization_id` + `name` |
+
+### P2 API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/imports` | Upload CSV/XLSX recipient file & trigger automated column profiling & auto-mapping |
+| `GET` | `/api/v1/imports` | List imports with pagination and status/template filtering |
+| `GET` | `/api/v1/imports/{id}` | Get detailed import status and summary |
+| `GET` | `/api/v1/imports/{id}/progress` | Real-time import processing and validation progress |
+| `GET` | `/api/v1/imports/{id}/mapping` | Retrieve auto-suggested or confirmed column-to-field mappings |
+| `POST` | `/api/v1/imports/{id}/mapping` | Confirm column mapping and trigger full dataset validation |
+| `POST` | `/api/v1/imports/{id}/validate` | Re-run dataset validation against confirmed mapping |
+| `GET` | `/api/v1/imports/{id}/preview` | Preview top 20 recipient rows with validation status |
+| `GET` | `/api/v1/imports/{id}/rows` | List paginated recipient records (filtered by `valid`, `warning`, `error`) |
+| `GET` | `/api/v1/imports/{id}/errors` | Retrieve all validation failure rows with error codes & messages |
+| `GET` | `/api/v1/imports/{id}/errors/download` | Download downloadable `errors.csv` report |
+| `POST` | `/api/v1/imports/{id}/replace` | Re-upload fixed spreadsheet without re-creating import metadata |
+| `POST` | `/api/v1/imports/{id}/cancel` | Cancel an ongoing or pending import job |
+| `GET` | `/api/v1/mapping-profiles` | List saved organization mapping profiles |
+| `POST` | `/api/v1/mapping-profiles` | Save reusable column mapping profile |
+| `DELETE` | `/api/v1/mapping-profiles/{id}` | Delete mapping profile |
+
+---
+
+## 7. Running Automated Tests
 
 ```bash
-# Start backend and MongoDB together
-docker-compose up --build -d
-
-# Check logs
-docker-compose logs -f certificate-api
+# Run the full test suite (65 tests)
+pytest -v
 ```
+
+All 65 test cases (covering P0 authentication & multi-tenancy, P1 template versions & previews, and P2 data intelligence, parsers, and field mapping) execute against an isolated test MongoDB database with full teardown.

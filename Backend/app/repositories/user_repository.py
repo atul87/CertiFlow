@@ -9,7 +9,10 @@ def serialize_doc(doc: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     if not doc:
         return None
     d = dict(doc)
-    d["id"] = str(d.pop("_id"))
+    if "_id" in d:
+        d["id"] = str(d.pop("_id"))
+    elif "id" not in d:
+        d["id"] = str(d.get("import_id", ""))
     return d
 
 

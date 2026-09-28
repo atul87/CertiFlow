@@ -17,7 +17,7 @@ async def test_db_lifecycle():
         if DatabaseManager.db is not None:
             colls = await DatabaseManager.db.list_collection_names()
             for c in colls:
-                if not c.startswith("system."):
+                if not c.startswith("system.") and c != "fonts":
                     await DatabaseManager.db[c].delete_many({})
         yield
     finally:
