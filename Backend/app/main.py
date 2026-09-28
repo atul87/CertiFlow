@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.core.database import DatabaseManager
+from app.queue.redis import QueueManager
 from app.middleware.request_id import RequestContextMiddleware
 from app.middleware.error_handler import register_error_handlers
 from app.api.v1.router import api_v1_router
@@ -16,6 +17,7 @@ async def lifespan(app: FastAPI):
     await DatabaseManager.connect()
     yield
     # Shutdown
+    await QueueManager.close()
     await DatabaseManager.close()
 
 

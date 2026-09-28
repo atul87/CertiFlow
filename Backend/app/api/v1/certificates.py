@@ -10,7 +10,7 @@ GET    /certificates/{cert_id}/preview    → download preview PNG
 POST   /certificates/{cert_id}/revoke     → revoke
 GET    /verify/{code}                     → public verification (no auth)
 """
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from fastapi import (
     APIRouter,
     Depends,
@@ -197,6 +197,15 @@ async def download_preview(
         headers={"Content-Disposition": f"inline; filename=preview_{cert_id}.png"},
     )
 
+from app.services.verification_service import VerificationService
+from app.repositories.verification_event_repository import VerificationEventRepository
+from app.schemas.verification import (
+    BulkRevokeRequest,
+    BulkRevokeResponse,
+    IntegrityCheckResponse,
+    CertificateTimelineResponse,
+    VerificationEventResponse,
+)
 
 # ---------------------------------------------------------------------------
 # Revoke
@@ -214,10 +223,10 @@ async def revoke_certificate(
     context: Dict[str, Any] = Depends(get_current_user_and_org),
 ):
     user = context["user"]
-    org_id = context["organization"]["id"]
+    org_id = context.get("org_id") or context["organization"]["id"]
     ip = get_client_ip(request)
     ua = get_client_user_agent(request)
-    cert = await CertificateService.revoke_certificate(
+    cert = await VerificationService.revoke_certificate(
         cert_id=cert_id,
         org_id=org_id,
         user_id=user["id"],
@@ -229,7 +238,114 @@ async def revoke_certificate(
 
 
 # ---------------------------------------------------------------------------
-# Public verification (no auth required) — P3.65
+# Restore (P5.14)
+# ---------------------------------------------------------------------------
+
+@router.post(
+    "/certificates/{cert_id}/restore",
+    response_model=APIResponse[CertificateResponse],
+    summary="Restore a revoked certificate to active status",
+)
+async def restore_certificate(
+    cert_id: str,
+    request: Request,
+    context: Dict[str, Any] = Depends(get_current_user_and_org),
+):
+    user = context["user"]
+    org_id = context.get("org_id") or context["organization"]["id"]
+    ip = get_client_ip(request)
+    ua = get_client_user_agent(request)
+    cert = await VerificationService.restore_certificate(
+        cert_id=cert_id,
+        org_id=org_id,
+        user_id=user["id"],
+        ip_address=ip,
+        user_agent=ua,
+    )
+    return APIResponse.ok(cert)
+
+
+# ---------------------------------------------------------------------------
+# Bulk Revoke (P5.47 / P5.48)
+# ---------------------------------------------------------------------------
+
+@router.post(
+    "/certificates/bulk-revoke",
+    response_model=APIResponse[BulkRevokeResponse],
+    summary="Bulk revoke multiple certificates",
+)
+async def bulk_revoke_certificates(
+    data: BulkRevokeRequest,
+    context: Dict[str, Any] = Depends(get_current_user_and_org),
+):
+    user = context["user"]
+    org_id = context.get("org_id") or context["organization"]["id"]
+    res = await VerificationService.bulk_revoke(
+        cert_ids=data.certificate_ids,
+        org_id=org_id,
+        user_id=user["id"],
+        reason=data.reason,
+        notes=data.notes,
+    )
+    return APIResponse.ok(res)
+
+
+# ---------------------------------------------------------------------------
+# Integrity Verification (P5.17 - P5.19)
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/certificates/{cert_id}/integrity",
+    response_model=APIResponse[IntegrityCheckResponse],
+    summary="Verify cryptographic SHA-256 integrity of stored certificate PDF",
+)
+async def check_certificate_integrity(
+    cert_id: str,
+    context: Dict[str, Any] = Depends(get_current_user_and_org),
+):
+    org_id = context.get("org_id") or context["organization"]["id"]
+    res = await VerificationService.check_integrity(cert_id, org_id)
+    return APIResponse.ok(res)
+
+
+# ---------------------------------------------------------------------------
+# Certificate Timeline (P5.30)
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/certificates/{cert_id}/timeline",
+    response_model=APIResponse[CertificateTimelineResponse],
+    summary="Get complete historical audit and scan timeline for a certificate",
+)
+async def get_certificate_timeline(
+    cert_id: str,
+    context: Dict[str, Any] = Depends(get_current_user_and_org),
+):
+    org_id = context.get("org_id") or context["organization"]["id"]
+    res = await VerificationService.get_certificate_timeline(cert_id, org_id)
+    return APIResponse.ok(res)
+
+
+# ---------------------------------------------------------------------------
+# Verification Events History (P5.22 / P5.53)
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/certificates/{cert_id}/verification-events",
+    response_model=APIResponse[List[VerificationEventResponse]],
+    summary="List verification scans for a certificate",
+)
+async def get_certificate_verification_events(
+    cert_id: str,
+    limit: int = Query(50, ge=1, le=200),
+    context: Dict[str, Any] = Depends(get_current_user_and_org),
+):
+    events = await VerificationEventRepository.list_by_certificate(cert_id, limit=limit)
+    return APIResponse.ok([VerificationEventResponse(**e) for e in events])
+
+
+# ---------------------------------------------------------------------------
+# Public verification (no auth required) — P3.65 / P5.05
 # ---------------------------------------------------------------------------
 
 @router.get(
@@ -241,20 +357,23 @@ async def revoke_certificate(
         "Returns limited public information — no authentication required."
     ),
 )
-async def verify_certificate(code: str):
-    doc = await CertificateRepository.get_by_verification_code(code.upper())
-    if not doc or doc.get("status") == "revoked":
+async def verify_certificate(code: str, request: Request):
+    ip = get_client_ip(request)
+    ua = get_client_user_agent(request)
+    result = await VerificationService.verify_by_code(code, user_agent=ua, ip_address=ip)
+    if not result.valid:
         return CertificateVerifyResponse(
             valid=False,
-            status=doc.get("status") if doc else None,
-            revoked_at=doc.get("revoked_at") if doc else None,
-            revocation_reason=doc.get("revocation_reason") if doc else None,
+            status=result.status,
+            revoked_at=result.revoked_at,
+            revocation_reason=result.revocation_reason,
         )
     return CertificateVerifyResponse(
         valid=True,
-        certificate_number=doc.get("certificate_number"),
-        recipient_name=doc.get("recipient", {}).get("name"),
-        template_name=doc.get("template_snapshot", {}).get("template_name"),
-        issued_at=doc.get("issued_at"),
-        status=doc.get("status"),
+        certificate_number=result.certificate.certificate_number if result.certificate else None,
+        recipient_name=result.certificate.recipient_name if result.certificate else None,
+        template_name=result.certificate.program_name if result.certificate else None,
+        issued_at=None,
+        status=result.status,
     )
+

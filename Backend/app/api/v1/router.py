@@ -8,6 +8,8 @@ from app.api.v1.fonts import router as fonts_router
 from app.api.v1.imports import router as imports_router
 from app.api.v1.mapping_profiles import router as mapping_profiles_router
 from app.api.v1.certificates import router as certificates_router
+from app.api.v1.issuance_jobs import router as issuance_jobs_router
+from app.api.v1.public import router as public_router
 
 api_v1_router = APIRouter()
 
@@ -19,3 +21,5 @@ api_v1_router.include_router(fonts_router)
 api_v1_router.include_router(imports_router)
 api_v1_router.include_router(mapping_profiles_router)
 api_v1_router.include_router(certificates_router)
+api_v1_router.include_router(issuance_jobs_router)
+api_v1_router.include_router(public_router)

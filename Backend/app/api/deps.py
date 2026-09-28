@@ -42,16 +42,20 @@ async def get_current_user_and_org(
         raise ForbiddenError(message="User account is inactive", code="ACCOUNT_INACTIVE")
 
     org_id = payload.get("org_id")
+    org_doc = None
+    if org_id:
+        org_doc = await OrganizationRepository.get_by_id(org_id)
     if not org_id:
-        # Fallback to primary organization
         primary_org = await OrganizationRepository.get_user_primary_organization(user_id)
         if primary_org:
             org_id = primary_org["id"]
+            org_doc = primary_org
 
     return {
         "user": user,
         "user_id": user_id,
-        "org_id": org_id
+        "org_id": org_id,
+        "organization": org_doc or ({"id": org_id} if org_id else None),
     }
 
 

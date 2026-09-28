@@ -186,6 +186,7 @@ class DatabaseManager:
             IndexModel([("verification_code", ASCENDING)], unique=True, name="uniq_certs_verification_code"),
             IndexModel([("idempotency_key", ASCENDING)], name="idx_certs_idempotency_key", sparse=True),
             IndexModel([("organization_id", ASCENDING), ("recipient.email", ASCENDING)], name="idx_certs_recipient_email"),
+            IndexModel([("file.sha256", ASCENDING)], name="idx_certs_file_sha256", sparse=True),
         ])
 
         # 15. Sequences collection (P3 — atomic counters)
@@ -196,6 +197,33 @@ class DatabaseManager:
                 unique=True,
                 name="uniq_sequences_org_key_year"
             ),
+        ])
+
+        # 16. Issuance Jobs collection (P4)
+        jobs_col = db["issuance_jobs"]
+        await jobs_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("created_at", ASCENDING)], name="idx_issuance_jobs_org_created"),
+            IndexModel([("organization_id", ASCENDING), ("status", ASCENDING)], name="idx_issuance_jobs_org_status"),
+            IndexModel([("import_id", ASCENDING)], name="idx_issuance_jobs_import_id"),
+            IndexModel([("template_id", ASCENDING)], name="idx_issuance_jobs_template_id"),
+        ])
+
+        # 17. Issuance Job Items collection (P4)
+        items_col = db["issuance_job_items"]
+        await items_col.create_indexes([
+            IndexModel([("job_id", ASCENDING), ("status", ASCENDING)], name="idx_issuance_items_job_status"),
+            IndexModel([("job_id", ASCENDING), ("row_number", ASCENDING)], name="idx_issuance_items_job_row"),
+            IndexModel([("job_id", ASCENDING), ("certificate_id", ASCENDING)], name="idx_issuance_items_job_cert"),
+            IndexModel([("job_id", ASCENDING), ("import_row_id", ASCENDING)], unique=True, name="uniq_issuance_items_job_row_id"),
+            IndexModel([("organization_id", ASCENDING)], name="idx_issuance_items_org_id"),
+        ])
+
+        # 18. Verification Events collection (P5)
+        events_col = db["verification_events"]
+        await events_col.create_indexes([
+            IndexModel([("certificate_id", ASCENDING), ("timestamp", ASCENDING)], name="idx_verif_events_cert_ts"),
+            IndexModel([("verification_code", ASCENDING), ("timestamp", ASCENDING)], name="idx_verif_events_code_ts"),
+            IndexModel([("organization_id", ASCENDING), ("timestamp", ASCENDING)], name="idx_verif_events_org_ts"),
         ])
 
         logger.info("MongoDB indexes verified successfully.")

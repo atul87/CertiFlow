@@ -203,22 +203,36 @@ class CertificateRepository:
         return [_serialize_cert(d) for d in docs], total
 
     @classmethod
+    async def get_by_sha256(cls, sha256_hash: str) -> Optional[Dict[str, Any]]:
+        doc = await cls._collection().find_one({"file.sha256": sha256_hash})
+        return _serialize_cert(doc)
+
+    @classmethod
     async def revoke(
         cls,
         cert_id: str,
         organization_id: str,
         reason: Optional[str] = None,
+        revoked_by: Optional[str] = None,
+        notes: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         try:
             cid = ObjectId(cert_id)
             oid = ObjectId(organization_id)
         except Exception:
             return None
+        now = datetime.now(timezone.utc)
         updates: Dict[str, Any] = {
             "status": "revoked",
             "revocation_reason": reason,
-            "revoked_at": datetime.now(timezone.utc),
-            "updated_at": datetime.now(timezone.utc),
+            "revoked_at": now,
+            "revocation": {
+                "revoked_at": now,
+                "revoked_by": ObjectId(revoked_by) if revoked_by else None,
+                "reason": reason,
+                "notes": notes,
+            },
+            "updated_at": now,
         }
         doc = await cls._collection().find_one_and_update(
             {"_id": cid, "organization_id": oid},
@@ -226,3 +240,78 @@ class CertificateRepository:
             return_document=ReturnDocument.AFTER
         )
         return _serialize_cert(doc)
+
+    @classmethod
+    async def restore(
+        cls,
+        cert_id: str,
+        organization_id: str,
+        restored_by: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        try:
+            cid = ObjectId(cert_id)
+            oid = ObjectId(organization_id)
+        except Exception:
+            return None
+        now = datetime.now(timezone.utc)
+        updates: Dict[str, Any] = {
+            "status": "generated",
+            "revoked_at": None,
+            "revocation_reason": None,
+            "revocation": None,
+            "restored_at": now,
+            "restored_by": ObjectId(restored_by) if restored_by else None,
+            "updated_at": now,
+        }
+        doc = await cls._collection().find_one_and_update(
+            {"_id": cid, "organization_id": oid, "status": "revoked"},
+            {"$set": updates},
+            return_document=ReturnDocument.AFTER
+        )
+        return _serialize_cert(doc)
+
+    @classmethod
+    async def bulk_revoke(
+        cls,
+        cert_ids: List[str],
+        organization_id: str,
+        reason: str,
+        revoked_by: Optional[str] = None,
+        notes: Optional[str] = None,
+    ) -> tuple:
+        try:
+            oid = ObjectId(organization_id)
+        except Exception:
+            return 0, cert_ids
+
+        valid_cids = []
+        failed_ids = []
+        for cid_str in cert_ids:
+            try:
+                valid_cids.append(ObjectId(cid_str))
+            except Exception:
+                failed_ids.append(cid_str)
+
+        if not valid_cids:
+            return 0, failed_ids
+
+        now = datetime.now(timezone.utc)
+        res = await cls._collection().update_many(
+            {"_id": {"$in": valid_cids}, "organization_id": oid, "status": {"$ne": "revoked"}},
+            {
+                "$set": {
+                    "status": "revoked",
+                    "revocation_reason": reason,
+                    "revoked_at": now,
+                    "revocation": {
+                        "revoked_at": now,
+                        "revoked_by": ObjectId(revoked_by) if revoked_by else None,
+                        "reason": reason,
+                        "notes": notes,
+                    },
+                    "updated_at": now,
+                }
+            }
+        )
+        return res.modified_count, failed_ids
+

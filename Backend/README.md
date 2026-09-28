@@ -213,11 +213,153 @@ Status: `ready` (Trusted bridge to Phase P3 Certificate Engine)
 
 ---
 
-## 7. Running Automated Tests
+## 7. P3 — Certificate Rendering & Verification Engine
 
-```bash
-# Run the full test suite (65 tests)
-pytest -v
+P3 provides high-fidelity canvas rendering, smart-fit auto font sizing, QR code stamping, PDF generation via ReportLab, SHA-256 fingerprinting, and public verification.
+
+### P3 API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/certificates/preview` | Render preview PNG without persisting certificate record |
+| `POST` | `/api/v1/certificates/generate` | Official certificate issuance (idempotent, atomic sequence) |
+| `GET` | `/api/v1/certificates` | List organization certificates with filtering |
+| `GET` | `/api/v1/certificates/{id}` | Get certificate details and metadata |
+| `GET` | `/api/v1/certificates/{id}/pdf` | Secure PDF download |
+| `GET` | `/api/v1/certificates/{id}/preview` | Download certificate preview PNG |
+| `POST` | `/api/v1/certificates/{id}/revoke` | Revoke certificate with reason |
+| `GET` | `/api/v1/verify/{code}` | Public verification endpoint (no auth required) |
+
+---
+
+## 8. P4 — Bulk Certificate Issuance, Queue & Worker System
+
+P4 scales issuance to 10,000+ recipients with asynchronous job queues, background workers, atomic claiming, crash recovery, and streaming ZIP downloads.
+
+### Architecture
+
+```text
+User / Frontend
+      ↓
+POST /api/v1/issuance-jobs
+      ↓
+FastAPI (Creates job & items in MongoDB)
+      ↓
+Redis Queue (ARQ)
+      ↓
+Background Workers (ARQ)
+  ├── Atomic claim item (findOneAndUpdate)
+  ├── Idempotency check
+  ├── P3 Certificate Engine
+  ├── SHA-256 & Storage
+  └── Progress updates
+      ↓
+Progress / ZIP Stream Export
 ```
 
-All 65 test cases (covering P0 authentication & multi-tenancy, P1 template versions & previews, and P2 data intelligence, parsers, and field mapping) execute against an isolated test MongoDB database with full teardown.
+### P4 Collections
+
+| Collection | Key Fields | Indexes |
+|---|---|---|
+| `issuance_jobs` | `organization_id`, `template_id`, `template_version_id`, `import_id`, `status`, `total`, `pending`, `processing`, `completed`, `failed`, `cancelled`, `progress` | `organization_id` + `created_at`, `organization_id` + `status`, `import_id`, `template_id` |
+| `issuance_job_items` | `job_id`, `organization_id`, `import_row_id`, `row_number`, `status`, `certificate_id`, `attempts`, `error`, `recipient`, `data` | `job_id` + `status`, `job_id` + `row_number`, `job_id` + `certificate_id`, `job_id` + `import_row_id` (unique) |
+
+### P4 API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/issuance-jobs` | Create and enqueue a bulk issuance job |
+| `GET` | `/api/v1/issuance-jobs` | List organization issuance jobs |
+| `GET` | `/api/v1/issuance-jobs/{id}` | Get details of an issuance job |
+| `GET` | `/api/v1/issuance-jobs/{id}/progress` | Real-time progress and completion percentages |
+| `POST` | `/api/v1/issuance-jobs/{id}/pause` | Pause job (workers stop claiming new items) |
+| `POST` | `/api/v1/issuance-jobs/{id}/resume` | Resume paused job |
+| `POST` | `/api/v1/issuance-jobs/{id}/cancel` | Cancel remaining items (keeps already generated certs) |
+| `POST` | `/api/v1/issuance-jobs/{id}/retry-failed` | Re-queue all failed items |
+| `POST` | `/api/v1/issuance-jobs/{id}/items/{item_id}/retry` | Retry a single failed item |
+| `GET` | `/api/v1/issuance-jobs/{id}/items` | List paginated job items with filter by status or recipient |
+| `GET` | `/api/v1/issuance-jobs/{id}/errors` | Retrieve failure error list |
+| `GET` | `/api/v1/issuance-jobs/{id}/errors/download` | Download `issuance-errors.csv` report |
+| `POST` | `/api/v1/issuance-jobs/{id}/zip` | Request asynchronous ZIP archive creation |
+| `GET` | `/api/v1/issuance-jobs/{id}/zip` | Check ZIP generation status & expiry |
+| `GET` | `/api/v1/issuance-jobs/{id}/zip/download` | Download generated certificates ZIP archive |
+
+### Running Workers
+
+```bash
+# Start background worker process locally
+arq app.workers.worker.WorkerSettings
+```
+
+---
+
+## 9. P5 — Verification, QR, Certificate Lifecycle & Trust System
+
+P5 provides the trust layer: public QR/URL verification, privacy protections, full revocation and restore lifecycle, cryptographic SHA-256 tamper detection, scan event tracking, and rate limiting.
+
+### Verification Flow
+
+```text
+Certificate PDF / Printed Copy
+              │
+              ▼
+           QR Code
+              │
+              ▼
+   Public Verification URL
+(https://certiflow.io/verify/{code})
+              │
+              ▼
+       FastAPI Public API
+              │
+      ┌───────┴───────┐
+      ▼               ▼
+Redis Cache     MongoDB Lookup
+ (300s TTL)    (Unique Index)
+      │               │
+      └───────┬───────┘
+              ▼
+      Privacy Filtering
+  (No email, internal IDs, or keys)
+              │
+              ▼
+   Public Verification Result
+ (VALID / REVOKED / EXPIRED / INVALID)
+```
+
+### P5 API Endpoints
+
+#### Public Endpoints (No Authentication Required)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/v1/public/verify/{code}` | Verify certificate by public code (cached in Redis, rate-limited) |
+| `POST` | `/api/v1/public/verify-file` | Verify original PDF file by cryptographic SHA-256 hash match |
+| `GET` | `/api/v1/public/certificates/{code}/download` | Public certificate PDF download (if enabled by issuer) |
+
+#### Authenticated Lifecycle & Trust Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/certificates/{id}/revoke` | Revoke certificate with structured reason, notes & cache invalidation |
+| `POST` | `/api/v1/certificates/{id}/restore` | Restore revoked certificate to active status |
+| `POST` | `/api/v1/certificates/bulk-revoke` | Bulk revoke multiple certificates by IDs |
+| `GET` | `/api/v1/certificates/{id}/integrity` | Cryptographic SHA-256 integrity verification of stored PDF |
+| `GET` | `/api/v1/certificates/{id}/timeline` | Complete audit and scan timeline of certificate lifecycle |
+| `GET` | `/api/v1/certificates/{id}/verification-events` | List recorded public verification scan attempts |
+
+---
+
+## 10. Running Automated Tests
+
+```bash
+# Run pure unit tests (instant, 64 tests, no DB needed)
+pytest -m no_db
+
+# Run full integration test suite (50 tests against MongoDB)
+pytest tests/integration/
+
+# Run complete test suite (114 tests)
+pytest
+```
+

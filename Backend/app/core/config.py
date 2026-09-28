@@ -35,6 +35,19 @@ class Settings(BaseSettings):
     MAX_ASSET_SIZE_MB: int = 15
     ALLOWED_IMAGE_TYPES: List[str] = ["image/png", "image/jpeg", "image/jpg", "image/svg+xml"]
 
+    # Redis & Job Queue (P4)
+    REDIS_URL: str = "redis://localhost:6379"
+    MAX_ACTIVE_JOBS_PER_ORG: int = 2
+    MAX_ITEM_ATTEMPTS: int = 3
+    RENDER_TIMEOUT_SECONDS: int = 120
+    ZIP_EXPIRY_HOURS: int = 24
+    WORKER_CONCURRENCY: int = 4
+
+    # Verification & Trust System (P5)
+    RATE_LIMIT_PUBLIC_VERIFY_PER_MINUTE: int = 60
+    VERIFICATION_CACHE_TTL_SECONDS: int = 300
+    PUBLIC_DOWNLOAD_ENABLED: bool = True
+
     # CORS
     CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
 

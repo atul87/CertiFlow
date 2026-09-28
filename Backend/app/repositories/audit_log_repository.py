@@ -23,10 +23,18 @@ class AuditLogRepository:
         user_agent: Optional[str] = None
     ) -> Dict[str, Any]:
         now = datetime.now(timezone.utc)
+        res_oid = None
+
+        if resource_id:
+            try:
+                res_oid = ObjectId(resource_id)
+            except Exception:
+                res_oid = resource_id
+
         doc = {
             "action": action,
             "resource_type": resource_type,
-            "resource_id": ObjectId(resource_id) if resource_id else None,
+            "resource_id": res_oid,
             "organization_id": ObjectId(organization_id) if organization_id else None,
             "user_id": ObjectId(user_id) if user_id else None,
             "metadata": metadata or {},
