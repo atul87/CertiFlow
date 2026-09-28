@@ -1,19 +1,23 @@
-# CertiFlow — Backend Foundation & Template Management (P0 & P1)
+# CertiFlow — Enterprise Backend & Digital Credential Engine (P0 to P11)
 
-Enterprise FastAPI + MongoDB backend for automated certificate generation SaaS.
+Enterprise-grade FastAPI + MongoDB + Redis backend microservice for automated certificate generation and portable digital credentials (**W3C Verifiable Credentials Data Model v2.0** and **1EdTech Open Badges 3.0**).
 
 ---
 
 ## 1. Technology Stack
 
-- **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Python 3.12+)
-- **Database**: [MongoDB](https://www.mongodb.com/) (System Service / Local instance at `localhost:27017` or Atlas)
-- **Async Driver**: [Motor](https://motor.readthedocs.io/) (`AsyncIOMotorClient`)
-- **Validation**: [Pydantic v2](https://docs.pydantic.dev/) + `pydantic-settings`
-- **Security & Passwords**: Argon2id (`argon2-cffi`)
-- **Authentication**: JWT access tokens + rotated SHA-256 hashed refresh tokens
-- **Rendering & Preview**: Pillow (PIL) + QRCode
-- **Testing**: `pytest` + `pytest-asyncio` + `httpx` (**45/45 automated tests passing**)
+- **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Python 3.13 / ASGI)
+- **Database**: [MongoDB](https://www.mongodb.com/) (Local service or MongoDB Atlas via Motor async driver)
+- **Background Queue & Cache**: [Redis](https://redis.io/) + [ARQ](https://arq-docs.helpmanual.io/) (Async Redis Queue)
+- **Validation & Settings**: [Pydantic v2](https://docs.pydantic.dev/) + `pydantic-settings`
+- **Security & Hashes**: Argon2id (`argon2-cffi`), PyJWT, HMAC-SHA256
+- **Cryptography (P11)**: Ed25519 asymmetric signatures, Fernet symmetric encryption at rest, RFC 8785 JSON canonicalization
+- **Standards & Credentials**: W3C Verifiable Credentials Data Model v2.0, 1EdTech Open Badges 3.0, W3C Data Integrity (`Ed25519Signature2020`)
+- **Document Rendering**: Playwright, ReportLab, CairoSVG, PyMuPDF, Pillow, QRCodegen (Exact 300 DPI high-res PDF generation)
+- **Data Ingestion**: Streaming CSV parser with automatic delimiter & encoding detection, OpenPyXL for Excel `.xlsx`
+- **Email Delivery**: Pluggable adapters for SMTP, SendGrid, Amazon SES, and Mock provider with Jinja2 templating
+- **Billing & Metering**: Stripe checkout & webhooks, multi-tier subscriptions, hard/soft quota enforcement, monthly metered usage
+- **Testing**: `pytest` + `pytest-asyncio` + `httpx` (**247/247 automated tests passing, 0 regressions**)
 - **Containerization**: Docker + Docker Compose
 
 ---
@@ -25,63 +29,34 @@ Backend/
 ├── app/
 │   ├── main.py                  # FastAPI app factory, lifespan, CORS, error handling
 │   ├── core/
-│   │   ├── config.py            # Centralized Pydantic Settings
+│   │   ├── config.py            # Centralized Pydantic Settings & environment variables
 │   │   ├── database.py          # Motor AsyncIOMotorClient + startup index creation
+│   │   ├── permissions.py       # Central RBAC permission registry & API key scopes
 │   │   ├── exceptions.py        # Typed application exceptions (401, 403, 404, 409, 422)
 │   │   ├── logging.py           # Structured logging setup
 │   │   └── security.py          # Argon2id hasher + JWT access/refresh token utils
+│   ├── credentials/             # P11 Standards & Cryptography Engine
+│   │   ├── canonicalizer.py     # RFC 8785 deterministic JSON canonicalization
+│   │   ├── signers/             # Ed25519 asymmetric signer with Fernet key encryption
+│   │   └── serializers/         # Open Badges 3.0 and W3C VC JSON-LD serializers
+│   ├── queue/                   # P4 Distributed background worker system (ARQ / Redis)
+│   │   ├── redis.py             # Redis connection manager & health checks
+│   │   ├── worker.py            # ARQ background worker functions
+│   │   └── tasks.py             # Task definitions (issuance, emails, reports, webhooks)
 │   ├── api/
-│   │   ├── deps.py              # Auth & RBAC dependencies (get_current_user, require_role)
-│   │   └── v1/
-│   │       ├── router.py        # Centralized /api/v1 router
-│   │       ├── auth.py          # /register, /login, /refresh, /logout, /me
-│   │       ├── organizations.py # /me, PATCH /me, /me/members
-│   │       ├── templates.py     # Template CRUD, versioning, publishing, duplicate, archive, assets, preview
-│   │       ├── fonts.py         # System and custom font discovery
-│   │       └── health.py        # /health, /health/db
-│   ├── models/                  # Domain entity definitions
-│   ├── schemas/
-│   │   ├── auth.py              # TokenResponse, AuthMeResponse, RefreshTokenRequest
-│   │   ├── common.py            # APIResponse[T], APIErrorDetail
-│   │   ├── organization.py      # OrganizationResponse, OrganizationUpdate, MemberResponse
-│   │   ├── user.py              # UserRegisterRequest, UserLoginRequest, UserResponse
-│   │   ├── template.py          # TemplateResponse, TemplateVersionResponse, Elements, Fields, Preview
-│   │   └── asset.py             # AssetResponse, FontResponse
-│   ├── services/
-│   │   ├── auth_service.py      # Registration, login, token rotation, logout
-│   │   ├── organization_service.py # Multi-tenant org isolation & RBAC checks
-│   │   ├── template_service.py  # Template lifecycle, versioning, immutability, duplicate, archive
-│   │   ├── placeholder_service.py # {{placeholder}} syntax parsing, field extraction, substitution
-│   │   ├── template_validator.py# Canvas bounds, coordinate validation, pre-publish rules
-│   │   ├── storage_service.py   # Isolated asset filesystem storage outside MongoDB
-│   │   ├── asset_service.py     # Image upload, signature validation, metadata persistence
-│   │   └── preview_service.py   # High-fidelity lightweight certificate canvas rendering (PIL + QR)
-│   ├── repositories/
-│   │   ├── user_repository.py         # MongoDB users collection queries
-│   │   ├── organization_repository.py # MongoDB organizations & members queries
-│   │   ├── refresh_token_repository.py# Rotated hashed token storage
-│   │   ├── audit_log_repository.py    # Audit logging for security compliance
-│   │   ├── template_repository.py     # MongoDB templates collection
-│   │   ├── template_version_repository.py # MongoDB template_versions collection
-│   │   ├── asset_repository.py        # MongoDB assets collection
-│   │   └── font_repository.py         # MongoDB fonts collection
-│   └── middleware/
-│       ├── request_id.py        # X-Request-ID propagation & HTTP access logging
-│       └── error_handler.py     # Global exception handlers returning standardized envelopes
+│   │   ├── deps.py              # Auth, multi-tenancy & RBAC dependencies
+│   │   └── v1/                  # 18 Modular REST API Routers (P0 to P11)
+│   ├── schemas/                 # Pydantic v2 domain schemas & envelopes
+│   ├── services/                # Business logic services for all 12 platform phases
+│   ├── repositories/            # MongoDB async data access repositories (50+ collections)
+│   └── middleware/              # Security headers, request correlation IDs, rate limiters
+├── docs/runbooks/               # Incident runbooks (api-outage, billing, disaster-recovery, worker)
 ├── storage/                     # Isolated filesystem storage for assets outside MongoDB
 ├── tests/
 │   ├── conftest.py              # Async test client & isolated test DB fixtures
-│   ├── unit/
-│   │   ├── test_config.py       # Configuration & CORS parsing tests
-│   │   ├── test_security.py     # Argon2id & JWT token unit tests
-│   │   ├── test_placeholders.py # Placeholder syntax, duplicate consolidation, system fields
-│   │   └── test_template_validator.py # Geometry, bounds, and pre-publish validation
-│   └── integration/
-│       ├── test_auth.py         # Full auth suite (register, login, refresh, logout)
-│       ├── test_health.py       # Health & DB connectivity checks
-│       ├── test_organizations.py# Multi-tenant isolation & member tests
-│       ├── test_templates.py    # Template CRUD, version immutability, clone, archive
-│       └── test_assets_and_preview.py # Image uploads, validation, font discovery, preview
+│   ├── unit/                    # Fast in-memory unit tests (126 tests)
+│   ├── integration/             # Comprehensive multi-phase integration & E2E tests
+│   └── security/                # Cryptographic tampering, SSRF, and RBAC security tests
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
@@ -122,12 +97,24 @@ Interactive Swagger Documentation:
 
 ## 4. Running Automated Tests
 
+CertiFlow Backend features an exhaustive test harness of **247 automated tests** spanning unit, integration, cryptographic security, and end-to-end continuous workflows:
+
 ```bash
-# Run the full test suite (45 tests)
+# 1. Pure Unit Tests (Fast, in-memory, no MongoDB required)
+pytest -m no_db
+
+# 2. Digital Credentials, Standards & Cryptography Test Suites
+pytest tests/unit/test_credentials_and_cryptography.py tests/integration/test_credentials_and_issuance.py tests/security/test_credential_security.py -v
+
+# 3. Grand End-to-End P0 to P11 Continuous Journey
+pytest tests/integration/test_full_e2e_p0_to_p11.py -v
+
+# 4. Run the entire test suite (247 tests passing, 0 failures, 0 regressions)
 pytest -v
 ```
 
-All 45 test cases run against the isolated `certificate_platform_test` database and teardown automatically.
+All integration and security test cases run against the isolated `certificate_platform_test` database and clean up automatically.
+
 
 ---
 
