@@ -86,6 +86,7 @@ class CertificateTimelineItem(BaseModel):
     type: str
     title: str
     timestamp: datetime
+    description: Optional[str] = None
     actor: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
 
@@ -93,4 +94,5 @@ class CertificateTimelineItem(BaseModel):
 class CertificateTimelineResponse(BaseModel):
     certificate_id: str
     certificate_number: str
+    current_status: Optional[str] = None
     events: List[CertificateTimelineItem]

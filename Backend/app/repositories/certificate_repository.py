@@ -168,6 +168,10 @@ class CertificateRepository:
         template_id: Optional[str] = None,
         recipient_email: Optional[str] = None,
         search: Optional[str] = None,
+        program: Optional[str] = None,
+        from_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = None,
+        verification_code: Optional[str] = None,
     ) -> tuple:
         try:
             oid = ObjectId(organization_id)
@@ -184,11 +188,36 @@ class CertificateRepository:
                 pass
         if recipient_email:
             query["recipient.email"] = {"$regex": recipient_email, "$options": "i"}
-        if search:
+        if verification_code:
+            query["verification_code"] = {"$regex": verification_code, "$options": "i"}
+        if program:
             query["$or"] = [
-                {"certificate_number": {"$regex": search, "$options": "i"}},
-                {"recipient.name": {"$regex": search, "$options": "i"}},
+                {"data.program_name": {"$regex": program, "$options": "i"}},
+                {"data.course_name": {"$regex": program, "$options": "i"}},
+                {"template_snapshot.template_name": {"$regex": program, "$options": "i"}},
             ]
+        if from_date and to_date:
+            query["created_at"] = {"$gte": from_date, "$lte": to_date}
+        elif from_date:
+            query["created_at"] = {"$gte": from_date}
+        elif to_date:
+            query["created_at"] = {"$lte": to_date}
+
+        if search:
+            clean_search = search.strip()
+            s_or = [
+                {"certificate_number": {"$regex": clean_search, "$options": "i"}},
+                {"recipient.name": {"$regex": clean_search, "$options": "i"}},
+                {"recipient.email": {"$regex": clean_search, "$options": "i"}},
+                {"verification_code": {"$regex": clean_search, "$options": "i"}},
+            ]
+            if "$or" in query:
+                query["$and"] = [
+                    {"$or": query.pop("$or")},
+                    {"$or": s_or},
+                ]
+            else:
+                query["$or"] = s_or
 
         total = await cls._collection().count_documents(query)
         skip = (page - 1) * limit

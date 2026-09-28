@@ -447,16 +447,54 @@ Recipient           Recipient
 
 ---
 
-## 11. Running Automated Tests
+## 11. P7 — Dashboard, Analytics, Reporting & Intelligence
+
+P7 turns the platform into a multi-tenant SaaS control center. It computes precise KPIs, tracks comparative percentage changes, provides multi-field certificate search, unifies certificate audit/delivery/scan timelines, processes asynchronous background reports (CSV & ReportLab PDF), and handles pre-aggregated daily analytics.
+
+### Analytics Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/v1/analytics/dashboard` | Main organization dashboard with KPIs, deltas, trend chart, status distribution, recent jobs |
+| `GET` | `/api/v1/analytics/certificates` | Certificate issuance trends, by template, by program, status counts |
+| `GET` | `/api/v1/analytics/issuance` | Bulk issuance throughput (certs/min), average duration, failure classification |
+| `GET` | `/api/v1/analytics/emails` | Email funnels, delivery rates (%), bounce rates (%), failure reason breakdown |
+| `GET` | `/api/v1/analytics/verification` | Verification scan attempts, validity distribution, daily trends, top scanned certs |
+| `GET` | `/api/v1/analytics/templates` | Template popularity, version distribution, last used timestamps |
+| `GET` | `/api/v1/analytics/imports` | CSV/Excel import analytics, row counts, mapping quality metrics |
+| `GET` | `/api/v1/analytics/usage` | Monthly certificate, email, and storage quotas |
+| `GET` | `/api/v1/analytics/storage` | Disk storage consumption breakdown in MB (certificates, assets, reports) |
+| `GET` | `/api/v1/analytics/health` | Operational health check for API, MongoDB, Redis, Storage, and Email (Owner/Admin) |
+
+### Report Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/reports` | Create asynchronous background report job (CSV or ReportLab PDF) |
+| `GET` | `/api/v1/reports` | List generated reports with pagination |
+| `GET` | `/api/v1/reports/{id}` | Get report job status and signed download URL |
+| `GET` | `/api/v1/reports/{id}/download` | Secure report download via signed HMAC token or session auth |
+
+### Activity Feed & Advanced Search
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/v1/activity` | Paginated organization activity and audit log feed |
+| `GET` | `/api/v1/certificates` | Advanced certificate search by query, status, template, program, date range |
+| `GET` | `/api/v1/certificates/{id}/timeline` | Complete unified lifecycle timeline combining generation, verification, and email webhooks |
+
+---
+
+## 12. Running Automated Tests
 
 ```bash
-# Run pure unit tests (instant, 80 tests, no DB needed)
+# Run pure unit tests (instant, 116 tests, no DB needed)
 pytest -m no_db
 
-# Run full integration test suite (57 tests against MongoDB)
+# Run full integration test suite (65 tests against MongoDB)
 pytest tests/integration/
 
-# Run complete test suite (137 tests)
+# Run complete test suite (181 tests)
 pytest
 ```
 

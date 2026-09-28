@@ -270,6 +270,20 @@ class DatabaseManager:
             IndexModel([("organization_id", ASCENDING), ("email", ASCENDING)], unique=True, name="uniq_email_supp_org_email"),
         ])
 
+        # 25. Report Jobs collection (P7)
+        report_jobs_col = db["report_jobs"]
+        await report_jobs_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("created_at", ASCENDING)], name="idx_report_jobs_org_created"),
+            IndexModel([("organization_id", ASCENDING), ("status", ASCENDING)], name="idx_report_jobs_org_status"),
+        ])
+
+        # 26. Daily Analytics collection (P7 — pre-aggregated metrics)
+        analytics_daily_col = db["analytics_daily"]
+        await analytics_daily_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("date", ASCENDING)], unique=True, name="uniq_analytics_daily_org_date"),
+            IndexModel([("organization_id", ASCENDING), ("date", ASCENDING)], name="idx_analytics_daily_org_date"),
+        ])
+
         logger.info("MongoDB indexes verified successfully.")
 
 

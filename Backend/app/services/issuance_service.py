@@ -117,7 +117,7 @@ class IssuanceService:
 
         # 8. Queue ARQ task in Redis
         queued = await QueueManager.enqueue(TASK_GENERATE_BULK_CERTIFICATES, job_id, org_id)
-        if not queued:
+        if not queued and settings.APP_ENV != "test":
             logger.info("Executing issuance task directly as Redis queue is unavailable")
             import asyncio
             from app.workers.certificate_worker import generate_bulk_certificates_task

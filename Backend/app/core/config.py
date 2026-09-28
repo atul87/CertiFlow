@@ -61,6 +61,11 @@ class Settings(BaseSettings):
     DEFAULT_SENDER_NAME: str = "CertiFlow"
     DEFAULT_SENDER_EMAIL: str = "certificates@certiflow.io"
 
+    # Analytics & Reporting System (P7)
+    ANALYTICS_CACHE_TTL_SECONDS: int = 60
+    REPORT_EXPIRY_HOURS: int = 24
+    MAX_REPORT_ROWS: int = 100000
+
     # CORS
     CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
 

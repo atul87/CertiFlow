@@ -15,6 +15,9 @@ from app.api.v1.email import router as email_router
 from app.api.v1.email_jobs import router as email_jobs_router
 from app.api.v1.email_deliveries import router as email_deliveries_router
 from app.api.v1.webhooks import router as webhooks_router
+from app.api.v1.analytics import router as analytics_router
+from app.api.v1.reports import router as reports_router
+from app.api.v1.activity import router as activity_router
 
 api_v1_router = APIRouter()
 
@@ -33,3 +36,6 @@ api_v1_router.include_router(email_router)
 api_v1_router.include_router(email_jobs_router)
 api_v1_router.include_router(email_deliveries_router)
 api_v1_router.include_router(webhooks_router)
+api_v1_router.include_router(analytics_router)
+api_v1_router.include_router(reports_router)
+api_v1_router.include_router(activity_router)

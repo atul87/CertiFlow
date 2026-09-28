@@ -465,6 +465,10 @@ class CertificateService:
         template_id: Optional[str] = None,
         recipient_email: Optional[str] = None,
         search: Optional[str] = None,
+        program: Optional[str] = None,
+        from_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = None,
+        verification_code: Optional[str] = None,
     ) -> dict[str, Any]:
         items, total = await CertificateRepository.list_certificates(
             organization_id=org_id,
@@ -474,6 +478,10 @@ class CertificateService:
             template_id=template_id,
             recipient_email=recipient_email,
             search=search,
+            program=program,
+            from_date=from_date,
+            to_date=to_date,
+            verification_code=verification_code,
         )
         total_pages = (total + limit - 1) // limit if total > 0 else 1
         return {

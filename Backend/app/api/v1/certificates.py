@@ -10,6 +10,7 @@ GET    /certificates/{cert_id}/preview    → download preview PNG
 POST   /certificates/{cert_id}/revoke     → revoke
 GET    /verify/{code}                     → public verification (no auth)
 """
+from datetime import datetime
 from typing import Dict, Any, Optional, List
 from fastapi import (
     APIRouter,
@@ -119,7 +120,7 @@ async def generate_certificate(
 @router.get(
     "/certificates",
     response_model=APIResponse[CertificateListResponse],
-    summary="List certificates",
+    summary="List certificates with advanced search & filters",
 )
 async def list_certificates(
     page: int = Query(1, ge=1),
@@ -128,9 +129,13 @@ async def list_certificates(
     template_id: Optional[str] = Query(None),
     recipient_email: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
+    program: Optional[str] = Query(None),
+    from_date: Optional[datetime] = Query(None, alias="issued_from"),
+    to_date: Optional[datetime] = Query(None, alias="issued_to"),
+    verification_code: Optional[str] = Query(None),
     context: Dict[str, Any] = Depends(get_current_user_and_org),
 ):
-    org_id = context["organization"]["id"]
+    org_id = context.get("org_id") or context["organization"]["id"]
     result = await CertificateService.list_certificates(
         org_id=org_id,
         page=page,
@@ -139,6 +144,10 @@ async def list_certificates(
         template_id=template_id,
         recipient_email=recipient_email,
         search=search,
+        program=program,
+        from_date=from_date,
+        to_date=to_date,
+        verification_code=verification_code,
     )
     return APIResponse.ok(CertificateListResponse(**result))
 
@@ -320,15 +329,16 @@ async def check_certificate_integrity(
 @router.get(
     "/certificates/{cert_id}/timeline",
     response_model=APIResponse[CertificateTimelineResponse],
-    summary="Get complete historical audit and scan timeline for a certificate",
+    summary="Get complete unified lifecycle, audit, delivery, and scan timeline for a certificate",
 )
 async def get_certificate_timeline(
     cert_id: str,
     context: Dict[str, Any] = Depends(get_current_user_and_org),
 ):
     org_id = context.get("org_id") or context["organization"]["id"]
-    res = await VerificationService.get_certificate_timeline(cert_id, org_id)
-    return APIResponse.ok(res)
+    from app.services.analytics.timeline_service import CertificateTimelineService
+    res = await CertificateTimelineService.build_timeline(cert_id, org_id)
+    return APIResponse.ok(CertificateTimelineResponse(**res))
 
 
 # ---------------------------------------------------------------------------
