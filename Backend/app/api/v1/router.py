@@ -7,6 +7,7 @@ from app.api.v1.templates import router as templates_router
 from app.api.v1.fonts import router as fonts_router
 from app.api.v1.imports import router as imports_router
 from app.api.v1.mapping_profiles import router as mapping_profiles_router
+from app.api.v1.certificates import router as certificates_router
 
 api_v1_router = APIRouter()
 
@@ -17,3 +18,4 @@ api_v1_router.include_router(templates_router)
 api_v1_router.include_router(fonts_router)
 api_v1_router.include_router(imports_router)
 api_v1_router.include_router(mapping_profiles_router)
+api_v1_router.include_router(certificates_router)

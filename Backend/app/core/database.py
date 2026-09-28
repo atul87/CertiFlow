@@ -176,6 +176,28 @@ class DatabaseManager:
             IndexModel([("organization_id", ASCENDING), ("name", ASCENDING)], name="idx_mapping_profiles_org_name")
         ])
 
+        # 14. Certificates collection (P3)
+        certs_col = db["certificates"]
+        await certs_col.create_indexes([
+            IndexModel([("organization_id", ASCENDING), ("created_at", ASCENDING)], name="idx_certs_org_created"),
+            IndexModel([("organization_id", ASCENDING), ("status", ASCENDING)], name="idx_certs_org_status"),
+            IndexModel([("organization_id", ASCENDING), ("template_id", ASCENDING)], name="idx_certs_org_template"),
+            IndexModel([("certificate_number", ASCENDING)], name="idx_certs_cert_number"),
+            IndexModel([("verification_code", ASCENDING)], unique=True, name="uniq_certs_verification_code"),
+            IndexModel([("idempotency_key", ASCENDING)], name="idx_certs_idempotency_key", sparse=True),
+            IndexModel([("organization_id", ASCENDING), ("recipient.email", ASCENDING)], name="idx_certs_recipient_email"),
+        ])
+
+        # 15. Sequences collection (P3 — atomic counters)
+        seq_col = db["sequences"]
+        await seq_col.create_indexes([
+            IndexModel(
+                [("organization_id", ASCENDING), ("key", ASCENDING), ("year", ASCENDING)],
+                unique=True,
+                name="uniq_sequences_org_key_year"
+            ),
+        ])
+
         logger.info("MongoDB indexes verified successfully.")
 
 

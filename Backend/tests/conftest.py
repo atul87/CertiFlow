@@ -9,8 +9,17 @@ TEST_DB_NAME = "certificate_platform_test"
 
 
 @pytest_asyncio.fixture(autouse=True)
-async def test_db_lifecycle():
-    """Manage database connection and clean collections for each test."""
+async def test_db_lifecycle(request):
+    """Manage database connection and clean collections for each test.
+    
+    Tests marked with @pytest.mark.no_db skip the DB lifecycle entirely.
+    Use this marker for pure unit tests that have no MongoDB dependencies.
+    """
+    # Skip DB setup/teardown for no_db marked tests
+    if request.node.get_closest_marker("no_db"):
+        yield
+        return
+
     settings.MONGODB_DATABASE = TEST_DB_NAME
     await DatabaseManager.connect()
     try:

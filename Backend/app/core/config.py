@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     DEBUG: bool = True
     VERSION: str = "0.1.0"
+    APP_BASE_URL: str = "http://localhost:3000"
 
     API_V1_PREFIX: str = "/api/v1"
 
