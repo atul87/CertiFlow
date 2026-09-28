@@ -2,20 +2,37 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Award, ArrowRight, ShieldCheck, Check } from "lucide-react";
+import { Award, ArrowRight, ShieldCheck, AlertCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { api, ApiError } from "@/lib/api-client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+    setErrorMessage(null);
+
+    try {
+      // Authenticate with live FastAPI backend
+      await api.auth.login({ email, password });
       window.location.href = "/app";
-    }, 800);
+    } catch (err: any) {
+      if (err instanceof ApiError) {
+        setErrorMessage(err.message || "Invalid email or password");
+      } else {
+        setErrorMessage("Unable to connect to backend server. Make sure FastAPI is running on port 8000.");
+      }
+      setLoading(false);
+    }
+  };
+
+  const handleDemoMode = () => {
+    window.location.href = "/app";
   };
 
   return (
@@ -37,6 +54,17 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {/* Error Alert */}
+        {errorMessage && (
+          <div className="mb-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-[13px] flex items-start gap-2.5">
+            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-red-600" />
+            <div className="flex-1">
+              <p className="font-semibold">Authentication failed</p>
+              <p className="text-[12px] text-red-600 mt-0.5">{errorMessage}</p>
+            </div>
+          </div>
+        )}
+
         {/* Card */}
         <div className="bg-white border border-[var(--color-border)] rounded-2xl p-6 sm:p-8 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -50,7 +78,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@organization.com"
+                placeholder="admin@certiflow.io"
                 className="w-full px-3.5 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-[14px] focus:outline-none focus:border-[var(--color-primary)] focus:bg-white transition-colors"
               />
             </div>
@@ -76,9 +104,18 @@ export default function LoginPage() {
             </div>
 
             <Button type="submit" loading={loading} size="lg" className="w-full justify-center mt-2">
-              Sign In to Studio
+              Sign In with Backend
               <ArrowRight className="w-4 h-4 ml-1.5" />
             </Button>
+
+            <button
+              type="button"
+              onClick={handleDemoMode}
+              className="w-full text-center text-[13px] text-gray-500 hover:text-gray-800 py-1 transition-colors flex items-center justify-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>Or explore in Offline / Demo Mode</span>
+            </button>
           </form>
 
           <div className="mt-6 pt-6 border-t border-[var(--color-border)] text-center text-[13px] text-[var(--color-text-secondary)]">
@@ -91,7 +128,7 @@ export default function LoginPage() {
 
         <div className="text-center mt-6 text-[12px] text-[var(--color-text-tertiary)] flex items-center justify-center gap-1.5">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Encrypted with TLS 1.3 & AES-256</span>
+          <span>Encrypted with TLS 1.3 & Argon2id Hashing</span>
         </div>
       </div>
     </div>

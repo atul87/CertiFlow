@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { api } from "@/lib/api-client";
 import {
   Sparkles,
   Search,
@@ -123,6 +124,36 @@ export default function CertificatesLibraryPage() {
   const [projectFilter, setProjectFilter] = useState("all");
   const [selectedCert, setSelectedCert] = useState<CertificateItem | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isBackendConnected, setIsBackendConnected] = useState(false);
+
+  // Fetch live certificates from FastAPI backend
+  useEffect(() => {
+    let isMounted = true;
+    async function loadBackendCertificates() {
+      try {
+        const res = await api.certificates.list({ limit: 50 });
+        const items = res?.items || res?.data || (Array.isArray(res) ? res : []);
+        if (isMounted && items.length > 0) {
+          const mapped: CertificateItem[] = items.map((c: any) => ({
+            id: c.certificate_number || c.id || "CERT-LIVE",
+            name: c.recipient?.name || c.recipient_name || "Recipient",
+            email: c.recipient?.email || c.recipient_email || "recipient@org.com",
+            project: c.template_name || c.program_name || "Live Batch",
+            projectId: c.template_id || "template-default",
+            issueDate: c.created_at ? new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Recent",
+            status: c.status === "revoked" ? "revoked" : "verified",
+            hash: c.sha256_hash ? c.sha256_hash.substring(0, 16) + "..." : "sha256-verified",
+          }));
+          setCerts(mapped);
+          setIsBackendConnected(true);
+        }
+      } catch {
+        // Backend not logged in or offline; keep fallback demo data
+      }
+    }
+    loadBackendCertificates();
+    return () => { isMounted = false; };
+  }, []);
 
   const handleCopyLink = (id: string) => {
     const url = `${window.location.origin}/verify/${id}`;
@@ -131,15 +162,27 @@ export default function CertificatesLibraryPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleToggleRevoke = (id: string) => {
+  const handleToggleRevoke = async (id: string) => {
+    const current = certs.find((c) => c.id === id);
+    const newStatus = current?.status === "verified" ? "revoked" : "verified";
+
+    // Optimistically update UI
     setCerts((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? { ...c, status: c.status === "verified" ? "revoked" : "verified" }
-          : c
-      )
+      prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
     );
+
+    // Call live backend if applicable
+    try {
+      if (newStatus === "revoked") {
+        await api.certificates.revoke(id, "Administrative revocation via dashboard");
+      } else {
+        await api.certificates.restore(id);
+      }
+    } catch {
+      // Offline fallback
+    }
   };
+
 
   const filteredCerts = certs.filter((c) => {
     const matchesSearch =

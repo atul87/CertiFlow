@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Award, ArrowRight, ShieldCheck, Check, Sparkles } from "lucide-react";
+import { Award, ArrowRight, ShieldCheck, Check, Sparkles, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { api, ApiError } from "@/lib/api-client";
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState("");
@@ -11,13 +12,46 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [orgType, setOrgType] = useState("University / College");
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+    setErrorMessage(null);
+
+    // Ensure password meets backend requirements: >=8 chars with letters & numbers
+    if (password.length < 8) {
+      setErrorMessage("Password must be at least 8 characters long.");
+      setLoading(false);
+      return;
+    }
+    const hasLetter = /[a-zA-Z]/.test(password);
+    const hasDigit = /[0-9]/.test(password);
+    if (!hasLetter || !hasDigit) {
+      setErrorMessage("Password must contain both letters and numbers.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await api.auth.register({
+        name: fullName.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+      });
       window.location.href = "/app";
-    }, 800);
+    } catch (err: any) {
+      if (err instanceof ApiError) {
+        setErrorMessage(err.message || "Registration failed. Please check your details.");
+      } else {
+        setErrorMessage("Unable to connect to backend server. Make sure FastAPI is running on port 8000.");
+      }
+      setLoading(false);
+    }
+  };
+
+  const handleDemoMode = () => {
+    window.location.href = "/app";
   };
 
   return (
@@ -38,6 +72,17 @@ export default function SignupPage() {
             Turn spreadsheets into hundreds of credentials in minutes
           </p>
         </div>
+
+        {/* Error Alert */}
+        {errorMessage && (
+          <div className="mb-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-[13px] flex items-start gap-2.5">
+            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-red-600" />
+            <div className="flex-1">
+              <p className="font-semibold">Registration notice</p>
+              <p className="text-[12px] text-red-600 mt-0.5">{errorMessage}</p>
+            </div>
+          </div>
+        )}
 
         {/* Card */}
         <div className="bg-white border border-[var(--color-border)] rounded-2xl p-6 sm:p-8 shadow-sm">
@@ -65,7 +110,7 @@ export default function SignupPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="atul@university.edu"
+                placeholder="atul@organization.com"
                 className="w-full px-3.5 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-[14px] focus:outline-none focus:border-[var(--color-primary)] focus:bg-white transition-colors"
               />
             </div>
@@ -97,15 +142,24 @@ export default function SignupPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 8 characters"
+                placeholder="At least 8 chars with letters & numbers"
                 className="w-full px-3.5 py-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-[14px] focus:outline-none focus:border-[var(--color-primary)] focus:bg-white transition-colors"
               />
             </div>
 
             <Button type="submit" loading={loading} size="lg" className="w-full justify-center mt-2">
               <Sparkles className="w-4 h-4 mr-1.5" />
-              Create Free Account
+              Create Account with Backend
             </Button>
+
+            <button
+              type="button"
+              onClick={handleDemoMode}
+              className="w-full text-center text-[13px] text-gray-500 hover:text-gray-800 py-1 transition-colors flex items-center justify-center gap-1.5"
+            >
+              <span>Or continue directly in Demo Mode</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </form>
 
           <div className="mt-5 space-y-2 text-[12px] text-[var(--color-text-secondary)]">
@@ -115,7 +169,7 @@ export default function SignupPage() {
             </div>
             <div className="flex items-center gap-2">
               <Check className="w-3.5 h-3.5 text-emerald-600" />
-              <span>No credit card required to start</span>
+              <span>Includes Open Badges 3.0 & W3C Verifiable Credentials</span>
             </div>
           </div>
 
@@ -125,6 +179,11 @@ export default function SignupPage() {
               Log in
             </Link>
           </div>
+        </div>
+
+        <div className="text-center mt-6 text-[12px] text-[var(--color-text-tertiary)] flex items-center justify-center gap-1.5">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Tenant Isolated & Encrypted</span>
         </div>
       </div>
     </div>

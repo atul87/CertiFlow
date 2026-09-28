@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Award,
@@ -16,8 +16,11 @@ import {
   ExternalLink,
   ChevronRight,
   Sparkles,
+  Server,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api-client";
+
 
 const projects = [
   {
@@ -51,10 +54,28 @@ const projects = [
 
 export function Dashboard() {
   const [search, setSearch] = useState("");
+  const [backendStatus, setBackendStatus] = useState<"checking" | "online" | "offline">("checking");
+
+  useEffect(() => {
+    let isMounted = true;
+    async function checkBackend() {
+      try {
+        const res = await api.health.check();
+        if (isMounted && res) {
+          setBackendStatus("online");
+        }
+      } catch {
+        if (isMounted) setBackendStatus("offline");
+      }
+    }
+    checkBackend();
+    return () => { isMounted = false; };
+  }, []);
 
   const filtered = projects.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );
+
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] flex flex-col">
@@ -91,6 +112,23 @@ export function Dashboard() {
           </div>
 
           <div className="flex items-center gap-3">
+            {backendStatus === "online" ? (
+              <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Backend API Connected
+              </span>
+            ) : backendStatus === "checking" ? (
+              <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] text-gray-500 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full">
+                <span className="w-2 h-2 rounded-full bg-gray-400"></span>
+                Connecting Backend...
+              </span>
+            ) : (
+              <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
+                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                Offline Mode
+              </span>
+            )}
+
             <Button size="sm" asChild>
               <Link href="/demo">
                 <Plus className="w-4 h-4 mr-1" />
