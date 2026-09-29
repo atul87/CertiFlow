@@ -34,6 +34,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { QueryProvider } from "@/lib/query";
+
 export default function RootLayout({
   children,
 }: {
@@ -50,7 +52,7 @@ export default function RootLayout({
         suppressHydrationWarning
         className="min-h-full flex flex-col font-sans bg-[var(--color-background)] text-[var(--color-text)]"
       >
-        {children}
+        <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   );

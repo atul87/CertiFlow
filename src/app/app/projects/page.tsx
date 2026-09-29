@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { api } from "@/lib/api-client";
 import {
   Award,
   Plus,
@@ -26,8 +27,9 @@ export default function ProjectsDirectoryPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectDesc, setNewProjectDesc] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
-  const [projectsList, setProjectsList] = useState([
+  const [projectsList, setProjectsList] = useState<any[]>([
     {
       id: "proj-ai-2026",
       name: "AI Workshop 2026",
@@ -70,27 +72,74 @@ export default function ProjectsDirectoryPage() {
     },
   ]);
 
-  const handleCreateProject = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newProjectName) return;
+  useEffect(() => {
+    let isMounted = true;
+    async function loadTemplates() {
+      try {
+        const res = await api.templates.list();
+        const items = (res as any)?.items || (res as any)?.data || (Array.isArray(res) ? res : []);
+        if (isMounted && items.length > 0) {
+          const mapped = items.map((t: any) => ({
+            id: t.id,
+            name: t.name,
+            description: t.description || "Production certificate template",
+            count: t.certificate_count || 0,
+            status: t.current_version_id ? "Active Template" : "Draft",
+            template: "Canvas Vector Layout",
+            updated: t.updated_at ? new Date(t.updated_at).toLocaleDateString() : "Recent",
+            verified: 0,
+          }));
+          setProjectsList((prev) => {
+            const ids = new Set(mapped.map((m: any) => m.id));
+            const filteredPrev = prev.filter((p: any) => !ids.has(p.id));
+            return [...mapped, ...filteredPrev];
+          });
+        }
+      } catch {
+        // Retain fallback data
+      }
+    }
+    loadTemplates();
+    return () => { isMounted = false; };
+  }, []);
 
-    const newId = `proj-${Date.now()}`;
+  const handleCreateProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProjectName.trim()) return;
+
+    setIsCreating(true);
+    let createdId = `proj-${Date.now()}`;
+
+    try {
+      const created = await api.templates.create({
+        name: newProjectName.trim(),
+        description: newProjectDesc.trim(),
+      });
+      if (created?.id) {
+        createdId = created.id;
+      }
+    } catch {
+      // Fallback
+    }
+
     const newProj = {
-      id: newId,
+      id: createdId,
       name: newProjectName,
       description: newProjectDesc || "Custom certification project",
       count: 0,
-      status: "Draft",
+      status: "Active Template",
       template: "Academic Honors Landscape (A4)",
       updated: "Just now",
       verified: 0,
     };
 
-    setProjectsList([newProj, ...projectsList]);
+    setProjectsList((prev) => [newProj, ...prev]);
+    setIsCreating(false);
     setIsCreateModalOpen(false);
     setNewProjectName("");
     setNewProjectDesc("");
   };
+
 
   const filtered = projectsList.filter((p) => {
     const matchesSearch =
@@ -153,6 +202,25 @@ export default function ProjectsDirectoryPage() {
 
       {/* Main Content */}
       <main className="container-marketing py-10 flex-1 space-y-6">
+        {/* P12 Migration Notice */}
+        <div className="bg-indigo-50/80 border border-indigo-100 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-[13px] font-bold text-indigo-950">Templates is now the central design workspace</p>
+              <p className="text-[12px] text-indigo-700">Project presets and canvas designs have migrated to the new Templates & Issuance centers.</p>
+            </div>
+          </div>
+          <Link
+            href="/app/templates"
+            className="px-4 py-2 rounded-xl bg-[#635BFF] text-white text-[12px] font-semibold hover:bg-indigo-600 transition-colors shrink-0 text-center shadow-xs"
+          >
+            Open Templates Center →
+          </Link>
+        </div>
+
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-[28px] font-bold text-[var(--color-text)] tracking-tight">

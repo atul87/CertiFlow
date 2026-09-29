@@ -9,7 +9,7 @@ import { forwardRef, isValidElement, cloneElement, type ButtonHTMLAttributes, ty
    Supports asChild for clean Next.js <Link> integration
    ───────────────────────────────────────────── */
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "destructive";
+type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "destructive";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -23,6 +23,8 @@ const variantStyles: Record<ButtonVariant, string> = {
   primary:
     "bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] shadow-sm active:scale-[0.98]",
   secondary:
+    "bg-white text-[var(--color-text)] border border-[var(--color-border)] hover:border-[var(--color-border-hover)] hover:bg-gray-50 shadow-xs active:scale-[0.98]",
+  outline:
     "bg-white text-[var(--color-text)] border border-[var(--color-border)] hover:border-[var(--color-border-hover)] hover:bg-gray-50 shadow-xs active:scale-[0.98]",
   ghost:
     "text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-black/[0.04]",
