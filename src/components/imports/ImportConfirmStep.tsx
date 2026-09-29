@@ -41,12 +41,12 @@ export function ImportConfirmStep({
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
-        <Button variant="outline" onClick={onReset} className="flex-1 justify-center">
+        <Button id="import-another-btn" variant="outline" onClick={onReset} className="flex-1 justify-center">
           <RotateCcw className="w-4 h-4 mr-1.5" />
           Import Another File
         </Button>
         <Link href="/app/issuance?create=1" className="flex-1">
-          <Button className="w-full justify-center">
+          <Button id="launch-issuance-btn" className="w-full justify-center">
             <Zap className="w-4 h-4 mr-1.5" />
             Launch Batch Issuance
           </Button>

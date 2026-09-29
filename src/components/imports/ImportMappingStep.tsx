@@ -118,11 +118,12 @@ export function ImportMappingStep({
 
       {/* Actions */}
       <div className="flex items-center justify-between pt-2">
-        <Button variant="outline" onClick={onBack}>
+        <Button id="mapping-back-btn" variant="outline" onClick={onBack}>
           <ArrowLeft className="w-4 h-4 mr-1.5" />
           Back
         </Button>
         <Button
+          id="validate-records-btn"
           onClick={onValidate}
           loading={savingMapping}
           disabled={!isValid}

@@ -122,11 +122,12 @@ export function ImportValidationStep({
 
       {/* Action buttons */}
       <div className="flex items-center justify-between pt-2">
-        <Button variant="outline" onClick={onBack}>
+        <Button id="validation-back-btn" variant="outline" onClick={onBack}>
           <ArrowLeft className="w-4 h-4 mr-1.5" />
           Back to Mapping
         </Button>
         <Button
+          id="confirm-import-btn"
           onClick={onConfirm}
           loading={confirming}
           disabled={validRows === 0}

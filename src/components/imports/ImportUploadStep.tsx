@@ -55,10 +55,11 @@ export function ImportUploadStep({
 
       {/* Template selector */}
       <div>
-        <label className="block text-[13px] font-semibold text-[var(--color-text)] mb-2">
+        <label htmlFor="template-select" className="block text-[13px] font-semibold text-[var(--color-text)] mb-2">
           Certificate Template <span className="text-[var(--color-text-tertiary)] font-normal">(optional)</span>
         </label>
         <select
+          id="template-select"
           value={selectedTemplate}
           onChange={(e) => onSelectTemplate(e.target.value)}
           className="w-full px-3.5 py-2.5 rounded-lg border border-[var(--color-border)] text-[14px] bg-[var(--color-background)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
@@ -91,6 +92,8 @@ export function ImportUploadStep({
       >
         <input
           ref={fileInput}
+          id="recipient-file-input"
+          data-testid="recipient-file-input"
           type="file"
           accept=".csv,.xlsx,.xls"
           className="hidden"
@@ -134,6 +137,7 @@ export function ImportUploadStep({
       </div>
 
       <Button
+        id="upload-analyze-btn"
         onClick={onUpload}
         loading={uploading}
         disabled={!selectedFile}

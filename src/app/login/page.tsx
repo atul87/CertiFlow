@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Award, ArrowRight, ShieldCheck, AlertCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { api, ApiError } from "@/lib/api-client";
+import { api, ApiError, tokenStorage, orgStorage } from "@/lib/api-client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,10 +17,19 @@ export default function LoginPage() {
     setLoading(true);
     setErrorMessage(null);
 
+    const getRedirectUrl = () => {
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        const red = params.get("redirect");
+        if (red && red.startsWith("/")) return red;
+      }
+      return "/app";
+    };
+
     try {
       // Authenticate with live FastAPI backend
       await api.auth.login({ email, password });
-      window.location.href = "/app";
+      window.location.href = getRedirectUrl();
     } catch (err: any) {
       if (err instanceof ApiError) {
         setErrorMessage(err.message || "Invalid email or password");
@@ -32,7 +41,15 @@ export default function LoginPage() {
   };
 
   const handleDemoMode = () => {
-    window.location.href = "/app";
+    tokenStorage.setTokens("demo_access_token_2026");
+    orgStorage.setOrgId("org_demo_01");
+    let target = "/app";
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const red = params.get("redirect");
+      if (red && red.startsWith("/")) target = red;
+    }
+    window.location.href = target;
   };
 
   return (
