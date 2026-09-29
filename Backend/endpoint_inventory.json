@@ -1,0 +1,3339 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/v1/achievements",
+    "tag": "Achievements",
+    "summary": "List Achievements",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credentials_and_issuance.py",
+      "test_full_e2e_p0_to_p11.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/achievements",
+    "tag": "Achievements",
+    "summary": "Create Achievement",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/AchievementCreateRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credentials_and_issuance.py",
+      "test_full_e2e_p0_to_p11.py"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/achievements/{achievement_id}",
+    "tag": "Achievements",
+    "summary": "Delete Achievement",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credentials_and_issuance.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/achievements/{achievement_id}",
+    "tag": "Achievements",
+    "summary": "Get Achievement",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credentials_and_issuance.py"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/achievements/{achievement_id}",
+    "tag": "Achievements",
+    "summary": "Update Achievement",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/AchievementUpdateRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credentials_and_issuance.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/activity",
+    "tag": "Activity",
+    "summary": "List organization activity and audit events",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/organizations/{organization_id}/entitlements/grant",
+    "tag": "SaaS Admin Operations",
+    "summary": "Grant temporary or promotional quota override to an organization",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/AdminEntitlementGrantRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_billing_and_subscriptions.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/organizations/{organization_id}/restore",
+    "tag": "SaaS Admin Operations",
+    "summary": "Restore a suspended organization to active standing",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_billing_and_subscriptions.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/organizations/{organization_id}/subscription",
+    "tag": "SaaS Admin Operations",
+    "summary": "Manually override an organization's subscription plan and status (Admin Support)",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/AdminSubscriptionOverrideRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_billing_and_subscriptions.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/admin/organizations/{organization_id}/suspend",
+    "tag": "SaaS Admin Operations",
+    "summary": "Suspend an organization for policy violation or non-payment",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_billing_and_subscriptions.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/admin/overview",
+    "tag": "SaaS Admin Operations",
+    "summary": "Get platform-wide SaaS overview, MRR, subscriptions, and global counters",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_billing_and_subscriptions.py",
+      "test_billing_security.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/analytics/certificates",
+    "tag": "Analytics",
+    "summary": "Get certificate analytics",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/analytics/dashboard",
+    "tag": "Analytics",
+    "summary": "Get organization dashboard overview",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py",
+      "test_tenant_isolation.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/analytics/emails",
+    "tag": "Analytics",
+    "summary": "Get email delivery analytics",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/analytics/health",
+    "tag": "Analytics",
+    "summary": "Operational health check for platform services (Admin only)",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/analytics/imports",
+    "tag": "Analytics",
+    "summary": "Get recipient import analytics",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/analytics/issuance",
+    "tag": "Analytics",
+    "summary": "Get issuance job analytics",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/analytics/storage",
+    "tag": "Analytics",
+    "summary": "Get organization storage consumption breakdown",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/analytics/templates",
+    "tag": "Analytics",
+    "summary": "Get template analytics",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/analytics/usage",
+    "tag": "Analytics",
+    "summary": "Get monthly usage & quotas",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/analytics/verification",
+    "tag": "Analytics",
+    "summary": "Get verification analytics",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/api-keys",
+    "tag": "API Keys",
+    "summary": "List all API keys for the current organization",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py",
+      "test_full_e2e_p0_to_p11.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/api-keys",
+    "tag": "API Keys",
+    "summary": "Create a new API key (secret key will be returned only once)",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/APIKeyCreateRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py",
+      "test_full_e2e_p0_to_p11.py"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/api-keys/{key_id}",
+    "tag": "API Keys",
+    "summary": "Delete an API key record",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/api-keys/{key_id}",
+    "tag": "API Keys",
+    "summary": "Get details of an API key (never reveals plaintext secret)",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/api-keys/{key_id}/revoke",
+    "tag": "API Keys",
+    "summary": "Revoke an API key immediately",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/api-usage",
+    "tag": "API Usage",
+    "summary": "Get API usage metrics, request totals, error rates, and latency breakdowns",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/forgot-password",
+    "tag": "Authentication",
+    "summary": "Request password reset token (account enumeration protected)",
+    "auth": "Public",
+    "request_body": "#/components/schemas/ForgotPasswordRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_auth_hardening.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/login",
+    "tag": "Authentication",
+    "summary": "User login with email and password",
+    "auth": "Public",
+    "request_body": "#/components/schemas/UserLoginRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_auth.py",
+      "test_auth_hardening.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/logout",
+    "tag": "Authentication",
+    "summary": "Revoke session and refresh token",
+    "auth": "Bearer JWT/Key",
+    "request_body": "application/json",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_auth.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/auth/me",
+    "tag": "Authentication",
+    "summary": "Get authenticated user profile and active organization",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_auth.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/refresh",
+    "tag": "Authentication",
+    "summary": "Rotate refresh token and issue new access token",
+    "auth": "Public",
+    "request_body": "#/components/schemas/RefreshTokenRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_auth.py",
+      "test_auth_hardening.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/register",
+    "tag": "Authentication",
+    "summary": "Register new user with default organization",
+    "auth": "Public",
+    "request_body": "#/components/schemas/UserRegisterRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "conftest.py",
+      "test_analytics_and_reports.py",
+      "test_auth.py",
+      "test_full_e2e_p0_to_p11.py",
+      "test_imports.py",
+      "test_organizations.py",
+      "test_templates.py",
+      "test_tenant_isolation.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/auth/reset-password",
+    "tag": "Authentication",
+    "summary": "Reset password using single-use reset token",
+    "auth": "Public",
+    "request_body": "#/components/schemas/ResetPasswordRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_auth_hardening.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/billing/cost-estimate",
+    "tag": "Billing & Usage",
+    "summary": "Get estimated infrastructure computing and delivery costs for organization",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_billing_and_subscriptions.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/billing/invoices",
+    "tag": "Billing & Usage",
+    "summary": "List organization payment invoices and receipts",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_billing_and_subscriptions.py",
+      "test_billing_security.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/billing/invoices/{invoice_id}",
+    "tag": "Billing & Usage",
+    "summary": "Get invoice details by ID",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/billing/usage",
+    "tag": "Billing & Usage",
+    "summary": "Get monthly usage metrics, progress meters, and threshold warning status",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_billing_and_subscriptions.py",
+      "test_billing_security.py",
+      "test_full_e2e_p0_to_p11.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/billing/webhooks/{provider}",
+    "tag": "Billing & Usage",
+    "summary": "Receive and verify inbound billing webhook events from payment provider",
+    "auth": "Public",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_billing_and_subscriptions.py",
+      "test_billing_security.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/build",
+    "tag": "Health & Diagnostics",
+    "summary": "Internal build and service metadata",
+    "auth": "Public",
+    "request_body": "None",
+    "responses": [
+      "200"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_health_and_readiness.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/certificates",
+    "tag": "Certificates",
+    "summary": "List certificates with advanced search & filters",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py",
+      "test_credentials_and_issuance.py",
+      "test_developer_api_and_webhooks.py",
+      "test_email_delivery.py",
+      "test_file_and_ssrf_security.py",
+      "test_full_e2e_p0_to_p11.py",
+      "test_tenant_isolation.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/certificates/bulk-revoke",
+    "tag": "Certificates",
+    "summary": "Bulk revoke multiple certificates",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/BulkRevokeRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/certificates/generate",
+    "tag": "Certificates",
+    "summary": "Generate an official certificate",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/CertificateGenerateRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py",
+      "test_credentials_and_issuance.py",
+      "test_developer_api_and_webhooks.py",
+      "test_email_delivery.py",
+      "test_full_e2e_p0_to_p11.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/certificates/preview",
+    "tag": "Certificates",
+    "summary": "Render a certificate preview",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/CertificatePreviewRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/certificates/{cert_id}",
+    "tag": "Certificates",
+    "summary": "Get certificate by ID",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py",
+      "test_credentials_and_issuance.py",
+      "test_developer_api_and_webhooks.py",
+      "test_email_delivery.py",
+      "test_full_e2e_p0_to_p11.py",
+      "test_tenant_isolation.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/certificates/{cert_id}/email",
+    "tag": "Certificates",
+    "summary": "Send certificate by email",
+    "auth": "Bearer JWT/Key",
+    "request_body": "application/json",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/certificates/{cert_id}/integrity",
+    "tag": "Certificates",
+    "summary": "Verify cryptographic SHA-256 integrity of stored certificate PDF",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_full_e2e_p0_to_p11.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/certificates/{cert_id}/pdf",
+    "tag": "Certificates",
+    "summary": "Download certificate PDF",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/certificates/{cert_id}/preview",
+    "tag": "Certificates",
+    "summary": "Download certificate preview PNG",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/certificates/{cert_id}/resend-email",
+    "tag": "Certificates",
+    "summary": "Resend certificate by email",
+    "auth": "Bearer JWT/Key",
+    "request_body": "application/json",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/certificates/{cert_id}/restore",
+    "tag": "Certificates",
+    "summary": "Restore a revoked certificate to active status",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/certificates/{cert_id}/revoke",
+    "tag": "Certificates",
+    "summary": "Revoke a certificate",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/CertificateRevokeRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credentials_and_issuance.py",
+      "test_full_e2e_p0_to_p11.py",
+      "test_tenant_isolation.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/certificates/{cert_id}/timeline",
+    "tag": "Certificates",
+    "summary": "Get complete unified lifecycle, audit, delivery, and scan timeline for a certificate",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/certificates/{cert_id}/verification-events",
+    "tag": "Certificates",
+    "summary": "List verification scans for a certificate",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/credentials",
+    "tag": "Credentials",
+    "summary": "List Credentials",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credential_security.py",
+      "test_credentials_and_issuance.py",
+      "test_full_e2e_p0_to_p11.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/credentials",
+    "tag": "Credentials",
+    "summary": "Issue Credential",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/CredentialCreateRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credential_security.py",
+      "test_credentials_and_issuance.py",
+      "test_full_e2e_p0_to_p11.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/credentials/{credential_id}",
+    "tag": "Credentials",
+    "summary": "Get Credential",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credentials_and_issuance.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/credentials/{credential_id}/restore",
+    "tag": "Credentials",
+    "summary": "Restore Credential",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credentials_and_issuance.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/credentials/{credential_id}/revoke",
+    "tag": "Credentials",
+    "summary": "Revoke Credential",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/CredentialRevokeRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/credentials/{credential_id}/suspend",
+    "tag": "Credentials",
+    "summary": "Suspend Credential",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/CredentialRevokeRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credentials_and_issuance.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/email-deliveries",
+    "tag": "Email Deliveries",
+    "summary": "List email deliveries with filtering and pagination",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/email-deliveries/{id}",
+    "tag": "Email Deliveries",
+    "summary": "Get email delivery detail with events timeline",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/email-deliveries/{id}/retry",
+    "tag": "Email Deliveries",
+    "summary": "Retry a failed email delivery",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/email-jobs",
+    "tag": "Email Jobs",
+    "summary": "List bulk email jobs",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/email-jobs",
+    "tag": "Email Jobs",
+    "summary": "Create and start a bulk email job",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/EmailJobCreateRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/email-jobs/{id}",
+    "tag": "Email Jobs",
+    "summary": "Get bulk email job details",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/email-jobs/{id}/cancel",
+    "tag": "Email Jobs",
+    "summary": "Cancel bulk email job",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/email-jobs/{id}/pause",
+    "tag": "Email Jobs",
+    "summary": "Pause bulk email job",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/email-jobs/{id}/progress",
+    "tag": "Email Jobs",
+    "summary": "Get bulk email job progress metrics",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/email-jobs/{id}/resume",
+    "tag": "Email Jobs",
+    "summary": "Resume bulk email job",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/email/preview",
+    "tag": "Email Operations & Settings",
+    "summary": "Preview rendered email",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/EmailPreviewRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/email/settings",
+    "tag": "Email Operations & Settings",
+    "summary": "Get organization email settings",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/email/settings",
+    "tag": "Email Operations & Settings",
+    "summary": "Update organization email settings",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/EmailSettingsUpdateRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/email/suppressions",
+    "tag": "Email Operations & Settings",
+    "summary": "List organization email suppressions",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/email/suppressions",
+    "tag": "Email Operations & Settings",
+    "summary": "Add email to suppression list",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/AddSuppressionRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/email/suppressions/{email}",
+    "tag": "Email Operations & Settings",
+    "summary": "Remove email from suppression list",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/email/templates",
+    "tag": "Email Templates",
+    "summary": "List organization email templates",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/email/templates",
+    "tag": "Email Templates",
+    "summary": "Create an email template",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/EmailTemplateCreateRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/email/templates/{id}",
+    "tag": "Email Templates",
+    "summary": "Delete an email template",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/email/templates/{id}",
+    "tag": "Email Templates",
+    "summary": "Get an email template by ID",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/email/templates/{id}",
+    "tag": "Email Templates",
+    "summary": "Update an email template",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/EmailTemplateUpdateRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/email/test",
+    "tag": "Email Operations & Settings",
+    "summary": "Send test email",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/EmailTestRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/fonts",
+    "tag": "Fonts",
+    "summary": "List all available system and custom fonts for certificate design",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_assets_and_preview.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/health",
+    "tag": "Health & Diagnostics",
+    "summary": "Basic service health check",
+    "auth": "Public",
+    "request_body": "None",
+    "responses": [
+      "200"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_health.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/health/db",
+    "tag": "Health & Diagnostics",
+    "summary": "MongoDB connectivity health check",
+    "auth": "Public",
+    "request_body": "None",
+    "responses": [
+      "200"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_health.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/health/ready",
+    "tag": "Health & Diagnostics",
+    "summary": "Readiness probe for load balancers and orchestrators",
+    "auth": "Public",
+    "request_body": "None",
+    "responses": [
+      "200"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/imports",
+    "tag": "Imports & Datasets",
+    "summary": "List organization dataset imports with pagination",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_imports.py",
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/imports",
+    "tag": "Imports & Datasets",
+    "summary": "Upload CSV or Excel recipient dataset for a certificate template",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/Body_upload_import_api_v1_imports_post",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_imports.py",
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/imports/{import_id}",
+    "tag": "Imports & Datasets",
+    "summary": "Get import status, row counters, and column profiling",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_imports.py",
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/imports/{import_id}/cancel",
+    "tag": "Imports & Datasets",
+    "summary": "Cancel active dataset import",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/imports/{import_id}/errors",
+    "tag": "Imports & Datasets",
+    "summary": "Get all rows that failed validation with detailed error reasons",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_imports.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/imports/{import_id}/errors/download",
+    "tag": "Imports & Datasets",
+    "summary": "Download CSV error report for invalid rows",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_imports.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/imports/{import_id}/mapping",
+    "tag": "Imports & Datasets",
+    "summary": "Get suggested or confirmed column-to-field mappings",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_imports.py",
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/imports/{import_id}/mapping",
+    "tag": "Imports & Datasets",
+    "summary": "Confirm column mapping and trigger row-level dataset validation",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/ConfirmMappingRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_imports.py",
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/imports/{import_id}/preview",
+    "tag": "Imports & Datasets",
+    "summary": "Preview first 20 recipient rows with validation status",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_imports.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/imports/{import_id}/progress",
+    "tag": "Imports & Datasets",
+    "summary": "Get import processing and validation progress",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/imports/{import_id}/replace",
+    "tag": "Imports & Datasets",
+    "summary": "Replace current import dataset with a corrected file",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/Body_replace_import_file_api_v1_imports__import_id__replace_post",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/imports/{import_id}/rows",
+    "tag": "Imports & Datasets",
+    "summary": "List paginated recipient records with filter by status (valid, warning, error)",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/imports/{import_id}/validate",
+    "tag": "Imports & Datasets",
+    "summary": "Re-validate import rows against template requirements",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/issuance-jobs",
+    "tag": "Issuance Jobs",
+    "summary": "List issuance jobs for current organization",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/issuance-jobs",
+    "tag": "Issuance Jobs",
+    "summary": "Create and queue a bulk certificate issuance job",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/IssuanceJobCreateRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/issuance-jobs/{job_id}",
+    "tag": "Issuance Jobs",
+    "summary": "Get details of an issuance job",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/issuance-jobs/{job_id}/cancel",
+    "tag": "Issuance Jobs",
+    "summary": "Cancel an issuance job (does not delete already generated certificates)",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/issuance-jobs/{job_id}/errors",
+    "tag": "Issuance Jobs",
+    "summary": "Get error details for failed items in an issuance job",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/issuance-jobs/{job_id}/errors/download",
+    "tag": "Issuance Jobs",
+    "summary": "Download issuance errors CSV report",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/issuance-jobs/{job_id}/items",
+    "tag": "Issuance Jobs",
+    "summary": "List items for an issuance job with filters",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/issuance-jobs/{job_id}/items/{item_id}/retry",
+    "tag": "Issuance Jobs",
+    "summary": "Retry a single failed item in an issuance job",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/issuance-jobs/{job_id}/pause",
+    "tag": "Issuance Jobs",
+    "summary": "Pause a processing issuance job",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/issuance-jobs/{job_id}/progress",
+    "tag": "Issuance Jobs",
+    "summary": "Get real-time progress of an issuance job",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/issuance-jobs/{job_id}/resume",
+    "tag": "Issuance Jobs",
+    "summary": "Resume a paused issuance job",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/issuance-jobs/{job_id}/retry-failed",
+    "tag": "Issuance Jobs",
+    "summary": "Retry all failed items in an issuance job",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/issuance-jobs/{job_id}/zip",
+    "tag": "Issuance Jobs",
+    "summary": "Check status of certificate ZIP export",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/issuance-jobs/{job_id}/zip",
+    "tag": "Issuance Jobs",
+    "summary": "Request a ZIP export of all certificates generated by this job",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_issuance_jobs.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/issuance-jobs/{job_id}/zip/download",
+    "tag": "Issuance Jobs",
+    "summary": "Download generated ZIP archive of certificates",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/issuers/keys/rotate",
+    "tag": "Issuers",
+    "summary": "Rotate Signing Keys",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credentials_and_issuance.py",
+      "test_full_e2e_p0_to_p11.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/issuers/profile",
+    "tag": "Issuers",
+    "summary": "Get Issuer Profile",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credentials_and_issuance.py",
+      "test_full_e2e_p0_to_p11.py"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/issuers/profile",
+    "tag": "Issuers",
+    "summary": "Update Issuer Profile",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/IssuerProfileUpdateRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credentials_and_issuance.py",
+      "test_full_e2e_p0_to_p11.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/mapping-profiles",
+    "tag": "Mapping Profiles",
+    "summary": "List saved column mapping profiles for this organization",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_imports.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/mapping-profiles",
+    "tag": "Mapping Profiles",
+    "summary": "Create reusable mapping profile",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/MappingProfileCreateRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_imports.py"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/mapping-profiles/{profile_id}",
+    "tag": "Mapping Profiles",
+    "summary": "Delete saved mapping profile",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_imports.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/metrics",
+    "tag": "Health & Diagnostics",
+    "summary": "Prometheus metrics exporter",
+    "auth": "Public",
+    "request_body": "None",
+    "responses": [
+      "200"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_health_and_readiness.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/organization/invitations",
+    "tag": "Invitations",
+    "summary": "List all pending/historical invitations for the organization",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/organization/invitations",
+    "tag": "Invitations",
+    "summary": "Invite a new member to the organization",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/MemberInviteRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/organization/invitations/accept",
+    "tag": "Invitations",
+    "summary": "Accept an invitation using the secure token and join the organization",
+    "auth": "Public",
+    "request_body": "#/components/schemas/MemberAcceptInviteRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/organization/invitations/{invitation_id}",
+    "tag": "Invitations",
+    "summary": "Cancel/revoke a pending invitation",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/organization/invitations/{invitation_id}/resend",
+    "tag": "Invitations",
+    "summary": "Resend an invitation with a refreshed secure token",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/organization/members",
+    "tag": "Members",
+    "summary": "List organization members with pagination and status filter",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/organization/members/{member_id}",
+    "tag": "Members",
+    "summary": "Remove a member from the organization",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/organization/members/{member_id}",
+    "tag": "Members",
+    "summary": "Update member role or suspension status",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/MemberUpdateRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/organization/switch",
+    "tag": "Members",
+    "summary": "Switch active organization context and issue new scoped session tokens",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/SwitchOrgRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/organization/transfer-ownership",
+    "tag": "Members",
+    "summary": "Transfer organization ownership to an active member",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/OwnershipTransferRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/organizations/me",
+    "tag": "Organizations",
+    "summary": "Get current active organization details",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_organizations.py",
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/organizations/me",
+    "tag": "Organizations",
+    "summary": "Update organization details (Owner/Admin only)",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/OrganizationUpdateRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_organizations.py",
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/organizations/me/members",
+    "tag": "Organizations",
+    "summary": "List members in the current active organization",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_organizations.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/plans",
+    "tag": "SaaS Plans & Pricing",
+    "summary": "List all available SaaS subscription tiers and entitlements",
+    "auth": "Public",
+    "request_body": "None",
+    "responses": [
+      "200"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_billing_and_subscriptions.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/plans/{plan_id}",
+    "tag": "SaaS Plans & Pricing",
+    "summary": "Get details and limits for a specific plan tier",
+    "auth": "Public",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/public/certificates/{verification_code}/download",
+    "tag": "Public Verification",
+    "summary": "Public download of certificate PDF",
+    "auth": "Public",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/public/credentials/verify",
+    "tag": "Public Digital Credentials",
+    "summary": "Verify External Credential",
+    "auth": "Public",
+    "request_body": "#/components/schemas/ExternalVerificationRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credential_security.py",
+      "test_full_e2e_p0_to_p11.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/public/credentials/{credential_id}",
+    "tag": "Public Digital Credentials",
+    "summary": "Get Public Credential",
+    "auth": "Public",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credential_security.py",
+      "test_credentials_and_issuance.py",
+      "test_full_e2e_p0_to_p11.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/public/credentials/{credential_id}/badge",
+    "tag": "Public Digital Credentials",
+    "summary": "Get Open Badge Document",
+    "auth": "Public",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credentials_and_issuance.py",
+      "test_full_e2e_p0_to_p11.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/public/credentials/{credential_id}/status",
+    "tag": "Public Digital Credentials",
+    "summary": "Get Credential Status",
+    "auth": "Public",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/public/credentials/{credential_id}/vc",
+    "tag": "Public Digital Credentials",
+    "summary": "Get W3C Vc Document",
+    "auth": "Public",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credential_security.py",
+      "test_credentials_and_issuance.py",
+      "test_full_e2e_p0_to_p11.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/public/credentials/{credential_id}/verify",
+    "tag": "Public Digital Credentials",
+    "summary": "Verify Credential",
+    "auth": "Public",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credential_security.py",
+      "test_credentials_and_issuance.py",
+      "test_full_e2e_p0_to_p11.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/public/issuers/{issuer_id}",
+    "tag": "Public Digital Credentials",
+    "summary": "Get Public Issuer Profile",
+    "auth": "Public",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_credentials_and_issuance.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/public/verify-file",
+    "tag": "Public Verification",
+    "summary": "Verify an uploaded certificate PDF file by cryptographic hash",
+    "auth": "Public",
+    "request_body": "#/components/schemas/Body_public_verify_certificate_file_api_v1_public_verify_file_post",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/public/verify/{verification_code}",
+    "tag": "Public Verification",
+    "summary": "Publicly verify a certificate by verification code",
+    "auth": "Public",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py",
+      "test_full_e2e_p0_to_p11.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/reports",
+    "tag": "Reports",
+    "summary": "List report generation jobs",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/reports",
+    "tag": "Reports",
+    "summary": "Create a new report generation job",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/ReportJobCreateRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/reports/{report_id}",
+    "tag": "Reports",
+    "summary": "Get report job status and download URL",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/reports/{report_id}/download",
+    "tag": "Reports",
+    "summary": "Download report file via signed URL token or session auth",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/roles",
+    "tag": "Roles",
+    "summary": "List all system and custom roles for the active organization",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/roles",
+    "tag": "Roles",
+    "summary": "Create a custom role with defined permissions",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/RoleCreateRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/roles/permissions/registry",
+    "tag": "Roles",
+    "summary": "List all valid permission identifiers available in the system registry",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/roles/{role_id}",
+    "tag": "Roles",
+    "summary": "Delete a custom role (must not have any active assigned members)",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/roles/{role_id}",
+    "tag": "Roles",
+    "summary": "Get details of a role",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/roles/{role_id}",
+    "tag": "Roles",
+    "summary": "Update a custom role's name, description, or permissions",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/RoleUpdateRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/service-accounts",
+    "tag": "Service Accounts",
+    "summary": "List all service accounts in the organization",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/service-accounts",
+    "tag": "Service Accounts",
+    "summary": "Create a new service account",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/ServiceAccountCreateRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/service-accounts/{sa_id}",
+    "tag": "Service Accounts",
+    "summary": "Delete a service account",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/service-accounts/{sa_id}",
+    "tag": "Service Accounts",
+    "summary": "Get details of a service account",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/service-accounts/{sa_id}",
+    "tag": "Service Accounts",
+    "summary": "Update a service account's details or status",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/ServiceAccountUpdateRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/subscription",
+    "tag": "Subscriptions",
+    "summary": "Get active organization subscription, status, and renewal information",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_billing_and_subscriptions.py",
+      "test_billing_security.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/subscription/cancel",
+    "tag": "Subscriptions",
+    "summary": "Cancel subscription (effective at end of current billing period)",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/SubscriptionCancelRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_billing_and_subscriptions.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/subscription/checkout",
+    "tag": "Subscriptions",
+    "summary": "Create checkout session for subscription purchase or tier upgrade",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/CheckoutRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_billing_and_subscriptions.py",
+      "test_billing_security.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/subscription/resume",
+    "tag": "Subscriptions",
+    "summary": "Resume a subscription scheduled for cancellation at period end",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_billing_and_subscriptions.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/teams",
+    "tag": "Teams",
+    "summary": "List all teams in the organization",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/teams",
+    "tag": "Teams",
+    "summary": "Create a new team",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/TeamCreateRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/teams/{team_id}",
+    "tag": "Teams",
+    "summary": "Delete a team",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/teams/{team_id}",
+    "tag": "Teams",
+    "summary": "Get details of a team",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/teams/{team_id}",
+    "tag": "Teams",
+    "summary": "Update a team's name or description",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/TeamUpdateRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/teams/{team_id}/members",
+    "tag": "Teams",
+    "summary": "List members in a team",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/teams/{team_id}/members",
+    "tag": "Teams",
+    "summary": "Add a user to a team",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/TeamMemberAddRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/teams/{team_id}/members/{user_id}",
+    "tag": "Teams",
+    "summary": "Remove a user from a team",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_rbac_and_teams.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/templates",
+    "tag": "Templates",
+    "summary": "List organization certificate templates with pagination and search",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py",
+      "test_assets_and_preview.py",
+      "test_credentials_and_issuance.py",
+      "test_email_delivery.py",
+      "test_full_e2e_p0_to_p11.py",
+      "test_imports.py",
+      "test_issuance_jobs.py",
+      "test_templates.py",
+      "test_tenant_isolation.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/templates",
+    "tag": "Templates",
+    "summary": "Create a new certificate template",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/TemplateCreateRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py",
+      "test_assets_and_preview.py",
+      "test_credentials_and_issuance.py",
+      "test_email_delivery.py",
+      "test_full_e2e_p0_to_p11.py",
+      "test_imports.py",
+      "test_issuance_jobs.py",
+      "test_templates.py",
+      "test_tenant_isolation.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/templates/{template_id}",
+    "tag": "Templates",
+    "summary": "Get single template details with current active design version",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py",
+      "test_assets_and_preview.py",
+      "test_credentials_and_issuance.py",
+      "test_email_delivery.py",
+      "test_full_e2e_p0_to_p11.py",
+      "test_imports.py",
+      "test_issuance_jobs.py",
+      "test_templates.py",
+      "test_tenant_isolation.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/templates/{template_id}",
+    "tag": "Templates",
+    "summary": "Update template metadata (name, description)",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/TemplateUpdateRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py",
+      "test_assets_and_preview.py",
+      "test_credentials_and_issuance.py",
+      "test_email_delivery.py",
+      "test_full_e2e_p0_to_p11.py",
+      "test_imports.py",
+      "test_issuance_jobs.py",
+      "test_templates.py",
+      "test_tenant_isolation.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/templates/{template_id}/archive",
+    "tag": "Templates",
+    "summary": "Archive template (Owner or Admin only)",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_templates.py",
+      "test_tenant_isolation.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/templates/{template_id}/assets",
+    "tag": "Templates",
+    "summary": "List all assets associated with a template",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_assets_and_preview.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/templates/{template_id}/assets",
+    "tag": "Templates",
+    "summary": "Upload image asset (background, logo, signature, seal)",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/Body_upload_asset_api_v1_templates__template_id__assets_post",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_assets_and_preview.py"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/templates/{template_id}/assets/{asset_id}",
+    "tag": "Templates",
+    "summary": "Delete template asset (Owner or Admin only)",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_assets_and_preview.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/templates/{template_id}/duplicate",
+    "tag": "Templates",
+    "summary": "Duplicate template and clone latest design version",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_templates.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/templates/{template_id}/preview",
+    "tag": "Templates",
+    "summary": "Generate high-fidelity rendered preview with sample data substitution",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/PreviewRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_assets_and_preview.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/templates/{template_id}/versions",
+    "tag": "Templates",
+    "summary": "List all historical and draft versions of a template",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py",
+      "test_credentials_and_issuance.py",
+      "test_email_delivery.py",
+      "test_full_e2e_p0_to_p11.py",
+      "test_imports.py",
+      "test_issuance_jobs.py",
+      "test_templates.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/templates/{template_id}/versions",
+    "tag": "Templates",
+    "summary": "Create a new draft design version for a template",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/TemplateVersionCreateRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py",
+      "test_credentials_and_issuance.py",
+      "test_email_delivery.py",
+      "test_full_e2e_p0_to_p11.py",
+      "test_imports.py",
+      "test_issuance_jobs.py",
+      "test_templates.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/templates/{template_id}/versions/{version_id}",
+    "tag": "Templates",
+    "summary": "Get single template version details, elements, and placeholders",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py",
+      "test_credentials_and_issuance.py",
+      "test_email_delivery.py",
+      "test_full_e2e_p0_to_p11.py",
+      "test_imports.py",
+      "test_issuance_jobs.py",
+      "test_templates.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "PUT",
+    "path": "/api/v1/templates/{template_id}/versions/{version_id}",
+    "tag": "Templates",
+    "summary": "Save editor state to draft version (Fails if version is published)",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/TemplateVersionUpdateRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py",
+      "test_credentials_and_issuance.py",
+      "test_email_delivery.py",
+      "test_full_e2e_p0_to_p11.py",
+      "test_imports.py",
+      "test_issuance_jobs.py",
+      "test_templates.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/templates/{template_id}/versions/{version_id}/publish",
+    "tag": "Templates",
+    "summary": "Publish draft version to production (Owner or Admin only)",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py",
+      "test_credentials_and_issuance.py",
+      "test_email_delivery.py",
+      "test_full_e2e_p0_to_p11.py",
+      "test_imports.py",
+      "test_issuance_jobs.py",
+      "test_templates.py",
+      "test_verification_lifecycle.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/verify/{code}",
+    "tag": "Certificates",
+    "summary": "Public certificate verification",
+    "auth": "Public",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/version",
+    "tag": "Health & Diagnostics",
+    "summary": "Application version metadata",
+    "auth": "Public",
+    "request_body": "None",
+    "responses": [
+      "200"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_health_and_readiness.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/webhook-deliveries/{delivery_id}/retry",
+    "tag": "Webhooks",
+    "summary": "Manually retry a failed webhook delivery",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/webhooks",
+    "tag": "Webhooks",
+    "summary": "List all webhook endpoints registered in the organization",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py",
+      "test_email_delivery.py",
+      "test_tenant_isolation.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/webhooks",
+    "tag": "Webhooks",
+    "summary": "Create a new outbound webhook endpoint subscription",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/WebhookEndpointCreateRequest",
+    "responses": [
+      "201",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py",
+      "test_email_delivery.py",
+      "test_tenant_isolation.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/webhooks/email/{provider}",
+    "tag": "Webhooks",
+    "summary": "Receive provider webhook for delivery events",
+    "auth": "Public",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_email_delivery.py"
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/v1/webhooks/{endpoint_id}",
+    "tag": "Webhooks",
+    "summary": "Delete a webhook endpoint",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py",
+      "test_email_delivery.py",
+      "test_tenant_isolation.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/webhooks/{endpoint_id}",
+    "tag": "Webhooks",
+    "summary": "Get details of a webhook endpoint",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py",
+      "test_email_delivery.py",
+      "test_tenant_isolation.py"
+    ]
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/v1/webhooks/{endpoint_id}",
+    "tag": "Webhooks",
+    "summary": "Update a webhook endpoint's URL, events, status, or description",
+    "auth": "Bearer JWT/Key",
+    "request_body": "#/components/schemas/WebhookEndpointUpdateRequest",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py",
+      "test_email_delivery.py",
+      "test_tenant_isolation.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/v1/webhooks/{endpoint_id}/deliveries",
+    "tag": "Webhooks",
+    "summary": "List delivery history and logs for a specific webhook endpoint",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/webhooks/{endpoint_id}/rotate-secret",
+    "tag": "Webhooks",
+    "summary": "Rotate the HMAC signing secret for a webhook endpoint",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_developer_api_and_webhooks.py"
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/v1/webhooks/{endpoint_id}/test",
+    "tag": "Webhooks",
+    "summary": "Send a test ping event to the webhook endpoint and report immediate result",
+    "auth": "Bearer JWT/Key",
+    "request_body": "Params",
+    "responses": [
+      "200",
+      "422"
+    ],
+    "tested": false,
+    "test_files": []
+  },
+  {
+    "method": "GET",
+    "path": "/health",
+    "tag": "Health",
+    "summary": "Root health check",
+    "auth": "Public",
+    "request_body": "None",
+    "responses": [
+      "200"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_analytics_and_reports.py",
+      "test_health.py",
+      "test_health_and_readiness.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/health/ready",
+    "tag": "Health",
+    "summary": "Root readiness probe",
+    "auth": "Public",
+    "request_body": "None",
+    "responses": [
+      "200"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_health_and_readiness.py"
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/metrics",
+    "tag": "Observability",
+    "summary": "Root Prometheus metrics",
+    "auth": "Public",
+    "request_body": "None",
+    "responses": [
+      "200"
+    ],
+    "tested": true,
+    "test_files": [
+      "test_health_and_readiness.py"
+    ]
+  }
+]

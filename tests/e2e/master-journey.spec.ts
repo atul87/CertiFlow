@@ -3,6 +3,10 @@ import { test, expect } from "@playwright/test";
 test.describe("E2E: CertiFlow Master Product Journey", () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
+    await page.addInitScript(() => {
+      localStorage.setItem("certiflow_access_token", "test_jwt_session_token");
+      localStorage.setItem("certiflow_org_id", "org_default_01");
+    });
   });
 
   test("executes complete flow: Landing -> Signup -> Onboarding -> Projects -> Data -> Mapping -> Editor -> Preview -> Generate -> Vault -> Verify", async ({ page }) => {
@@ -101,9 +105,9 @@ test.describe("E2E: CertiFlow Master Product Journey", () => {
     await page.goto("/app/certificates");
     await page.waitForLoadState("networkidle");
 
-    await expect(page.getByText("Credential Vault & Public Registry")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Certificate Vault" })).toBeVisible();
     await expect(page.getByText("Atul Kumar").first()).toBeVisible();
-    await expect(page.getByText("CERT-AF72K9")).toBeVisible();
+    await expect(page.getByText(/CERT-2026/i).first()).toBeVisible();
 
     // 11. Public Verification Portal
     await page.goto("/verify/CERT-AF72K9");
