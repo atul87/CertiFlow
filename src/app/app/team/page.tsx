@@ -48,16 +48,16 @@ function RoleBadge({ role }: { role: MemberRole }) {
 
 // ─── Demo data ────────────────────────────────────────────────────────────────
 const DEMO_MEMBERS: Member[] = [
-  { id: "m1", user_id: "u1", name: "Atul Kumar", email: "atul@certiflow.io", role: "owner", joined_at: new Date(Date.now() - 86400 * 180 * 1000).toISOString(), last_active: new Date(Date.now() - 60 * 1000).toISOString() },
-  { id: "m2", user_id: "u2", name: "Priya Sharma", email: "priya@certiflow.io", role: "admin", joined_at: new Date(Date.now() - 86400 * 90 * 1000).toISOString(), last_active: new Date(Date.now() - 3600 * 2 * 1000).toISOString() },
-  { id: "m3", user_id: "u3", name: "Rahul Singh", email: "rahul@certiflow.io", role: "member", joined_at: new Date(Date.now() - 86400 * 30 * 1000).toISOString(), last_active: new Date(Date.now() - 86400 * 1 * 1000).toISOString() },
-  { id: "m4", user_id: "u4", name: "Ananya Verma", email: "ananya@certiflow.io", role: "member", joined_at: new Date(Date.now() - 86400 * 14 * 1000).toISOString(), last_active: new Date(Date.now() - 86400 * 3 * 1000).toISOString() },
-  { id: "m5", user_id: "u5", name: "Dev Patel", email: "dev@certiflow.io", role: "viewer", joined_at: new Date(Date.now() - 86400 * 7 * 1000).toISOString() },
+  { id: "m1", user_id: "u1", name: "Atul Kumar", email: "atul@certiflow.io", role: "owner", joined_at: "2026-03-30T10:00:00.000Z", last_active: "2026-09-29T17:50:00.000Z" },
+  { id: "m2", user_id: "u2", name: "Priya Sharma", email: "priya@certiflow.io", role: "admin", joined_at: "2026-06-30T10:00:00.000Z", last_active: "2026-09-29T15:55:00.000Z" },
+  { id: "m3", user_id: "u3", name: "Rahul Singh", email: "rahul@certiflow.io", role: "member", joined_at: "2026-08-30T10:00:00.000Z", last_active: "2026-09-28T17:00:00.000Z" },
+  { id: "m4", user_id: "u4", name: "Ananya Verma", email: "ananya@certiflow.io", role: "member", joined_at: "2026-09-15T10:00:00.000Z", last_active: "2026-09-26T14:30:00.000Z" },
+  { id: "m5", user_id: "u5", name: "Dev Patel", email: "dev@certiflow.io", role: "viewer", joined_at: "2026-09-22T10:00:00.000Z" },
 ];
 
 const DEMO_INVITATIONS: Invitation[] = [
-  { id: "inv-1", email: "sneha@corp.io", role: "member", status: "pending", invited_at: new Date(Date.now() - 86400 * 2 * 1000).toISOString(), expires_at: new Date(Date.now() + 86400 * 5 * 1000).toISOString() },
-  { id: "inv-2", email: "vikram@example.com", role: "viewer", status: "pending", invited_at: new Date(Date.now() - 86400 * 5 * 1000).toISOString(), expires_at: new Date(Date.now() + 86400 * 2 * 1000).toISOString() },
+  { id: "inv-1", email: "sneha@corp.io", role: "member", status: "pending", invited_at: "2026-09-27T10:00:00.000Z", expires_at: "2026-10-04T10:00:00.000Z" },
+  { id: "inv-2", email: "vikram@example.com", role: "viewer", status: "pending", invited_at: "2026-09-24T10:00:00.000Z", expires_at: "2026-10-01T10:00:00.000Z" },
 ];
 
 // ─── Member row ───────────────────────────────────────────────────────────────
@@ -130,10 +130,10 @@ function MemberRow({ member, isCurrentUser, onRoleChange, onRemove }: {
 
       {/* Last active */}
       <div className="text-right hidden sm:block w-24 shrink-0">
-        <p className="text-[11px] text-[var(--color-text-tertiary)]">
+        <p className="text-[11px] text-[var(--color-text-tertiary)]" suppressHydrationWarning>
           {member.last_active ? relTime(member.last_active) : "Never"}
         </p>
-        <p className="text-[10px] text-[var(--color-text-tertiary)]">Joined {relTime(member.joined_at)}</p>
+        <p className="text-[10px] text-[var(--color-text-tertiary)]" suppressHydrationWarning>Joined {relTime(member.joined_at)}</p>
       </div>
 
       {/* Actions */}
@@ -421,7 +421,7 @@ export default function TeamPage() {
                         </span>
                       </div>
                       <div className="col-span-2">
-                        <span className={`text-[11px] font-medium ${expired ? "text-red-500" : "text-[var(--color-text-tertiary)]"}`}>{relExpiry()}</span>
+                        <span className={`text-[11px] font-medium ${expired ? "text-red-500" : "text-[var(--color-text-tertiary)]"}`} suppressHydrationWarning>{relExpiry()}</span>
                       </div>
                       <div className="col-span-2 flex items-center justify-end gap-1">
                         <button onClick={() => handleResendInvite(inv.id)} title="Resend" className="p-1.5 rounded-lg text-gray-300 hover:text-blue-600 hover:bg-blue-50 transition-colors">

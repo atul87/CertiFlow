@@ -154,8 +154,8 @@ export default function SettingsPage() {
   // Security
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
   const [sessions] = useState([
-    { id: "s1", device: "Chrome · macOS", ip: "103.x.x.x", location: "Bengaluru, IN", last_active: new Date(Date.now() - 60000).toISOString(), current: true },
-    { id: "s2", device: "Safari · iOS 17", ip: "14.x.x.x", location: "Mumbai, IN", last_active: new Date(Date.now() - 86400 * 2 * 1000).toISOString(), current: false },
+    { id: "s1", device: "Chrome · macOS", ip: "103.x.x.x", location: "Bengaluru, IN", last_active: "2026-09-29T17:55:00.000Z", current: true },
+    { id: "s2", device: "Safari · iOS 17", ip: "14.x.x.x", location: "Mumbai, IN", last_active: "2026-09-27T10:00:00.000Z", current: false },
   ]);
 
   // Appearance
@@ -386,7 +386,7 @@ export default function SettingsPage() {
                         <p className="text-[13px] font-semibold text-[var(--color-text)]">{s.device}</p>
                         {s.current && <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full">CURRENT</span>}
                       </div>
-                      <p className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5">{s.ip} · {s.location} · {relTime(s.last_active)}</p>
+                      <p className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5" suppressHydrationWarning>{s.ip} · {s.location} · {relTime(s.last_active)}</p>
                     </div>
                     {!s.current && (
                       <button className="text-[12px] font-semibold text-red-600 hover:underline shrink-0">Revoke</button>

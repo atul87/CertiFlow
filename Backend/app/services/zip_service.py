@@ -76,13 +76,20 @@ class ZipService:
         }
         await IssuanceJobRepository.update_zip_info(job_id, queued_info)
 
-        # Enqueue background task
+        # Enqueue background task — P12.02: No web-server fallback in production
         queued = await QueueManager.enqueue(TASK_CREATE_ZIP, job_id, org_id)
         if not queued:
-            # If Redis is unavailable, fallback to running synchronously or inline
-            logger.info("Executing ZIP creation directly as Redis queue is unavailable")
-            import asyncio
-            asyncio.create_task(cls.generate_zip(job_id, org_id))
+            if settings.APP_ENV == "test":
+                import asyncio
+                asyncio.create_task(cls.generate_zip(job_id, org_id))
+            else:
+                logger.error("Failed to enqueue ZIP creation for job %s: Redis queue is unavailable", job_id)
+                from app.core.exceptions import AppException
+                raise AppException(
+                    code="QUEUE_UNAVAILABLE",
+                    message="Background worker queue is currently unavailable for ZIP archive creation.",
+                    status_code=503,
+                )
 
         return ZipStatusResponse(
             job_id=job_id,

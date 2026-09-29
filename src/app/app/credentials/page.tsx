@@ -57,10 +57,12 @@ function CredentialBadge({ status }: { status: CredentialStatus }) {
 // ─── Section Tabs ─────────────────────────────────────────────────────────────
 type Tab = "credentials" | "achievements" | "issuer" | "keys";
 
+const BASE_CRED_TIME = new Date("2026-09-29T12:00:00.000Z").getTime();
+
 const DEMO_ACHIEVEMENTS: Achievement[] = [
-  { id: "ach-1", name: "Machine Learning Specialist", description: "Demonstrated proficiency in supervised, unsupervised, and reinforcement learning.", criteria: "Complete all ML modules and pass the final assessment with ≥80%.", skills: ["Python", "TensorFlow", "Scikit-learn", "Data Analysis"], image_url: undefined, type: "Assertion", created_at: new Date(Date.now() - 86400 * 30 * 1000).toISOString(), updated_at: new Date(Date.now() - 86400 * 5 * 1000).toISOString() },
-  { id: "ach-2", name: "Cloud Architecture Professional", description: "AWS & GCP multi-cloud infrastructure design and deployment.", criteria: "Design a multi-region fault-tolerant architecture project.", skills: ["AWS", "GCP", "Kubernetes", "Terraform"], image_url: undefined, type: "Assertion", created_at: new Date(Date.now() - 86400 * 14 * 1000).toISOString(), updated_at: new Date(Date.now() - 86400 * 2 * 1000).toISOString() },
-  { id: "ach-3", name: "Data Engineering Expert", description: "Advanced ETL pipeline design with Apache Spark and Kafka.", criteria: "Build and deploy a production-ready streaming data pipeline.", skills: ["Apache Spark", "Kafka", "Airflow", "Databricks"], image_url: undefined, type: "Assertion", created_at: new Date(Date.now() - 86400 * 7 * 1000).toISOString(), updated_at: new Date(Date.now() - 86400 * 1 * 1000).toISOString() },
+  { id: "ach-1", name: "Machine Learning Specialist", description: "Demonstrated proficiency in supervised, unsupervised, and reinforcement learning.", criteria: "Complete all ML modules and pass the final assessment with ≥80%.", skills: ["Python", "TensorFlow", "Scikit-learn", "Data Analysis"], image_url: undefined, type: "Assertion", created_at: "2026-08-30T10:00:00.000Z", updated_at: "2026-09-24T10:00:00.000Z" },
+  { id: "ach-2", name: "Cloud Architecture Professional", description: "AWS & GCP multi-cloud infrastructure design and deployment.", criteria: "Design a multi-region fault-tolerant architecture project.", skills: ["AWS", "GCP", "Kubernetes", "Terraform"], image_url: undefined, type: "Assertion", created_at: "2026-09-15T10:00:00.000Z", updated_at: "2026-09-27T10:00:00.000Z" },
+  { id: "ach-3", name: "Data Engineering Expert", description: "Advanced ETL pipeline design with Apache Spark and Kafka.", criteria: "Build and deploy a production-ready streaming data pipeline.", skills: ["Apache Spark", "Kafka", "Airflow", "Databricks"], image_url: undefined, type: "Assertion", created_at: "2026-09-22T10:00:00.000Z", updated_at: "2026-09-28T10:00:00.000Z" },
 ];
 
 const DEMO_CREDENTIALS: DigitalCredential[] = Array.from({ length: 8 }, (_, i) => ({
@@ -71,11 +73,11 @@ const DEMO_CREDENTIALS: DigitalCredential[] = Array.from({ length: 8 }, (_, i) =
   achievement_id: DEMO_ACHIEVEMENTS[i % 3].id,
   achievement: DEMO_ACHIEVEMENTS[i % 3],
   certificate_id: `cert-${i + 1}`,
-  issued_at: new Date(Date.now() - i * 3600000 * 8).toISOString(),
+  issued_at: new Date(BASE_CRED_TIME - i * 3600000 * 8).toISOString(),
   expires_at: undefined,
   credential_id: `https://certiflow.io/credentials/cred-${i + 1}`,
   public_url: `https://certiflow.io/credentials/cred-${i + 1}`,
-  created_at: new Date(Date.now() - i * 3600000 * 8).toISOString(),
+  created_at: new Date(BASE_CRED_TIME - i * 3600000 * 8).toISOString(),
 } as DigitalCredential));
 
 const DEMO_ISSUER: IssuerProfile = {
@@ -92,8 +94,8 @@ const DEMO_ISSUER: IssuerProfile = {
 };
 
 const DEMO_KEYS: SigningKey[] = [
-  { id: "key-1", algorithm: "Ed25519", status: "active", created_at: new Date(Date.now() - 86400 * 60 * 1000).toISOString(), activated_at: new Date(Date.now() - 86400 * 60 * 1000).toISOString() },
-  { id: "key-2", algorithm: "Ed25519", status: "archived", created_at: new Date(Date.now() - 86400 * 180 * 1000).toISOString(), activated_at: new Date(Date.now() - 86400 * 180 * 1000).toISOString(), archived_at: new Date(Date.now() - 86400 * 60 * 1000).toISOString() },
+  { id: "key-1", algorithm: "Ed25519", status: "active", created_at: "2026-07-31T10:00:00.000Z", activated_at: "2026-07-31T10:00:00.000Z" },
+  { id: "key-2", algorithm: "Ed25519", status: "archived", created_at: "2026-04-02T10:00:00.000Z", activated_at: "2026-04-02T10:00:00.000Z", archived_at: "2026-07-31T10:00:00.000Z" },
 ];
 
 // ─── Credential row ────────────────────────────────────────────────────────────
@@ -126,7 +128,7 @@ function CredentialRow({ cred, onRevoke, onRestore }: { cred: DigitalCredential;
         <CredentialBadge status={cred.status} />
       </div>
       <div className="col-span-2 text-right">
-        <span className="text-[11px] text-[var(--color-text-tertiary)]">{relTime(cred.issued_at)}</span>
+        <span className="text-[11px] text-[var(--color-text-tertiary)]" suppressHydrationWarning>{relTime(cred.issued_at)}</span>
       </div>
       <div className="col-span-2 flex items-center justify-end gap-1">
         <button onClick={copyDid} title="Copy credential ID" className="p-1.5 rounded-lg text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
@@ -188,7 +190,7 @@ function AchievementCard({ ach, onDelete }: { ach: Achievement; onDelete: (id: s
       </div>
       <div className="pt-3 border-t border-[var(--color-border)] text-[11px] text-[var(--color-text-tertiary)] flex items-center justify-between">
         <span>{ach.type}</span>
-        <span>Updated {relTime(ach.updated_at)}</span>
+        <span suppressHydrationWarning>Updated {relTime(ach.updated_at)}</span>
       </div>
     </div>
   );
@@ -321,7 +323,7 @@ function KeysPanel({ keys }: { keys: SigningKey[] }) {
                   <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full">ACTIVE</span>
                 )}
               </div>
-              <p className="text-[12px] text-[var(--color-text-secondary)] mt-0.5">
+              <p className="text-[12px] text-[var(--color-text-secondary)] mt-0.5" suppressHydrationWarning>
                 {key.algorithm} · Created {relTime(key.created_at)}
                 {key.archived_at && ` · Archived ${relTime(key.archived_at)}`}
               </p>

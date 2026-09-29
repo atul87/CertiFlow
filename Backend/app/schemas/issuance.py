@@ -7,11 +7,13 @@ from pydantic import BaseModel, Field
 
 class JobStatus(str, Enum):
     DRAFT = "draft"
+    PENDING = "pending"
     QUEUED = "queued"
     STARTING = "starting"
     PROCESSING = "processing"
     PAUSED = "paused"
     COMPLETED = "completed"
+    PARTIALLY_FAILED = "partially_failed"
     COMPLETED_WITH_ERRORS = "completed_with_errors"
     FAILED = "failed"
     CANCELLED = "cancelled"

@@ -18,6 +18,10 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
 
         request.state.request_id = req_id
 
+        # Set distributed tracing context for structured logs — P12.25
+        from app.core.logging import set_log_context
+        set_log_context(request_id=req_id)
+
         # 2. Track timing
         start_time = time.perf_counter()
 

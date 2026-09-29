@@ -51,9 +51,9 @@ export default function TemplateDetailPage({
           current_version_id: "v-03",
           version_number: 3,
           variable_tags: ["{{recipient_name}}", "{{program_name}}", "{{issue_date}}", "{{certificate_id}}", "{{qr_code}}"],
-          created_at: new Date(Date.now() - 30 * 86400 * 1000).toISOString(),
-          updated_at: new Date(Date.now() - 2 * 86400 * 1000).toISOString(),
-          published_at: new Date(Date.now() - 2 * 86400 * 1000).toISOString(),
+          created_at: "2026-08-30T10:00:00.000Z",
+          updated_at: "2026-09-27T10:00:00.000Z",
+          published_at: "2026-09-27T10:00:00.000Z",
         });
       })
       .finally(() => setLoading(false));

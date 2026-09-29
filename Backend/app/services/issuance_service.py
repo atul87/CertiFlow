@@ -119,13 +119,24 @@ class IssuanceService:
             },
         )
 
-        # 8. Queue ARQ task in Redis
+        # 8. Queue ARQ task in Redis — P12.02: No web-server background execution fallback in production
         queued = await QueueManager.enqueue(TASK_GENERATE_BULK_CERTIFICATES, job_id, org_id)
-        if not queued and settings.APP_ENV != "test":
-            logger.info("Executing issuance task directly as Redis queue is unavailable")
-            import asyncio
-            from app.workers.certificate_worker import generate_bulk_certificates_task
-            asyncio.create_task(generate_bulk_certificates_task(None, job_id, org_id))
+        if not queued:
+            if settings.APP_ENV in ("production", "staging"):
+                logger.error("Failed to enqueue bulk issuance job %s: Redis queue is unavailable", job_id)
+                await IssuanceJobRepository.update_status(
+                    job_id,
+                    "failed",
+                    error={"code": "QUEUE_UNAVAILABLE", "message": "Background job queue is unavailable"}
+                )
+                from app.core.exceptions import AppException
+                raise AppException(
+                    code="QUEUE_UNAVAILABLE",
+                    message="Background job processing queue is currently unavailable. Please try again shortly.",
+                    status_code=503,
+                )
+            else:
+                logger.info("Redis queue is unavailable in %s environment; job %s remains queued", settings.APP_ENV, job_id)
 
         return IssuanceJobResponse(**job_doc)
 

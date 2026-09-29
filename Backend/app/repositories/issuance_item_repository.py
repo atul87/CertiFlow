@@ -89,6 +89,41 @@ class IssuanceItemRepository:
         return cls._serialize(doc)
 
     @classmethod
+    async def claim_batch(cls, job_id: str, batch_size: int = 10) -> List[Dict[str, Any]]:
+        """
+        Atomically claim up to `batch_size` pending items for worker processing — P12.14.
+        """
+        try:
+            jid = ObjectId(job_id)
+        except Exception:
+            return []
+
+        now = datetime.now(timezone.utc)
+        claimed = []
+        cursor = cls._collection().find(
+            {"job_id": jid, "status": "pending"},
+            projection={"_id": 1}
+        ).limit(batch_size)
+        candidate_ids = [doc["_id"] async for doc in cursor]
+        if not candidate_ids:
+            return []
+
+        res = await cls._collection().update_many(
+            {"_id": {"$in": candidate_ids}, "status": "pending"},
+            {
+                "$set": {"status": "processing", "started_at": now},
+                "$inc": {"attempts": 1}
+            }
+        )
+        if res.modified_count == 0:
+            return []
+
+        cursor_claimed = cls._collection().find({"_id": {"$in": candidate_ids}, "status": "processing"})
+        async for doc in cursor_claimed:
+            claimed.append(cls._serialize(doc))
+        return claimed
+
+    @classmethod
     async def mark_completed(
         cls,
         item_id: str,

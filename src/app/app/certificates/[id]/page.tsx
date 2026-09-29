@@ -81,8 +81,8 @@ export default function CertificateDetailPage() {
       instructor: "Dr. Arvind Rao",
       credits: "32 ECTS",
     },
-    created_at: new Date(Date.now() - 86400 * 2 * 1000).toISOString(),
-    updated_at: new Date().toISOString(),
+    created_at: "2026-09-27T10:00:00.000Z",
+    updated_at: "2026-09-27T10:00:00.000Z",
   };
 
   const cert: Certificate = certData || fallbackCert;

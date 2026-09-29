@@ -1,6 +1,6 @@
 from functools import lru_cache
 from typing import List, Union, Optional, Dict, Any
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -129,6 +129,51 @@ class Settings(BaseSettings):
                     pass
             return [i.strip() for i in v.split(",") if i.strip()]
         return v
+
+    @model_validator(mode="after")
+    def validate_production_secrets(self) -> "Settings":
+        """Fail startup immediately if production/staging uses default or insecure secrets — P12.04."""
+        env = (self.APP_ENV or "").lower().strip()
+        if env in ("production", "prod", "staging"):
+            insecure_jwt_defaults = {
+                "certiflow-local-dev-jwt-secret-key-must-be-long-and-secure-32chars",
+                "secret",
+                "changeme",
+                "your-secret-key",
+                "password",
+            }
+            if (
+                self.JWT_SECRET_KEY in insecure_jwt_defaults
+                or "local-dev" in self.JWT_SECRET_KEY
+                or len(self.JWT_SECRET_KEY) < 32
+            ):
+                raise ValueError(
+                    "CRITICAL PRODUCTION SECURITY ERROR: Insecure or default JWT_SECRET_KEY configured in production/staging. "
+                    "Must be a cryptographically secure random secret at least 32 characters long."
+                )
+
+            if (
+                self.SIGNED_URL_SECRET == "certiflow-signed-download-url-secret-key-32chars!"
+                or len(self.SIGNED_URL_SECRET) < 16
+            ):
+                raise ValueError(
+                    "CRITICAL PRODUCTION SECURITY ERROR: Insecure or default SIGNED_URL_SECRET configured in production/staging."
+                )
+
+            if (
+                self.WEBHOOK_SIGNING_SECRET == "certiflow-webhook-signature-secret-key!"
+                or len(self.WEBHOOK_SIGNING_SECRET) < 16
+            ):
+                raise ValueError(
+                    "CRITICAL PRODUCTION SECURITY ERROR: Insecure or default WEBHOOK_SIGNING_SECRET configured in production/staging."
+                )
+
+            if env in ("production", "prod") and self.DEBUG:
+                raise ValueError(
+                    "CRITICAL PRODUCTION CONFIGURATION ERROR: DEBUG cannot be True in production environment."
+                )
+
+        return self
 
 
 @lru_cache()

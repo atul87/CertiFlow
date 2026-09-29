@@ -28,6 +28,7 @@ class PublicVerificationResponse(BaseModel):
     valid: bool
     status: str
     certificate: Optional[PublicCertificateDetail] = None
+    issued_at: Optional[datetime] = None
     revoked_at: Optional[datetime] = None
     revocation_reason: Optional[str] = None
     expires_at: Optional[datetime] = None

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle2, X } from "lucide-react";
 import { api } from "@/lib/api";
 import type { ImportRecord, Template } from "@/types";
@@ -41,7 +41,7 @@ export function ImportWizard() {
   // Step 3: Confirm
   const [confirming, setConfirming] = useState(false);
 
-  useState(() => {
+  useEffect(() => {
     api.templates
       .list({ status: "published" })
       .then((res) => setTemplates(res?.items || (Array.isArray(res) ? res : [])))
@@ -51,7 +51,7 @@ export function ImportWizard() {
           { id: "tmpl-002", name: "ML Workshop Completion", status: "published" } as Template,
         ])
       );
-  });
+  }, []);
 
   const handleUpload = async () => {
     if (!selectedFile) return;

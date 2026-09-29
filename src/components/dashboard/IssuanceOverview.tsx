@@ -9,42 +9,44 @@ interface IssuanceOverviewProps {
   isLoading?: boolean;
 }
 
+const DEFAULT_JOBS = [
+  {
+    id: "job_01",
+    name: "Q3 Full Stack Bootcamp",
+    template_name: "Developer Certificate",
+    status: "completed" as const,
+    total: 450,
+    completed: 450,
+    failed: 0,
+    progress: 100,
+    created_at: "2026-09-29T14:00:00.000Z",
+  },
+  {
+    id: "job_02",
+    name: "Hackathon 2026 Winner Honors",
+    template_name: "Winner Plaque Gold",
+    status: "running" as const,
+    total: 120,
+    completed: 84,
+    failed: 1,
+    progress: 70,
+    created_at: "2026-09-29T17:30:00.000Z",
+  },
+  {
+    id: "job_03",
+    name: "Cloud Architect Certification",
+    template_name: "AWS Certified Partner",
+    status: "queued" as const,
+    total: 800,
+    completed: 0,
+    failed: 0,
+    progress: 0,
+    created_at: "2026-09-29T17:50:00.000Z",
+  },
+];
+
 export function IssuanceOverview({ jobs, isLoading }: IssuanceOverviewProps) {
-  const displayJobs = jobs && jobs.length > 0 ? jobs.slice(0, 4) : [
-    {
-      id: "job_01",
-      name: "Q3 Full Stack Bootcamp",
-      template_name: "Developer Certificate",
-      status: "completed" as const,
-      total: 450,
-      completed: 450,
-      failed: 0,
-      progress: 100,
-      created_at: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
-    },
-    {
-      id: "job_02",
-      name: "Hackathon 2026 Winner Honors",
-      template_name: "Winner Plaque Gold",
-      status: "running" as const,
-      total: 120,
-      completed: 84,
-      failed: 1,
-      progress: 70,
-      created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "job_03",
-      name: "Cloud Architect Certification",
-      template_name: "AWS Certified Partner",
-      status: "queued" as const,
-      total: 800,
-      completed: 0,
-      failed: 0,
-      progress: 0,
-      created_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-    },
-  ];
+  const displayJobs = jobs && jobs.length > 0 ? jobs.slice(0, 4) : DEFAULT_JOBS;
 
   return (
     <div className="bg-white rounded-2xl border border-[var(--color-border)] p-6 shadow-xs">

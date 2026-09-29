@@ -46,16 +46,12 @@ const DEMO_CERTS: Certificate[] = Array.from({ length: 12 }, (_, i) => ({
     "Cloud Architecture",
     "Data Science 101",
   ][i % 6],
-  issue_date: new Date(Date.now() - i * 3600000 * 6).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }),
+  issue_date: "September 28, 2026",
   template_name: "Academic Honors Certificate",
   template_id: "tmpl-001",
   sha256_hash: `sha256:${(i * 987654321).toString(16).padEnd(64, "a")}`,
-  created_at: new Date(Date.now() - i * 3600000 * 6).toISOString(),
-  updated_at: new Date(Date.now() - i * 3600000 * 6).toISOString(),
+  created_at: "2026-09-28T12:00:00.000Z",
+  updated_at: "2026-09-28T12:00:00.000Z",
 }));
 
 export default function CertificatesPage() {

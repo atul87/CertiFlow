@@ -1,10 +1,12 @@
 from typing import Dict, Any, Optional
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Request, Response, status
 from app.api.deps import (
     get_current_user_and_org,
     get_client_ip,
     get_client_user_agent
 )
+from app.core.config import settings
+from app.core.exceptions import UnauthorizedError
 from app.schemas.common import APIResponse
 from app.schemas.auth import (
     TokenResponse,
@@ -24,6 +26,21 @@ from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
+COOKIE_NAME = "certiflow_refresh_token"
+
+
+def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
+    secure_cookie = settings.APP_ENV not in ("development", "test")
+    response.set_cookie(
+        key=COOKIE_NAME,
+        value=refresh_token,
+        httponly=True,
+        secure=secure_cookie,
+        samesite="lax",
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+        path="/api/v1/auth",
+    )
+
 
 @router.post(
     "/register",
@@ -33,11 +50,13 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 )
 async def register(
     data: UserRegisterRequest,
-    request: Request
+    request: Request,
+    response: Response,
 ):
     ip = get_client_ip(request)
     ua = get_client_user_agent(request)
     token_response = await AuthService.register(data, ip_address=ip, user_agent=ua)
+    _set_refresh_cookie(response, token_response.refresh_token)
     return APIResponse.ok(token_response)
 
 
@@ -49,11 +68,13 @@ async def register(
 )
 async def login(
     data: UserLoginRequest,
-    request: Request
+    request: Request,
+    response: Response,
 ):
     ip = get_client_ip(request)
     ua = get_client_user_agent(request)
     token_response = await AuthService.login(data, ip_address=ip, user_agent=ua)
+    _set_refresh_cookie(response, token_response.refresh_token)
     return APIResponse.ok(token_response)
 
 
@@ -64,9 +85,15 @@ async def login(
     summary="Rotate refresh token and issue new access token"
 )
 async def refresh_tokens(
-    data: RefreshTokenRequest
+    request: Request,
+    response: Response,
+    data: Optional[RefreshTokenRequest] = None,
 ):
-    token_response = await AuthService.refresh(data.refresh_token)
+    token = (data.refresh_token if data else None) or request.cookies.get(COOKIE_NAME)
+    if not token:
+        raise UnauthorizedError(message="Refresh token missing from body and cookies", code="REFRESH_TOKEN_REQUIRED")
+    token_response = await AuthService.refresh(token)
+    _set_refresh_cookie(response, token_response.refresh_token)
     return APIResponse.ok(token_response)
 
 
@@ -78,15 +105,29 @@ async def refresh_tokens(
 )
 async def logout(
     request: Request,
+    response: Response,
     data: Optional[RefreshTokenRequest] = None,
     context: Optional[Dict[str, Any]] = Depends(get_current_user_and_org)
 ):
     ip = get_client_ip(request)
     ua = get_client_user_agent(request)
     user_id = context.get("user_id") if context else None
-    token = data.refresh_token if data else None
+    token = (data.refresh_token if data else None) or request.cookies.get(COOKIE_NAME)
 
-    await AuthService.logout(raw_refresh_token=token, user_id=user_id, ip_address=ip, user_agent=ua)
+    # Extract Bearer access token for JTI blacklisting — P12.10
+    raw_access_token = None
+    auth_header = request.headers.get("Authorization") or request.headers.get("authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        raw_access_token = auth_header[7:].strip()
+
+    await AuthService.logout(
+        raw_refresh_token=token,
+        user_id=user_id,
+        raw_access_token=raw_access_token,
+        ip_address=ip,
+        user_agent=ua
+    )
+    response.delete_cookie(key=COOKIE_NAME, path="/api/v1/auth")
     return APIResponse.ok({"message": "Successfully logged out"})
 
 

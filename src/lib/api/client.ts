@@ -47,10 +47,14 @@ export const tokenStorage = {
     if (typeof window === "undefined") return null;
     return localStorage.getItem("certiflow_refresh_token");
   },
-  setTokens: (access: string, refresh: string) => {
+  setTokens: (access: string, refresh?: string | null) => {
     if (typeof window === "undefined") return;
     localStorage.setItem("certiflow_access_token", access);
-    localStorage.setItem("certiflow_refresh_token", refresh);
+    if (refresh) {
+      localStorage.setItem("certiflow_refresh_token", refresh);
+    } else {
+      localStorage.removeItem("certiflow_refresh_token");
+    }
   },
   clearTokens: () => {
     if (typeof window === "undefined") return;
@@ -77,17 +81,17 @@ export const orgStorage = {
 let refreshPromise: Promise<boolean> | null = null;
 
 async function tryRefreshToken(): Promise<boolean> {
-  const refresh = tokenStorage.getRefresh();
-  if (!refresh) return false;
-
   if (refreshPromise) return refreshPromise;
 
   refreshPromise = (async () => {
     try {
+      const refresh = tokenStorage.getRefresh();
+      const body = refresh ? JSON.stringify({ refresh_token: refresh }) : JSON.stringify({});
       const res = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh_token: refresh }),
+        credentials: "include",
+        body,
       });
 
       if (!res.ok) {
@@ -98,7 +102,7 @@ async function tryRefreshToken(): Promise<boolean> {
       const json = await res.json();
       const data = json.data || json;
       if (data.access_token) {
-        tokenStorage.setTokens(data.access_token, data.refresh_token || refresh);
+        tokenStorage.setTokens(data.access_token, data.refresh_token);
         return true;
       }
       return false;
@@ -143,15 +147,20 @@ export async function apiRequest<T = any>(
   try {
     const response = await fetch(url, {
       ...options,
+      credentials: options.credentials || "include",
       headers,
     });
 
     // Handle token refresh on 401 Unauthorized
-    if (response.status === 401 && tokenStorage.getRefresh()) {
+    if (response.status === 401 && (tokenStorage.getAccess() || tokenStorage.getRefresh())) {
       const refreshed = await tryRefreshToken();
       if (refreshed) {
         headers.set("Authorization", `Bearer ${tokenStorage.getAccess()}`);
-        const retryResponse = await fetch(url, { ...options, headers });
+        const retryResponse = await fetch(url, {
+          ...options,
+          credentials: options.credentials || "include",
+          headers,
+        });
         return handleResponse<T>(retryResponse);
       }
     }

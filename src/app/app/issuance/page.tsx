@@ -69,8 +69,8 @@ export default function IssuancePage() {
       completed: 450,
       failed: 0,
       progress: 100,
-      created_at: new Date(Date.now() - 3600 * 4 * 1000).toISOString(),
-      updated_at: new Date(Date.now() - 3600 * 3 * 1000).toISOString(),
+      created_at: "2026-09-29T14:00:00.000Z",
+      updated_at: "2026-09-29T15:00:00.000Z",
     },
     {
       id: "job-002",
@@ -85,8 +85,8 @@ export default function IssuancePage() {
       failed: 0,
       progress: 70,
       estimated_remaining_seconds: 14,
-      created_at: new Date(Date.now() - 600 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: "2026-09-29T17:45:00.000Z",
+      updated_at: "2026-09-29T17:50:00.000Z",
     },
     {
       id: "job-003",
@@ -100,8 +100,8 @@ export default function IssuancePage() {
       completed: 0,
       failed: 0,
       progress: 0,
-      created_at: new Date(Date.now() - 120 * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: "2026-09-29T17:55:00.000Z",
+      updated_at: "2026-09-29T17:55:00.000Z",
     },
   ];
 

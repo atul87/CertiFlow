@@ -11,6 +11,7 @@ from app.core.exceptions import UnauthorizedError, ForbiddenError
 from app.core.security import decode_access_token
 from app.security.api_keys import APIKeySecurity
 from app.security.authorization import AuthorizationService
+from app.security.token_blacklist import TokenBlacklist
 from app.repositories.user_repository import UserRepository
 from app.repositories.organization_repository import OrganizationRepository
 from app.repositories.member_repository import MemberRepository
@@ -89,6 +90,11 @@ async def get_current_user_and_org(
     except jwt.InvalidTokenError as e:
         raise UnauthorizedError(message=f"Invalid access token: {str(e)}", code="INVALID_TOKEN")
 
+    # JTI revocation check (Item 10)
+    jti = payload.get("jti")
+    if jti and await TokenBlacklist.is_jti_revoked(jti):
+        raise UnauthorizedError(message="Access token has been revoked", code="TOKEN_REVOKED")
+
     user_id = payload.get("sub")
     if not user_id:
         raise UnauthorizedError(message="Invalid token payload", code="INVALID_TOKEN")
@@ -103,10 +109,18 @@ async def get_current_user_and_org(
     # Determine organization: Header override > JWT org_id > User primary org
     org_id = None
     if x_organization_id:
-        # Verify membership in requested header org
+        # Strict verification of membership in requested header org (Item 9)
+        org_doc = await OrganizationRepository.get_by_id(x_organization_id)
+        if not org_doc:
+            raise ForbiddenError(message="Requested organization does not exist", code="ORG_NOT_FOUND")
         mem = await MemberRepository.get_by_user_id(x_organization_id, user_id)
-        if mem and mem.get("status") not in ("removed",):
-            org_id = x_organization_id
+        is_owner = str(org_doc.get("owner_id")) == user_id
+        if not mem and not is_owner:
+            raise ForbiddenError(message="You are not a member of the requested organization", code="NOT_A_MEMBER")
+        if mem and mem.get("status") in ("removed", "suspended"):
+            code = "MEMBER_SUSPENDED" if mem.get("status") == "suspended" else "MEMBER_REMOVED"
+            raise ForbiddenError(message=f"Your membership in this organization is {mem.get('status')}", code=code)
+        org_id = x_organization_id
 
     if not org_id:
         org_id = payload.get("org_id")
@@ -120,14 +134,19 @@ async def get_current_user_and_org(
             org_id = primary_org["id"]
             org_doc = primary_org
 
-    # Verify membership status in active org
+    # Verify membership status in active org on every request (Item 9)
     if org_id:
+        if org_doc and org_doc.get("status") == "archived":
+            raise ForbiddenError(message="Organization is archived or inaccessible", code="ORG_INACCESSIBLE")
         membership = await MemberRepository.get_by_user_id(org_id, user_id)
+        is_owner = org_doc and str(org_doc.get("owner_id")) == user_id
         if membership:
             if membership.get("status") == "suspended":
                 raise ForbiddenError(message="Your membership in this organization is suspended", code="MEMBER_SUSPENDED")
             if membership.get("status") == "removed":
                 raise ForbiddenError(message="You have been removed from this organization", code="MEMBER_REMOVED")
+        elif not is_owner:
+            raise ForbiddenError(message="You are not a member of this organization", code="NOT_A_MEMBER")
 
     return {
         "user": user,

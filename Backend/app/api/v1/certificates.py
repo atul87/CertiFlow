@@ -365,19 +365,23 @@ async def get_certificate_verification_events(
 
 
 # ---------------------------------------------------------------------------
-# Public verification (no auth required) — P3.65 / P5.05
+# Public verification (Deprecated in favor of canonical /api/v1/public/verify/{code}) — P12.13
 # ---------------------------------------------------------------------------
 
 @router.get(
     "/verify/{code}",
     response_model=CertificateVerifyResponse,
-    summary="Public certificate verification",
+    deprecated=True,
+    summary="Public certificate verification [DEPRECATED]",
     description=(
+        "DEPRECATED: Use canonical endpoint GET /api/v1/public/verify/{verification_code} instead. "
         "Verifies a certificate using its verification code. "
         "Returns limited public information — no authentication required."
     ),
 )
-async def verify_certificate(code: str, request: Request):
+async def verify_certificate(code: str, request: Request, response: Response):
+    response.headers["Deprecation"] = "@true"
+    response.headers["Link"] = f'</api/v1/public/verify/{code}>; rel="successor-version"'
     ip = get_client_ip(request)
     ua = get_client_user_agent(request)
     result = await VerificationService.verify_by_code(code, user_agent=ua, ip_address=ip)
@@ -393,7 +397,7 @@ async def verify_certificate(code: str, request: Request):
         certificate_number=result.certificate.certificate_number if result.certificate else None,
         recipient_name=result.certificate.recipient_name if result.certificate else None,
         template_name=result.certificate.program_name if result.certificate else None,
-        issued_at=None,
+        issued_at=result.issued_at,
         status=result.status,
     )
 

@@ -47,31 +47,57 @@ class RenderError(AppException):
         super().__init__(code=code, message=message, status_code=422, details=details)
 
 
-def _make_asset_loader(org_id: str):
-    """Return a sync callable that loads asset bytes by asset_id."""
-    def loader(asset_id: str) -> Optional[bytes]:
-        # In async context we can't await; use sync file read from storage key
-        # The asset key is stored in MongoDB — for rendering we access it via StorageService
-        # This is intentionally kept synchronous to stay compatible with PIL rendering.
-        import asyncio
-        async def _get():
-            asset = await AssetRepository.get_by_id(asset_id)
-            if asset and asset.get("storage_key"):
-                return StorageService.read_file(asset["storage_key"])
-            return None
+async def prefetch_template_assets(version_doc: dict, org_id: str) -> dict[str, bytes]:
+    """Prefetch all assets referenced in version_doc asynchronously in the current event loop.
+    
+    Eliminates thread-pool asyncio.run() calls during rendering — P12.01.
+    """
+    asset_ids = set()
+    bg_asset_id = version_doc.get("background_asset_id")
+    if bg_asset_id:
+        asset_ids.add(str(bg_asset_id))
+    for layer in version_doc.get("canvas", {}).get("layers", []):
+        for key in ("asset_id", "signature_id", "image_asset_id", "logo_id"):
+            val = layer.get(key)
+            if val:
+                asset_ids.add(str(val))
+
+    cache: dict[str, bytes] = {}
+    for aid in asset_ids:
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # We are inside an async context — create a task and get result via thread
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor() as pool:
-                    future = pool.submit(asyncio.run, _get())
-                    return future.result(timeout=10)
-            else:
-                return loop.run_until_complete(_get())
+            asset = await AssetRepository.get_by_id(aid)
+            if asset and asset.get("storage_key"):
+                b = StorageService.read_file(asset["storage_key"])
+                if b:
+                    cache[aid] = b
         except Exception as exc:
-            logger.warning("AssetLoader: could not load asset %s — %s", asset_id, exc)
+            logger.warning("Could not prefetch asset %s: %s", aid, exc)
+    return cache
+
+
+def _make_asset_loader(org_id: str, preloaded_assets: Optional[dict[str, bytes]] = None):
+    """Return a purely synchronous callable that loads asset bytes from cache or storage.
+    
+    Eliminates asyncio.run() and thread-pool DB access to prevent event-loop conflicts.
+    """
+    cache = dict(preloaded_assets or {})
+
+    def loader(asset_id: str) -> Optional[bytes]:
+        if not asset_id:
             return None
+        str_id = str(asset_id)
+        if str_id in cache:
+            return cache[str_id]
+        # Direct storage read fallback if asset_id is a storage key or path
+        try:
+            data = StorageService.read_file(str_id)
+            if data:
+                cache[str_id] = data
+                return data
+        except Exception:
+            pass
+        return None
+
     return loader
 
 
@@ -204,16 +230,13 @@ class CertificateService:
         template_fields = version_doc.get("fields", [])
         _validate_required_fields(template_fields, resolved_data)
 
-        # 4. Load background asset
-        bg_bytes: Optional[bytes] = None
+        # 4. Load background asset and prefetch all template assets asynchronously
+        preloaded_assets = await prefetch_template_assets(version_doc, org_id)
         bg_asset_id = version_doc.get("background_asset_id")
-        if bg_asset_id:
-            bg_asset = await AssetRepository.get_by_id(str(bg_asset_id))
-            if bg_asset and bg_asset.get("storage_key"):
-                bg_bytes = StorageService.read_file(bg_asset["storage_key"])
+        bg_bytes: Optional[bytes] = preloaded_assets.get(str(bg_asset_id)) if bg_asset_id else None
 
-        # 5. Render
-        asset_loader = _make_asset_loader(org_id)
+        # 5. Render canvas
+        asset_loader = _make_asset_loader(org_id, preloaded_assets)
         render_result = render_certificate(
             version_doc=version_doc,
             resolved_data=resolved_data,
@@ -258,20 +281,30 @@ class CertificateService:
         idempotency_key: Optional[str] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
+        preloaded_assets: Optional[dict[str, bytes]] = None,
     ) -> CertificateResponse:
         """
         Full official certificate generation pipeline — P3.47.
         """
         t0 = time.monotonic()
 
-        # Idempotency check — P3.48
+        # Idempotency check — P3.48 & P12.18
+        if not idempotency_key and request.import_id and request.import_row_id:
+            idempotency_key = f"imp_{request.import_id}_row_{request.import_row_id}"
+
+        existing = None
         if idempotency_key:
             existing = await CertificateRepository.get_by_idempotency_key(
                 idempotency_key, org_id
             )
-            if existing and existing.get("status") in ("generated", "generating"):
-                logger.info("Idempotency hit for key=%s", idempotency_key)
-                return CertificateResponse(**existing)
+        if not existing and request.import_id and request.import_row_id:
+            existing = await CertificateRepository.get_by_import_row(
+                org_id, str(request.import_id), str(request.import_row_id)
+            )
+
+        if existing and existing.get("status") in ("generated", "generating", "issued"):
+            logger.info("Idempotency hit for key=%s (cert_id=%s)", idempotency_key, existing.get("id"))
+            return CertificateResponse(**existing)
 
         # Quota check — P10
         from app.services.quota_service import QuotaService
@@ -349,16 +382,15 @@ class CertificateService:
         cert_id = cert_doc["id"]
 
         try:
-            # 8. Load background asset
-            bg_bytes: Optional[bytes] = None
-            bg_asset_id = version_doc.get("background_asset_id")
-            if bg_asset_id:
-                bg_asset = await AssetRepository.get_by_id(str(bg_asset_id))
-                if bg_asset and bg_asset.get("storage_key"):
-                    bg_bytes = StorageService.read_file(bg_asset["storage_key"])
+            # 8. Load background asset & prefetch template assets asynchronously
+            if preloaded_assets is None:
+                preloaded_assets = await prefetch_template_assets(version_doc, org_id)
 
-            # 9. Render canvas — P3.14–P3.35
-            asset_loader = _make_asset_loader(org_id)
+            bg_asset_id = version_doc.get("background_asset_id")
+            bg_bytes: Optional[bytes] = preloaded_assets.get(str(bg_asset_id)) if bg_asset_id else None
+
+            # 9. Render canvas — P3.14–P3.35 (pure synchronous execution, no asyncio.run)
+            asset_loader = _make_asset_loader(org_id, preloaded_assets)
             render_result = render_certificate(
                 version_doc=version_doc,
                 resolved_data=resolved_data,

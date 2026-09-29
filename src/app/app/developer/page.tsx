@@ -32,15 +32,15 @@ function Skeleton({ className = "" }: { className?: string }) {
 
 // ─── Demo data ────────────────────────────────────────────────────────────────
 const DEMO_KEYS: ApiKey[] = [
-  { id: "key-1", name: "Production API Key", key_prefix: "cf_live_", last_four: "7j2k", scopes: ["certificates:read", "certificates:write", "templates:read"], status: "active", created_at: new Date(Date.now() - 86400 * 60 * 1000).toISOString(), last_used_at: new Date(Date.now() - 3600 * 2 * 1000).toISOString() },
-  { id: "key-2", name: "CI/CD Automation", key_prefix: "cf_live_", last_four: "mn9p", scopes: ["certificates:write", "imports:write"], status: "active", created_at: new Date(Date.now() - 86400 * 14 * 1000).toISOString(), last_used_at: new Date(Date.now() - 86400 * 1 * 1000).toISOString() },
-  { id: "key-3", name: "Test / Staging Key", key_prefix: "cf_test_", last_four: "xq4r", scopes: ["certificates:read", "templates:read"], status: "revoked", created_at: new Date(Date.now() - 86400 * 30 * 1000).toISOString() },
+  { id: "key-1", name: "Production API Key", key_prefix: "cf_live_", last_four: "7j2k", scopes: ["certificates:read", "certificates:write", "templates:read"], status: "active", created_at: "2026-07-31T10:00:00.000Z", last_used_at: "2026-09-29T15:55:00.000Z" },
+  { id: "key-2", name: "CI/CD Automation", key_prefix: "cf_live_", last_four: "mn9p", scopes: ["certificates:write", "imports:write"], status: "active", created_at: "2026-09-15T10:00:00.000Z", last_used_at: "2026-09-28T10:00:00.000Z" },
+  { id: "key-3", name: "Test / Staging Key", key_prefix: "cf_test_", last_four: "xq4r", scopes: ["certificates:read", "templates:read"], status: "revoked", created_at: "2026-08-30T10:00:00.000Z" },
 ];
 
 const DEMO_WEBHOOKS: WebhookType[] = [
-  { id: "wh-1", name: "Slack Notifications", url: "https://hooks.slack.com/services/T00/B00/XXXXXXXX", events: ["certificate.issued", "job.completed", "job.failed"], status: "active", secret_prefix: "wh_", created_at: new Date(Date.now() - 86400 * 30 * 1000).toISOString(), last_triggered_at: new Date(Date.now() - 3600 * 1000).toISOString(), success_rate: 98.7 },
-  { id: "wh-2", name: "Internal LMS Webhook", url: "https://lms.corp.io/webhooks/certiflow", events: ["certificate.issued"], status: "active", secret_prefix: "wh_", created_at: new Date(Date.now() - 86400 * 14 * 1000).toISOString(), last_triggered_at: new Date(Date.now() - 86400 * 2 * 1000).toISOString(), success_rate: 100 },
-  { id: "wh-3", name: "Analytics Ingest", url: "https://analytics.example.com/ingest/v1", events: ["certificate.issued", "certificate.verified", "certificate.revoked"], status: "inactive", secret_prefix: "wh_", created_at: new Date(Date.now() - 86400 * 5 * 1000).toISOString(), success_rate: 0 },
+  { id: "wh-1", name: "Slack Notifications", url: "https://hooks.slack.com/services/T00/B00/XXXXXXXX", events: ["certificate.issued", "job.completed", "job.failed"], status: "active", secret_prefix: "wh_", created_at: "2026-08-30T10:00:00.000Z", last_triggered_at: "2026-09-29T16:55:00.000Z", success_rate: 98.7 },
+  { id: "wh-2", name: "Internal LMS Webhook", url: "https://lms.corp.io/webhooks/certiflow", events: ["certificate.issued"], status: "active", secret_prefix: "wh_", created_at: "2026-09-15T10:00:00.000Z", last_triggered_at: "2026-09-27T10:00:00.000Z", success_rate: 100 },
+  { id: "wh-3", name: "Analytics Ingest", url: "https://analytics.example.com/ingest/v1", events: ["certificate.issued", "certificate.verified", "certificate.revoked"], status: "inactive", secret_prefix: "wh_", created_at: "2026-09-24T10:00:00.000Z", success_rate: 0 },
 ];
 
 const WEBHOOK_EVENTS = [
@@ -99,7 +99,7 @@ function ApiKeyCard({ apiKey, onRevoke }: { apiKey: ApiKey; onRevoke: (id: strin
               {isRevoked ? "REVOKED" : "ACTIVE"}
             </span>
           </div>
-          <p className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5">Created {relTime(apiKey.created_at)}{apiKey.last_used_at ? ` · Last used ${relTime(apiKey.last_used_at)}` : " · Never used"}</p>
+          <p className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5" suppressHydrationWarning>Created {relTime(apiKey.created_at)}{apiKey.last_used_at ? ` · Last used ${relTime(apiKey.last_used_at)}` : " · Never used"}</p>
         </div>
         {!isRevoked && (
           <div className="relative">
@@ -207,7 +207,7 @@ function WebhookCard({ wh, onDelete, onToggle, onTest }: {
 
       {/* Stats */}
       <div className="flex items-center justify-between text-[11px] text-[var(--color-text-tertiary)] pt-3 border-t border-[var(--color-border)]">
-        <span>{wh.last_triggered_at ? `Last fired ${relTime(wh.last_triggered_at)}` : "Never triggered"}</span>
+        <span suppressHydrationWarning>{wh.last_triggered_at ? `Last fired ${relTime(wh.last_triggered_at)}` : "Never triggered"}</span>
         {wh.success_rate > 0 && (
           <span className={`font-bold ${wh.success_rate >= 95 ? "text-emerald-600" : wh.success_rate >= 80 ? "text-amber-600" : "text-red-500"}`}>
             {wh.success_rate}% success
@@ -482,14 +482,16 @@ export default function DeveloperPage() {
     { id: "docs", label: "Quick Start", icon: Terminal },
   ];
 
-  const DEMO_LOGS = Array.from({ length: 10 }, (_, i) => ({
-    id: `log-${i}`, method: ["POST", "GET", "POST", "DELETE", "GET"][i % 5],
-    path: ["/v1/certificates", "/v1/certificates/cert-123", "/v1/issuance-jobs", "/v1/certificates/cert-456", "/v1/templates"][i % 5],
-    status: [201, 200, 202, 200, 200][i % 5],
-    latency: Math.round(80 + Math.random() * 200),
-    key_prefix: "cf_live_••••7j2k",
-    at: new Date(Date.now() - i * 900000).toISOString(),
-  }));
+const BASE_DEV_LOG_TIME = new Date("2026-09-29T12:00:00.000Z").getTime();
+const STATIC_DEMO_LOGS = Array.from({ length: 10 }, (_, i) => ({
+  id: `log-${i}`,
+  method: ["POST", "GET", "POST", "DELETE", "GET"][i % 5],
+  path: ["/v1/certificates", "/v1/certificates/cert-123", "/v1/issuance-jobs", "/v1/certificates/cert-456", "/v1/templates"][i % 5],
+  status: [201, 200, 202, 200, 200][i % 5],
+  latency: [124, 88, 210, 95, 142, 115, 92, 180, 89, 134][i],
+  key_prefix: "cf_live_••••7j2k",
+  at: new Date(BASE_DEV_LOG_TIME - i * 900000).toISOString(),
+}));
 
   const relTime = (iso: string) => {
     const d = (Date.now() - new Date(iso).getTime()) / 1000;
@@ -575,14 +577,14 @@ export default function DeveloperPage() {
             <span className="col-span-2 text-right">Time</span>
           </div>
           <div className="divide-y divide-[var(--color-border)]">
-            {DEMO_LOGS.map(log => (
+            {STATIC_DEMO_LOGS.map(log => (
               <div key={log.id} className="px-5 py-3 grid grid-cols-12 gap-3 items-center hover:bg-gray-50/50 transition-colors font-mono text-[12px]">
                 <span className={`col-span-1 font-bold text-[11px] ${log.method === "POST" ? "text-blue-600" : log.method === "DELETE" ? "text-red-600" : "text-emerald-600"}`}>{log.method}</span>
                 <span className="col-span-4 text-[var(--color-text)] truncate">{log.path}</span>
                 <span className={`col-span-1 text-center font-bold ${log.status < 300 ? "text-emerald-600" : "text-red-600"}`}>{log.status}</span>
                 <span className="col-span-2 text-right text-[var(--color-text-secondary)]">{log.latency}ms</span>
                 <span className="col-span-2 text-[var(--color-text-tertiary)] text-[11px] truncate">{log.key_prefix}</span>
-                <span className="col-span-2 text-right text-[var(--color-text-tertiary)] text-[11px]">{relTime(log.at)}</span>
+                <span className="col-span-2 text-right text-[var(--color-text-tertiary)] text-[11px]" suppressHydrationWarning>{relTime(log.at)}</span>
               </div>
             ))}
           </div>

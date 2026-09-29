@@ -152,19 +152,21 @@ class TestEmailProviders:
     async def test_mock_provider_simulated_failure(self):
         provider = MockEmailProvider()
         provider.simulate_error(True, error_code="SIMULATED_TIMEOUT", error_message="Timeout", retryable=True)
-
-        msg = EmailMessage(
-            to_email="test@example.com",
-            to_name="Test",
-            from_name="Academy",
-            from_email="academy@example.com",
-            subject="Subj",
-            html_content="<p>Test</p>",
-        )
-        res = await provider.send_email(msg)
-        assert res.success is False
-        assert res.error_code == "SIMULATED_TIMEOUT"
-        assert res.retryable is True
+        try:
+            msg = EmailMessage(
+                to_email="test@example.com",
+                to_name="Test",
+                from_name="Academy",
+                from_email="academy@example.com",
+                subject="Subj",
+                html_content="<p>Test</p>",
+            )
+            res = await provider.send_email(msg)
+            assert res.success is False
+            assert res.error_code == "SIMULATED_TIMEOUT"
+            assert res.retryable is True
+        finally:
+            provider.simulate_error(False)
 
     def test_smtp_error_normalization(self):
         provider = SMTPEmailProvider()

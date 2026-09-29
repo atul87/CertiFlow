@@ -58,6 +58,8 @@ function EmailStatusBadge({ status }: { status: EmailStatus }) {
 const NAMES = ["Atul Kumar", "Priya Sharma", "Rahul Singh", "Ananya Verma", "Dev Patel", "Sneha Nair", "Arjun Mehta", "Kavya Reddy", "Vikram Joshi", "Pooja Gupta", "Aditya Choudhary", "Lakshmi Iyer"];
 const STATUSES: EmailStatus[] = ["delivered", "opened", "clicked", "bounced", "delivered", "opened", "sent", "delivered", "failed", "delivered", "opened", "delivered"];
 
+const BASE_EMAIL_TIME = new Date("2026-09-29T12:00:00.000Z").getTime();
+
 const DEMO_DELIVERIES: EmailDelivery[] = NAMES.map((name, i) => ({
   id: `del-${i + 1}`,
   status: STATUSES[i],
@@ -65,10 +67,10 @@ const DEMO_DELIVERIES: EmailDelivery[] = NAMES.map((name, i) => ({
   recipient_email: `${name.split(" ")[0].toLowerCase()}${i + 1}@example.com`,
   subject: "Your Certificate is Ready — CertiFlow",
   certificate_id: `cert-${i + 1}`,
-  sent_at: new Date(Date.now() - i * 3600000 * 3).toISOString(),
-  delivered_at: STATUSES[i] !== "failed" && STATUSES[i] !== "bounced" ? new Date(Date.now() - i * 3600000 * 3 + 30000).toISOString() : undefined,
-  opened_at: ["opened", "clicked"].includes(STATUSES[i]) ? new Date(Date.now() - i * 3600000 * 2).toISOString() : undefined,
-  created_at: new Date(Date.now() - i * 3600000 * 3).toISOString(),
+  sent_at: new Date(BASE_EMAIL_TIME - i * 3600000 * 3).toISOString(),
+  delivered_at: STATUSES[i] !== "failed" && STATUSES[i] !== "bounced" ? new Date(BASE_EMAIL_TIME - i * 3600000 * 3 + 30000).toISOString() : undefined,
+  opened_at: ["opened", "clicked"].includes(STATUSES[i]) ? new Date(BASE_EMAIL_TIME - i * 3600000 * 2).toISOString() : undefined,
+  created_at: new Date(BASE_EMAIL_TIME - i * 3600000 * 3).toISOString(),
 }));
 
 const DEMO_TEMPLATES: EmailTemplate[] = [
@@ -76,19 +78,19 @@ const DEMO_TEMPLATES: EmailTemplate[] = [
     id: "etmpl-1", name: "Certificate Ready", subject: "Your Certificate is Ready — {{org_name}}",
     html_body: "<h1>Hi {{recipient_name}},</h1><p>Your certificate for <strong>{{program_name}}</strong> is ready.</p>",
     text_body: "Hi {{recipient_name}}, Your certificate is ready.", variables: ["recipient_name", "program_name", "org_name", "certificate_url"],
-    is_default: true, created_at: new Date(Date.now() - 86400 * 30 * 1000).toISOString(), updated_at: new Date(Date.now() - 86400 * 5 * 1000).toISOString(),
+    is_default: true, created_at: "2026-08-30T10:00:00.000Z", updated_at: "2026-09-24T10:00:00.000Z",
   },
   {
     id: "etmpl-2", name: "Certificate Reminder", subject: "Reminder: Pick up your certificate — {{program_name}}",
     html_body: "<h1>Hi {{recipient_name}},</h1><p>This is a reminder to download your certificate.</p>",
     text_body: "Hi {{recipient_name}}, Reminder: your certificate is waiting.", variables: ["recipient_name", "program_name", "certificate_url"],
-    is_default: false, created_at: new Date(Date.now() - 86400 * 14 * 1000).toISOString(), updated_at: new Date(Date.now() - 86400 * 2 * 1000).toISOString(),
+    is_default: false, created_at: "2026-09-15T10:00:00.000Z", updated_at: "2026-09-27T10:00:00.000Z",
   },
   {
     id: "etmpl-3", name: "Bulk Issuance Complete", subject: "Bulk issuance completed — {{job_name}}",
     html_body: "<p>Your bulk certificate job <strong>{{job_name}}</strong> has completed.</p>",
     text_body: "Your bulk job {{job_name}} is complete.", variables: ["job_name", "total_issued", "failed_count", "download_url"],
-    is_default: false, created_at: new Date(Date.now() - 86400 * 7 * 1000).toISOString(), updated_at: new Date(Date.now() - 86400 * 1 * 1000).toISOString(),
+    is_default: false, created_at: "2026-09-22T10:00:00.000Z", updated_at: "2026-09-28T10:00:00.000Z",
   },
 ];
 
@@ -161,7 +163,7 @@ function TemplateCard({ tmpl, onDelete }: { tmpl: EmailTemplate; onDelete: (id: 
       </div>
       <div className="pt-3 border-t border-[var(--color-border)] text-[11px] text-[var(--color-text-tertiary)] flex justify-between">
         <span>{tmpl.variables.length} variables</span>
-        <span>Updated {relTime(tmpl.updated_at)}</span>
+        <span suppressHydrationWarning>Updated {relTime(tmpl.updated_at)}</span>
       </div>
     </div>
   );
@@ -169,9 +171,9 @@ function TemplateCard({ tmpl, onDelete }: { tmpl: EmailTemplate; onDelete: (id: 
 
 // ─── Suppression list ─────────────────────────────────────────────────────────
 const DEMO_SUPPRESSIONS = [
-  { email: "bounced@example.com", reason: "hard_bounce", added_at: new Date(Date.now() - 86400 * 5 * 1000).toISOString() },
-  { email: "unsubscribed@corp.io", reason: "unsubscribe", added_at: new Date(Date.now() - 86400 * 12 * 1000).toISOString() },
-  { email: "complaint@mail.net", reason: "spam_complaint", added_at: new Date(Date.now() - 86400 * 20 * 1000).toISOString() },
+  { email: "bounced@example.com", reason: "hard_bounce", added_at: "2026-09-24T10:00:00.000Z" },
+  { email: "unsubscribed@corp.io", reason: "unsubscribe", added_at: "2026-09-17T10:00:00.000Z" },
+  { email: "complaint@mail.net", reason: "spam_complaint", added_at: "2026-09-09T10:00:00.000Z" },
 ];
 
 type EmailTab = "deliveries" | "templates" | "suppressions";
@@ -368,7 +370,7 @@ export default function EmailPage() {
                     </div>
                     <div className="col-span-2"><EmailStatusBadge status={d.status} /></div>
                     <div className="col-span-2 text-right">
-                      <span className="text-[11px] text-[var(--color-text-tertiary)]">{d.sent_at ? relTime(d.sent_at) : "—"}</span>
+                      <span className="text-[11px] text-[var(--color-text-tertiary)]" suppressHydrationWarning>{d.sent_at ? relTime(d.sent_at) : "—"}</span>
                     </div>
                     <div className="col-span-1 flex justify-end">
                       {(d.status === "failed" || d.status === "bounced") && (
@@ -432,7 +434,7 @@ export default function EmailPage() {
                     <span className="text-[12px] text-[var(--color-text-secondary)]">{s.reason.replace(/_/g, " ")}</span>
                   </div>
                   <div className="col-span-2 text-right">
-                    <span className="text-[11px] text-[var(--color-text-tertiary)]">{relTime(s.added_at)}</span>
+                    <span className="text-[11px] text-[var(--color-text-tertiary)]" suppressHydrationWarning>{relTime(s.added_at)}</span>
                   </div>
                   <div className="col-span-1 flex justify-end">
                     <button

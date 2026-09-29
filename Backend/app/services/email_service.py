@@ -74,11 +74,20 @@ class EmailService:
                 },
             )
 
-        # Enqueue sending task
+        # Enqueue sending task — P12.02: No web-server fallback in production
         queued = await QueueManager.enqueue(TASK_SEND_CERTIFICATE_EMAIL, delivery_id)
-        if not queued and settings.APP_ENV != "test":
-            logger.info(f"Redis queue unavailable; executing delivery {delivery_id} via asyncio task")
-            asyncio.create_task(send_certificate_email_task(None, delivery_id))
+        if not queued:
+            if settings.APP_ENV in ("production", "staging"):
+                logger.error("Failed to enqueue email delivery %s: Redis queue is unavailable", delivery_id)
+                await EmailDeliveryRepository.update_status(delivery_id, "failed", error="Queue unavailable")
+                from app.core.exceptions import AppException
+                raise AppException(
+                    code="QUEUE_UNAVAILABLE",
+                    message="Email dispatch queue is currently unavailable. Please try again shortly.",
+                    status_code=503,
+                )
+            else:
+                logger.info("Redis queue is unavailable in %s environment; delivery %s remains queued", settings.APP_ENV, delivery_id)
 
         return delivery
 

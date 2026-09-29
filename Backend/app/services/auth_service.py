@@ -13,10 +13,13 @@ from app.core.security import (
     hash_password,
     verify_password,
     create_access_token,
+    decode_access_token,
     generate_refresh_token,
     generate_password_reset_token,
     hash_token
 )
+from app.core.database import DatabaseManager
+from app.security.token_blacklist import TokenBlacklist
 from app.repositories.user_repository import UserRepository
 from app.repositories.organization_repository import OrganizationRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
@@ -51,35 +54,36 @@ class AuthService:
         # 2. Hash password with Argon2id
         pw_hash = hash_password(data.password)
 
-        # 3. Create user document
-        user = await UserRepository.create(
-            email=data.email,
-            password_hash=pw_hash,
-            name=data.name
-        )
+        # 3. Create user document, organization, subscription, and refresh token within transaction boundary
+        async with DatabaseManager.transaction_scope():
+            user = await UserRepository.create(
+                email=data.email,
+                password_hash=pw_hash,
+                name=data.name
+            )
 
-        # 4. Automatically create organization for user
-        org_name = f"{data.name}'s Organization"
-        org = await OrganizationRepository.create(
-            name=org_name,
-            owner_id=user["id"]
-        )
+            # 4. Automatically create organization for user
+            org_name = f"{data.name}'s Organization"
+            org = await OrganizationRepository.create(
+                name=org_name,
+                owner_id=user["id"]
+            )
 
-        # Initialize default SaaS subscription (Starter trial)
-        from app.services.subscription_service import SubscriptionService
-        await SubscriptionService.initialize_org_subscription(org["id"], trial=True)
+            # Initialize default SaaS subscription (Starter trial)
+            from app.services.subscription_service import SubscriptionService
+            await SubscriptionService.initialize_org_subscription(org["id"], trial=True)
 
-        # 5. Issue JWT access token + refresh token
-        access_token = create_access_token(user_id=user["id"], org_id=org["id"])
-        raw_refresh, token_hash, expires_at = generate_refresh_token(user_id=user["id"], org_id=org["id"])
+            # 5. Issue JWT access token + refresh token
+            access_token = create_access_token(user_id=user["id"], org_id=org["id"])
+            raw_refresh, token_hash, expires_at = generate_refresh_token(user_id=user["id"], org_id=org["id"])
 
-        # 6. Save hashed refresh token
-        await RefreshTokenRepository.create(
-            user_id=user["id"],
-            organization_id=org["id"],
-            token_hash=token_hash,
-            expires_at=expires_at
-        )
+            # 6. Save hashed refresh token
+            await RefreshTokenRepository.create(
+                user_id=user["id"],
+                organization_id=org["id"],
+                token_hash=token_hash,
+                expires_at=expires_at
+            )
 
         # 7. Audit log registration & organization creation
         await AuditLogRepository.log_event(
@@ -243,9 +247,23 @@ class AuthService:
         cls,
         raw_refresh_token: Optional[str] = None,
         user_id: Optional[str] = None,
+        raw_access_token: Optional[str] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None
     ) -> bool:
+        import time
+        if raw_access_token:
+            try:
+                payload = decode_access_token(raw_access_token)
+                jti = payload.get("jti")
+                exp = payload.get("exp", 0)
+                now = int(time.time())
+                ttl = max(1, exp - now)
+                if jti:
+                    await TokenBlacklist.revoke_jti(jti, ttl_seconds=ttl)
+            except Exception as exc:
+                logger.debug("Could not decode access token during logout: %s", exc)
+
         if raw_refresh_token:
             token_hash = hash_token(raw_refresh_token)
             await RefreshTokenRepository.revoke(token_hash)

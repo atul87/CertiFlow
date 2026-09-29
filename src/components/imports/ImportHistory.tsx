@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FileSpreadsheet, Clock, RefreshCw } from "lucide-react";
 import { api } from "@/lib/api";
 import type { ImportRecord } from "@/types";
@@ -28,8 +28,8 @@ export function ImportHistory() {
           valid_rows: 4932,
           invalid_rows: 68,
           column_headers: ["Student Name", "Email", "Course", "Date"],
-          created_at: new Date(Date.now() - 86400 * 2 * 1000).toISOString(),
-          updated_at: new Date(Date.now() - 86400 * 2 * 1000).toISOString(),
+          created_at: "2026-09-27T12:00:00.000Z",
+          updated_at: "2026-09-27T12:00:00.000Z",
         } as ImportRecord,
         {
           id: "imp-002",
@@ -39,8 +39,8 @@ export function ImportHistory() {
           valid_rows: 620,
           invalid_rows: 0,
           column_headers: ["Name", "Email", "Project"],
-          created_at: new Date(Date.now() - 86400 * 7 * 1000).toISOString(),
-          updated_at: new Date(Date.now() - 86400 * 7 * 1000).toISOString(),
+          created_at: "2026-09-22T10:00:00.000Z",
+          updated_at: "2026-09-22T10:00:00.000Z",
         } as ImportRecord,
         {
           id: "imp-003",
@@ -50,8 +50,8 @@ export function ImportHistory() {
           valid_rows: 0,
           invalid_rows: 1200,
           column_headers: [],
-          created_at: new Date(Date.now() - 86400 * 10 * 1000).toISOString(),
-          updated_at: new Date(Date.now() - 86400 * 10 * 1000).toISOString(),
+          created_at: "2026-09-19T09:30:00.000Z",
+          updated_at: "2026-09-19T09:30:00.000Z",
         } as ImportRecord,
       ]);
     } finally {
@@ -59,9 +59,9 @@ export function ImportHistory() {
     }
   }, []);
 
-  useState(() => {
+  useEffect(() => {
     load();
-  });
+  }, [load]);
 
   const statusColors: Record<string, string> = {
     confirmed: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -151,7 +151,7 @@ export function ImportHistory() {
                   )}
                 </div>
                 <div className="col-span-2 text-right">
-                  <span className="text-[11px] text-[var(--color-text-tertiary)]">{relTime(imp.created_at)}</span>
+                  <span className="text-[11px] text-[var(--color-text-tertiary)]" suppressHydrationWarning>{relTime(imp.created_at)}</span>
                 </div>
               </div>
             ))}

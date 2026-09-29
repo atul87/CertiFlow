@@ -47,6 +47,21 @@ router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
 
 @router.get(
+    "/queue",
+    response_model=APIResponse[Dict[str, Any]],
+    summary="Get queue depth and worker metrics — P12.24",
+    dependencies=[Depends(require_role(["owner", "admin", "issuer", "viewer"]))],
+)
+async def get_queue_metrics(
+    context: Dict[str, Any] = Depends(get_current_user_and_org),
+):
+    org_id = context.get("org_id")
+    from app.services.queue_metrics_service import QueueMetricsService
+    data = await QueueMetricsService.get_metrics(org_id=org_id)
+    return APIResponse.ok(data)
+
+
+@router.get(
     "/dashboard",
     response_model=APIResponse[DashboardOverviewResponse],
     summary="Get organization dashboard overview",

@@ -56,11 +56,11 @@ function StatusBadge({ status }: { status: Report["status"] }) {
 
 // ─── Demo reports ─────────────────────────────────────────────────────────────
 const DEMO_REPORTS: Report[] = [
-  { id: "rep-1", name: "Q3 2026 Certificate Report", type: "certificates", status: "ready", format: "csv", row_count: 3240, created_at: new Date(Date.now() - 86400 * 5 * 1000).toISOString(), generated_at: new Date(Date.now() - 86400 * 5 * 1000 + 60000).toISOString() },
-  { id: "rep-2", name: "Email Delivery September 2026", type: "emails", status: "ready", format: "csv", row_count: 3012, created_at: new Date(Date.now() - 86400 * 2 * 1000).toISOString(), generated_at: new Date(Date.now() - 86400 * 2 * 1000 + 45000).toISOString() },
-  { id: "rep-3", name: "Verification Audit Log", type: "verification", status: "ready", format: "pdf", row_count: 4890, created_at: new Date(Date.now() - 86400 * 1 * 1000).toISOString(), generated_at: new Date(Date.now() - 86400 * 1 * 1000 + 90000).toISOString() },
-  { id: "rep-4", name: "Digital Credentials Report", type: "credentials", status: "generating", format: "csv", created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString() },
-  { id: "rep-5", name: "Monthly Analytics Summary", type: "analytics", status: "ready", format: "pdf", row_count: 1, created_at: new Date(Date.now() - 86400 * 30 * 1000).toISOString(), generated_at: new Date(Date.now() - 86400 * 30 * 1000 + 30000).toISOString() },
+  { id: "rep-1", name: "Q3 2026 Certificate Report", type: "certificates", status: "ready", format: "csv", row_count: 3240, created_at: "2026-09-24T10:00:00.000Z", generated_at: "2026-09-24T10:01:00.000Z" },
+  { id: "rep-2", name: "Email Delivery September 2026", type: "emails", status: "ready", format: "csv", row_count: 3012, created_at: "2026-09-27T10:00:00.000Z", generated_at: "2026-09-27T10:00:45.000Z" },
+  { id: "rep-3", name: "Verification Audit Log", type: "verification", status: "ready", format: "pdf", row_count: 4890, created_at: "2026-09-28T10:00:00.000Z", generated_at: "2026-09-28T10:01:30.000Z" },
+  { id: "rep-4", name: "Digital Credentials Report", type: "credentials", status: "generating", format: "csv", created_at: "2026-09-29T17:40:00.000Z" },
+  { id: "rep-5", name: "Monthly Analytics Summary", type: "analytics", status: "ready", format: "pdf", row_count: 1, created_at: "2026-08-30T10:00:00.000Z", generated_at: "2026-08-30T10:00:30.000Z" },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -243,7 +243,7 @@ export default function ReportsPage() {
                     </span>
                   </div>
                   <div className="col-span-1 text-right">
-                    <span className="text-[11px] text-[var(--color-text-tertiary)]">{relTime(rep.created_at)}</span>
+                    <span className="text-[11px] text-[var(--color-text-tertiary)]" suppressHydrationWarning>{relTime(rep.created_at)}</span>
                   </div>
                   <div className="col-span-1 flex items-center justify-end gap-1">
                     {rep.status === "ready" && (

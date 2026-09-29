@@ -201,7 +201,7 @@ function TemplateCard({
           <span className="text-[11px] text-[var(--color-text-tertiary)]">
             {template.variable_tags?.length || 0} fields
           </span>
-          <span className="text-[11px] text-[var(--color-text-tertiary)] ml-auto">
+          <span className="text-[11px] text-[var(--color-text-tertiary)] ml-auto" suppressHydrationWarning>
             {relTime(template.updated_at)}
           </span>
         </div>
@@ -468,9 +468,9 @@ export default function TemplatesPage() {
           current_version_id: "ver-001",
           version_number: 3,
           variable_tags: ["recipient_name", "program_name", "issue_date", "certificate_id", "grade"],
-          created_at: new Date(Date.now() - 86400 * 30 * 1000).toISOString(),
-          updated_at: new Date(Date.now() - 86400 * 2 * 1000).toISOString(),
-          published_at: new Date(Date.now() - 86400 * 25 * 1000).toISOString(),
+          created_at: "2026-08-30T10:00:00.000Z",
+          updated_at: "2026-09-27T10:00:00.000Z",
+          published_at: "2026-09-04T10:00:00.000Z",
         },
         {
           id: "tmpl-002",
@@ -483,9 +483,9 @@ export default function TemplatesPage() {
           current_version_id: "ver-002",
           version_number: 1,
           variable_tags: ["recipient_name", "program_name", "issue_date", "certificate_id", "trainer"],
-          created_at: new Date(Date.now() - 86400 * 14 * 1000).toISOString(),
-          updated_at: new Date(Date.now() - 86400 * 1 * 1000).toISOString(),
-          published_at: new Date(Date.now() - 86400 * 12 * 1000).toISOString(),
+          created_at: "2026-09-15T10:00:00.000Z",
+          updated_at: "2026-09-28T10:00:00.000Z",
+          published_at: "2026-09-17T10:00:00.000Z",
         },
         {
           id: "tmpl-003",
@@ -498,8 +498,8 @@ export default function TemplatesPage() {
           current_version_id: "ver-003",
           version_number: 2,
           variable_tags: ["recipient_name", "department", "duration", "supervisor", "issue_date"],
-          created_at: new Date(Date.now() - 86400 * 7 * 1000).toISOString(),
-          updated_at: new Date(Date.now() - 3600 * 2 * 1000).toISOString(),
+          created_at: "2026-09-22T10:00:00.000Z",
+          updated_at: "2026-09-29T15:00:00.000Z",
         },
         {
           id: "tmpl-004",
@@ -512,8 +512,8 @@ export default function TemplatesPage() {
           current_version_id: "ver-004",
           version_number: 1,
           variable_tags: ["recipient_name", "placement", "project_name", "event_date"],
-          created_at: new Date(Date.now() - 86400 * 3 * 1000).toISOString(),
-          updated_at: new Date(Date.now() - 3600 * 5 * 1000).toISOString(),
+          created_at: "2026-09-26T10:00:00.000Z",
+          updated_at: "2026-09-29T12:00:00.000Z",
         },
         {
           id: "tmpl-005",
@@ -526,8 +526,8 @@ export default function TemplatesPage() {
           current_version_id: "ver-005",
           version_number: 4,
           variable_tags: ["recipient_name", "course", "issue_date"],
-          created_at: new Date(Date.now() - 86400 * 90 * 1000).toISOString(),
-          updated_at: new Date(Date.now() - 86400 * 45 * 1000).toISOString(),
+          created_at: "2026-06-30T10:00:00.000Z",
+          updated_at: "2026-08-15T10:00:00.000Z",
         },
       ]);
     } finally {

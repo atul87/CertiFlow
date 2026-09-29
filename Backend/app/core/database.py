@@ -1,7 +1,9 @@
 import logging
-from typing import Optional
-from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase, AsyncIOMotorCollection
+from contextlib import asynccontextmanager
+from typing import Optional, AsyncGenerator, Any
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase, AsyncIOMotorCollection, AsyncIOMotorClientSession
 from pymongo import IndexModel, ASCENDING
+from pymongo.errors import OperationFailure
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -10,6 +12,36 @@ logger = logging.getLogger(__name__)
 class DatabaseManager:
     client: Optional[AsyncIOMotorClient] = None
     db: Optional[AsyncIOMotorDatabase] = None
+
+    @classmethod
+    @asynccontextmanager
+    async def transaction_scope(cls) -> AsyncGenerator[Optional[AsyncIOMotorClientSession], None]:
+        """
+        Async context manager providing a MongoDB multi-document transaction boundary — P12.08.
+        Automatically commits on successful exit, aborts on unhandled exception.
+        Gracefully falls back to non-transactional session if connected to standalone MongoDB.
+        """
+        if cls.client is None:
+            raise RuntimeError("Database is not connected. Call DatabaseManager.connect() first.")
+
+        async with await cls.client.start_session() as session:
+            try:
+                async with session.start_transaction():
+                    yield session
+            except (OperationFailure, Exception) as exc:
+                err_msg = str(exc)
+                if (
+                    "Transaction numbers are only allowed on a replica set member" in err_msg
+                    or "standalone" in err_msg.lower()
+                ):
+                    logger.debug("Standalone MongoDB detected; running operations without replica-set transaction")
+                    yield None
+                else:
+                    raise
+
+    @classmethod
+    def get_collection(cls, name: str) -> AsyncIOMotorCollection:
+        return cls.get_db()[name]
 
     @classmethod
     async def connect(cls) -> None:
@@ -178,13 +210,32 @@ class DatabaseManager:
 
         # 14. Certificates collection (P3)
         certs_col = db["certificates"]
+        try:
+            await certs_col.drop_index("uniq_certs_org_idempotency_key")
+        except Exception:
+            pass
+        try:
+            await certs_col.drop_index("uniq_certs_org_import_row")
+        except Exception:
+            pass
         await certs_col.create_indexes([
             IndexModel([("organization_id", ASCENDING), ("created_at", ASCENDING)], name="idx_certs_org_created"),
             IndexModel([("organization_id", ASCENDING), ("status", ASCENDING)], name="idx_certs_org_status"),
             IndexModel([("organization_id", ASCENDING), ("template_id", ASCENDING)], name="idx_certs_org_template"),
-            IndexModel([("certificate_number", ASCENDING)], name="idx_certs_cert_number"),
+            IndexModel([("organization_id", ASCENDING), ("certificate_number", ASCENDING)], unique=True, name="uniq_certs_org_cert_number"),
             IndexModel([("verification_code", ASCENDING)], unique=True, name="uniq_certs_verification_code"),
-            IndexModel([("idempotency_key", ASCENDING)], name="idx_certs_idempotency_key", sparse=True),
+            IndexModel(
+                [("organization_id", ASCENDING), ("idempotency_key", ASCENDING)],
+                unique=True,
+                partialFilterExpression={"idempotency_key": {"$type": "string"}},
+                name="uniq_certs_org_idempotency_key",
+            ),
+            IndexModel(
+                [("organization_id", ASCENDING), ("import_id", ASCENDING), ("import_row_id", ASCENDING)],
+                unique=True,
+                partialFilterExpression={"import_row_id": {"$type": "string"}},
+                name="uniq_certs_org_import_row",
+            ),
             IndexModel([("organization_id", ASCENDING), ("recipient.email", ASCENDING)], name="idx_certs_recipient_email"),
             IndexModel([("file.sha256", ASCENDING)], name="idx_certs_file_sha256", sparse=True),
         ])

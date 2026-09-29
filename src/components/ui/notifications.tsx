@@ -28,11 +28,11 @@ export interface AppNotification {
 
 // ─── Demo notifications ───────────────────────────────────────────────────────
 const DEMO_NOTIFICATIONS: AppNotification[] = [
-  { id: "n1", type: "success", title: "Issuance job completed", body: "Job 'Q3 Workshop Batch' issued 1,240 certificates successfully.", href: "/app/issuance", read: false, created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString() },
-  { id: "n2", type: "warning", title: "Approaching certificate limit", body: "You've used 94% of your monthly certificate quota. Upgrade to continue.", href: "/app/billing", read: false, created_at: new Date(Date.now() - 45 * 60 * 1000).toISOString() },
-  { id: "n3", type: "info", title: "New team member joined", body: "Priya Sharma accepted your invitation and joined as Admin.", href: "/app/team", read: false, created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString() },
-  { id: "n4", type: "error", title: "Webhook delivery failed", body: "Slack Notifications webhook failed 3 consecutive deliveries.", href: "/app/developer", read: true, created_at: new Date(Date.now() - 5 * 3600 * 1000).toISOString() },
-  { id: "n5", type: "success", title: "Report ready to download", body: "Your 'Q3 Certificate Report' is ready.", href: "/app/reports", read: true, created_at: new Date(Date.now() - 24 * 3600 * 1000).toISOString() },
+  { id: "n1", type: "success", title: "Issuance job completed", body: "Job 'Q3 Workshop Batch' issued 1,240 certificates successfully.", href: "/app/issuance", read: false, created_at: "2026-09-29T17:50:00.000Z" },
+  { id: "n2", type: "warning", title: "Approaching certificate limit", body: "You've used 94% of your monthly certificate quota. Upgrade to continue.", href: "/app/billing", read: false, created_at: "2026-09-29T17:15:00.000Z" },
+  { id: "n3", type: "info", title: "New team member joined", body: "Priya Sharma accepted your invitation and joined as Admin.", href: "/app/team", read: false, created_at: "2026-09-29T15:55:00.000Z" },
+  { id: "n4", type: "error", title: "Webhook delivery failed", body: "Slack Notifications webhook failed 3 consecutive deliveries.", href: "/app/developer", read: true, created_at: "2026-09-29T12:55:00.000Z" },
+  { id: "n5", type: "success", title: "Report ready to download", body: "Your 'Q3 Certificate Report' is ready.", href: "/app/reports", read: true, created_at: "2026-09-28T17:55:00.000Z" },
 ];
 
 // ─── Icon per type ────────────────────────────────────────────────────────────
@@ -84,7 +84,7 @@ function NotificationItem({
           {n.title}
         </p>
         <p className="text-[12px] text-[var(--color-text-secondary)] mt-0.5 leading-relaxed line-clamp-2">{n.body}</p>
-        <p className="text-[11px] text-[var(--color-text-tertiary)] mt-1">{relTime(n.created_at)}</p>
+        <p className="text-[11px] text-[var(--color-text-tertiary)] mt-1" suppressHydrationWarning>{relTime(n.created_at)}</p>
       </div>
 
       <button

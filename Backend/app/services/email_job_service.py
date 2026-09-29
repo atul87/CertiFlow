@@ -87,11 +87,20 @@ class EmailJobService:
             },
         )
 
-        # 5. Enqueue ARQ task or run asynchronously
+        # 5. Enqueue ARQ task — P12.02: No web-server fallback in production
         queued = await QueueManager.enqueue(TASK_PROCESS_BULK_EMAIL_JOB, job_id, org_id)
-        if not queued and settings.APP_ENV != "test":
-            logger.info(f"Redis queue unavailable; executing bulk email job {job_id} via asyncio task")
-            asyncio.create_task(process_bulk_email_job_task(None, job_id, org_id))
+        if not queued:
+            if settings.APP_ENV in ("production", "staging"):
+                logger.error("Failed to enqueue bulk email job %s: Redis queue is unavailable", job_id)
+                await EmailJobRepository.update_status(job_id, "failed", error="Queue unavailable")
+                from app.core.exceptions import AppException
+                raise AppException(
+                    code="QUEUE_UNAVAILABLE",
+                    message="Bulk email queue is currently unavailable. Please try again shortly.",
+                    status_code=503,
+                )
+            else:
+                logger.info("Redis queue is unavailable in %s environment; job %s remains queued", settings.APP_ENV, job_id)
 
         return job_doc
 

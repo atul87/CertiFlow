@@ -83,7 +83,7 @@ export function IssuanceJobCard({
               )}
             </div>
             <div className="flex items-center gap-3 mt-1 text-[12px] text-[var(--color-text-tertiary)]">
-              <span>Created {relTime(job.created_at)}</span>
+              <span suppressHydrationWarning>Created {relTime(job.created_at)}</span>
               <span>·</span>
               <span className="font-mono">ID: {job.id.slice(0, 12)}…</span>
             </div>

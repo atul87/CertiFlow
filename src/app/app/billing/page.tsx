@@ -32,8 +32,8 @@ const DEMO_SUBSCRIPTION: Subscription = {
   plan_id: "growth",
   plan_name: "Growth",
   status: "active",
-  current_period_start: new Date(Date.now() - 86400 * 15 * 1000).toISOString(),
-  current_period_end: new Date(Date.now() + 86400 * 15 * 1000).toISOString(),
+  current_period_start: "2026-09-14T00:00:00.000Z",
+  current_period_end: "2026-10-14T00:00:00.000Z",
   cancel_at_period_end: false,
   amount: 4900,
   currency: "usd",
@@ -259,7 +259,7 @@ export default function BillingPage() {
           {loading ? <Skeleton className="h-44 w-full rounded-2xl" /> : subscription && (
             <div className={`rounded-2xl border-2 p-6 ${subscription.cancel_at_period_end ? "border-amber-400 bg-amber-50/30" : "border-[var(--color-primary)] bg-[var(--color-primary-subtle)]"}`}>
               {subscription.cancel_at_period_end && (
-                <div className="flex items-center gap-2 text-amber-700 text-[12px] font-semibold mb-4 bg-amber-100 border border-amber-200 px-3 py-2 rounded-xl">
+                <div className="flex items-center gap-2 text-amber-700 text-[12px] font-semibold mb-4 bg-amber-100 border border-amber-200 px-3 py-2 rounded-xl" suppressHydrationWarning>
                   <AlertCircle className="w-4 h-4 text-amber-500" />
                   Cancels at end of billing period · {daysLeft} days remaining
                 </div>
@@ -273,8 +273,8 @@ export default function BillingPage() {
                   <p className="text-[14px] text-[var(--color-text-secondary)]">
                     {fmtAmount(subscription.amount, subscription.currency)} / {subscription.interval} · {subscription.seats} seats included
                   </p>
-                  <p className="text-[12px] text-[var(--color-text-tertiary)] mt-1">
-                    Current period: {new Date(subscription.current_period_start).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – {new Date(subscription.current_period_end).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  <p className="text-[12px] text-[var(--color-text-tertiary)] mt-1" suppressHydrationWarning>
+                    Current period: {new Date(subscription.current_period_start).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} – {new Date(subscription.current_period_end).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -293,7 +293,7 @@ export default function BillingPage() {
               <div className="mt-5">
                 <div className="flex items-center justify-between text-[11px] mb-1.5">
                   <span className="text-[var(--color-text-tertiary)]">Billing period</span>
-                  <span className="font-semibold text-[var(--color-text-secondary)]">{daysLeft} days remaining</span>
+                  <span className="font-semibold text-[var(--color-text-secondary)]" suppressHydrationWarning>{daysLeft} days remaining</span>
                 </div>
                 <div className="w-full bg-white/60 h-1.5 rounded-full">
                   <div className="h-1.5 rounded-full bg-[var(--color-primary)] transition-all duration-700" style={{ width: `${periodPct}%` }} />

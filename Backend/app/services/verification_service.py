@@ -198,6 +198,7 @@ class VerificationService:
             valid=True,
             status="valid",
             certificate=detail,
+            issued_at=issued_dt if isinstance(issued_dt, datetime) else None,
             verified_at=now,
             message="Certificate is authentic and valid.",
         )

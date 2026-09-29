@@ -151,6 +151,24 @@ class CertificateRepository:
         return _serialize_cert(doc)
 
     @classmethod
+    async def get_by_import_row(
+        cls,
+        organization_id: str,
+        import_id: str,
+        import_row_id: str,
+    ) -> Optional[Dict[str, Any]]:
+        try:
+            oid = ObjectId(organization_id)
+        except Exception:
+            return None
+        doc = await cls._collection().find_one({
+            "organization_id": oid,
+            "import_id": str(import_id),
+            "import_row_id": str(import_row_id),
+        })
+        return _serialize_cert(doc)
+
+    @classmethod
     async def get_by_verification_code(
         cls,
         verification_code: str,
