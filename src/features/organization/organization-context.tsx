@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { api, tokenStorage } from "@/lib/api-client";
+import { api } from "@/lib/api-client";
 
 export interface Organization {
   id: string;
@@ -63,20 +63,10 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
   };
 
   const refreshOrganizations = useCallback(async () => {
-    if (!tokenStorage.isAuthenticated()) {
-      setIsLoading(false);
-      return;
-    }
-
-    if (tokenStorage.isDemoMode()) {
-      setIsLoading(false);
-      return;
-    }
-
     try {
       setIsLoading(true);
       const res = await api.organizations.list();
-      const orgList: Organization[] = Array.isArray(res) ? res : res ? [res] : DEMO_ORGANIZATIONS;
+      const orgList: Organization[] = Array.isArray(res) ? res : res ? [res] : [];
       if (orgList.length > 0) {
         setOrganizations(orgList);
         const savedId = typeof window !== "undefined" ? localStorage.getItem("certiflow_org_id") : null;

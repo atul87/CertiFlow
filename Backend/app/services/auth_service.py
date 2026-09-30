@@ -422,3 +422,61 @@ class AuthService:
             )
         return True
 
+    @classmethod
+    async def create_or_get_demo_session(
+        cls,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None
+    ) -> TokenResponse:
+        """
+        Create or get demo user session (development/staging only — P13.1).
+        Ensures a demo organization, default subscription, and valid cryptographic tokens exist.
+        """
+        demo_email = "demo@certiflow.io"
+        user = await UserRepository.get_by_email(demo_email)
+
+        if not user:
+            pw_hash = hash_password("DemoSecurePass2026!")
+            async with DatabaseManager.transaction_scope():
+                user = await UserRepository.create(
+                    email=demo_email,
+                    password_hash=pw_hash,
+                    name="Demo Administrator"
+                )
+                org = await OrganizationRepository.create(
+                    name="Demo Workspace",
+                    owner_id=user["id"]
+                )
+                from app.services.subscription_service import SubscriptionService
+                await SubscriptionService.initialize_org_subscription(org["id"], trial=True)
+        else:
+            org = await OrganizationRepository.get_user_primary_organization(user["id"])
+            if not org:
+                org = await OrganizationRepository.create(
+                    name="Demo Workspace",
+                    owner_id=user["id"]
+                )
+
+        access_token = create_access_token(user_id=user["id"], org_id=org["id"])
+        raw_refresh, token_hash, expires_at = generate_refresh_token(user_id=user["id"], org_id=org["id"])
+
+        await RefreshTokenRepository.create(
+            user_id=user["id"],
+            organization_id=org["id"],
+            token_hash=token_hash,
+            expires_at=expires_at
+        )
+
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=raw_refresh,
+            token_type="bearer",
+            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            user=UserResponse(**user),
+            organization=OrganizationResponse(**org) if org else OrganizationResponse(
+                id=org["id"], name=org.get("name", "Demo Workspace"), slug=org.get("slug", "demo"), owner_id=user["id"],
+                created_at=user["created_at"], updated_at=user["updated_at"]
+            )
+        )
+
+

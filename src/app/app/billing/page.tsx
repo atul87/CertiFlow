@@ -346,7 +346,7 @@ export default function BillingPage() {
       {tab === "plans" && (
         <div className="space-y-4">
           <div className="text-center mb-6">
-            <p className="text-[14px] text-[var(--color-text-secondary)]">Changes take effect immediately. You'll be charged the prorated difference.</p>
+            <p className="text-[14px] text-[var(--color-text-secondary)]">Changes take effect immediately. You&apos;ll be charged the prorated difference.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mt-6">
             {PLANS.map(plan => (

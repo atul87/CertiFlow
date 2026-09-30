@@ -1,17 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "./keys";
 import { api } from "@/lib/api";
-import {
-  Template,
-  Certificate,
-  IssuanceJob,
-  DigitalCredential,
-  DashboardStats,
-  TimeSeriesPoint,
-  UsageMeters,
-  Subscription,
-  CreateJobPayload,
-} from "@/types";
+import type { CreateJobPayload } from "@/types";
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 

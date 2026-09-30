@@ -152,7 +152,8 @@ async def test_cost_service_calculations():
 @pytest.mark.asyncio
 async def test_concurrent_quota_increment():
     """Simulate 20 concurrent workers atomically incrementing usage counter without race conditions."""
-    org_id = "test_org_concurrent_workers_888"
+    import uuid
+    org_id = f"test_org_concurrent_workers_{uuid.uuid4().hex[:8]}"
     period = UsageService.current_period()
 
     async def _worker_task():

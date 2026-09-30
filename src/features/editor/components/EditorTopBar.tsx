@@ -11,9 +11,6 @@ import {
   Play,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
-  Maximize2,
-  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,7 +48,6 @@ export function EditorTopBar({
 
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
-  const currentRecipient = recipients[activeRecipientIndex] || recipients[0];
 
   const handlePrevRecipient = () => {
     if (activeRecipientIndex > 0) {

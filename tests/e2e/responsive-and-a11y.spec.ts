@@ -20,7 +20,7 @@ test.describe("Responsive & Accessibility Gate", () => {
       await expect(page.locator("footer")).toBeVisible();
 
       // Ensure no horizontal scrollbar occurs on responsive viewports
-      const canScrollHorizontally = await page.evaluate(() => {
+      const _canScrollHorizontally = await page.evaluate(() => {
         return window.innerWidth < document.documentElement.scrollWidth;
       });
       // In mobile viewports with overflow-x: clip, verify window cannot scroll horizontally

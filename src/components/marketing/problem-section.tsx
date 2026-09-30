@@ -1,8 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
-import { ArrowRight, RotateCcw, Clock, Sparkles, CheckCircle2, FileSpreadsheet, Layers } from "lucide-react";
-import { staggerContainer, staggerItem, viewportOnce } from "@/lib/motion";
+import { RotateCcw, Clock, Sparkles, CheckCircle2 } from "lucide-react";
 
 export function ProblemSection() {
   return (

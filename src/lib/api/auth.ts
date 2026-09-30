@@ -3,25 +3,23 @@ import { User, AuthTokens, LoginCredentials, RegisterData } from "@/types";
 
 export const authApi = {
   login: async (credentials: LoginCredentials) => {
-    const data = await apiRequest<AuthTokens>("/api/v1/auth/login", {
+    return apiRequest<AuthTokens>("/api/v1/auth/login", {
       method: "POST",
       body: JSON.stringify(credentials),
     });
-    if (data.access_token) {
-      tokenStorage.setTokens(data.access_token, data.refresh_token);
-    }
-    return data;
   },
 
   register: async (payload: RegisterData) => {
-    const data = await apiRequest<AuthTokens>("/api/v1/auth/register", {
+    return apiRequest<AuthTokens>("/api/v1/auth/register", {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    if (data.access_token) {
-      tokenStorage.setTokens(data.access_token, data.refresh_token);
-    }
-    return data;
+  },
+
+  demoSession: async () => {
+    return apiRequest<AuthTokens>("/api/v1/auth/demo-session", {
+      method: "POST",
+    });
   },
 
   logout: async () => {

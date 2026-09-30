@@ -33,29 +33,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAppRoute = pathname.startsWith("/app");
 
   const refreshUser = useCallback(async () => {
-    if (!tokenStorage.isAuthenticated()) {
-      setUser(null);
-      setIsLoading(false);
-      return;
-    }
-
-    if (tokenStorage.isDemoMode()) {
-      setUser({
-        id: "usr_demo_01",
-        email: "admin@certiflow.io",
-        name: "Admin User",
-        role: "owner",
-      });
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      const u = await api.auth.me();
+      const resp = await api.auth.me();
+      const u = (resp as any)?.user || resp;
       setUser(u);
     } catch {
-      tokenStorage.clearTokens();
-      tokenStorage.setDemoMode(false);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -66,11 +48,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshUser();
   }, [refreshUser]);
 
-  // Auth redirection logic
+  // Auth redirection logic based on verified server session (P13.1)
   useEffect(() => {
     if (isLoading) return;
 
-    const authenticated = tokenStorage.isAuthenticated() || !!user;
+    const authenticated = !!user;
 
     if (isAppRoute && !authenticated) {
       router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
@@ -85,8 +67,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore
     } finally {
-      tokenStorage.clearTokens();
-      tokenStorage.setDemoMode(false);
       setUser(null);
       router.push("/login");
     }

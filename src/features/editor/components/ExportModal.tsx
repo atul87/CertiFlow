@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, FileText, Image as ImageIcon, CheckCircle, Sparkles } from "lucide-react";
+import { Download, FileText, Image as ImageIcon, CheckCircle } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { useEditorStore } from "../use-editor-store";

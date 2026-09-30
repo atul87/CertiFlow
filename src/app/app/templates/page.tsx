@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   FileText,
   Plus,
@@ -150,6 +151,7 @@ function TemplateCard({
       <Link href={`/app/projects/${template.id}/editor`}>
         <div className="relative h-40 bg-gradient-to-br from-indigo-50 via-purple-50/50 to-blue-50 border-b border-[var(--color-border)] overflow-hidden">
           {template.thumbnail_url ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={template.thumbnail_url}
               alt={template.name}
@@ -441,6 +443,7 @@ function CreateTemplateModal({
 // Main Templates Page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function TemplatesPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [filter, setFilter] = useState<"all" | TemplateStatus>("all");
@@ -758,7 +761,7 @@ export default function TemplatesPage() {
             setTemplates((prev) => [t, ...prev]);
             setShowCreate(false);
             // Navigate to editor
-            window.location.href = `/app/projects/${t.id}/editor`;
+            router.push(`/app/projects/${t.id}/editor`);
           }}
         />
       )}

@@ -37,45 +37,26 @@ export class ApiError extends Error {
   }
 }
 
-// Token management helpers
+// CSRF token extractor from document.cookie
+export function getCsrfToken(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(new RegExp("(?:^|;\\s*)certiflow_csrf_token=([^;]*)"));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+// Session management helpers (P13.1 — tokens reside purely in HttpOnly cookies)
 export const tokenStorage = {
-  getAccess: (): string | null => {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem("certiflow_access_token");
-  },
-  getRefresh: (): string | null => {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem("certiflow_refresh_token");
-  },
-  setTokens: (access: string, refresh?: string | null) => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem("certiflow_access_token", access);
-    if (refresh) {
-      localStorage.setItem("certiflow_refresh_token", refresh);
-    } else {
-      localStorage.removeItem("certiflow_refresh_token");
-    }
-  },
-  clearTokens: () => {
-    if (typeof window === "undefined") return;
-    localStorage.removeItem("certiflow_access_token");
-    localStorage.removeItem("certiflow_refresh_token");
-  },
+  getAccess: (): string | null => null,
+  getRefresh: (): string | null => null,
+  setTokens: (_access: string, _refresh?: string | null) => {},
+  clearTokens: () => {},
   isAuthenticated: (): boolean => {
-    return !!tokenStorage.getAccess();
+    // Session presence indicated by CSRF token cookie existence
+    if (typeof document === "undefined") return false;
+    return !!getCsrfToken();
   },
-  isDemoMode: (): boolean => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("certiflow_demo_mode") === "true";
-  },
-  setDemoMode: (enabled: boolean) => {
-    if (typeof window === "undefined") return;
-    if (enabled) {
-      localStorage.setItem("certiflow_demo_mode", "true");
-    } else {
-      localStorage.removeItem("certiflow_demo_mode");
-    }
-  },
+  isDemoMode: (): boolean => false,
+  setDemoMode: (_enabled: boolean) => {},
 };
 
 // Organization context helper
@@ -97,29 +78,19 @@ async function tryRefreshToken(): Promise<boolean> {
 
   refreshPromise = (async () => {
     try {
-      const refresh = tokenStorage.getRefresh();
-      const body = refresh ? JSON.stringify({ refresh_token: refresh }) : JSON.stringify({});
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const csrf = getCsrfToken();
+      if (csrf) {
+        headers["X-CSRF-Token"] = csrf;
+      }
       const res = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         credentials: "include",
-        body,
       });
 
-      if (!res.ok) {
-        tokenStorage.clearTokens();
-        return false;
-      }
-
-      const json = await res.json();
-      const data = json.data || json;
-      if (data.access_token) {
-        tokenStorage.setTokens(data.access_token, data.refresh_token);
-        return true;
-      }
-      return false;
+      return res.ok;
     } catch {
-      tokenStorage.clearTokens();
       return false;
     } finally {
       refreshPromise = null;
@@ -130,7 +101,10 @@ async function tryRefreshToken(): Promise<boolean> {
 }
 
 /**
- * Core HTTP Request Wrapper
+ * Core HTTP Request Wrapper (P13.1 Hardened)
+ * - Automatically sends credentials: "include" for HttpOnly session cookies
+ * - Automatically attaches X-CSRF-Token header on state-mutating requests
+ * - Seamlessly rotates sessions on 401 Unauthorized
  */
 export async function apiRequest<T = any>(
   endpoint: string,
@@ -138,17 +112,20 @@ export async function apiRequest<T = any>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
   const headers = new Headers(options.headers || {});
-
-  // Automatically attach Authorization header if available
-  const token = tokenStorage.getAccess();
-  if (token && !headers.has("Authorization")) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
+  const method = (options.method || "GET").toUpperCase();
 
   // Attach X-Organization-Id header if available
   const orgId = orgStorage.getOrgId();
   if (orgId && !headers.has("X-Organization-Id")) {
     headers.set("X-Organization-Id", orgId);
+  }
+
+  // Attach CSRF protection header for mutating browser requests (P13.1)
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    const csrf = getCsrfToken();
+    if (csrf && !headers.has("X-CSRF-Token")) {
+      headers.set("X-CSRF-Token", csrf);
+    }
   }
 
   // Set default JSON Content-Type unless body is FormData
@@ -163,15 +140,19 @@ export async function apiRequest<T = any>(
       headers,
     });
 
-    // Handle token refresh on 401 Unauthorized
+    // Handle token refresh on 401 Unauthorized (unless already calling auth endpoints)
     if (
       response.status === 401 &&
-      !tokenStorage.isDemoMode() &&
-      (tokenStorage.getAccess() || tokenStorage.getRefresh())
+      !endpoint.includes("/auth/login") &&
+      !endpoint.includes("/auth/refresh") &&
+      !endpoint.includes("/auth/logout")
     ) {
       const refreshed = await tryRefreshToken();
       if (refreshed) {
-        headers.set("Authorization", `Bearer ${tokenStorage.getAccess()}`);
+        const csrf = getCsrfToken();
+        if (csrf && ["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+          headers.set("X-CSRF-Token", csrf);
+        }
         const retryResponse = await fetch(url, {
           ...options,
           credentials: options.credentials || "include",

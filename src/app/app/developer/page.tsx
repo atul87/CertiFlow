@@ -254,7 +254,7 @@ function CreateKeyModal({ onClose, onCreated }: { onClose: () => void; onCreated
               <CheckCircle2 className="w-6 h-6 text-emerald-500" />
             </div>
             <h2 className="text-[17px] font-bold text-[var(--color-text)]">API Key Created</h2>
-            <p className="text-[13px] text-[var(--color-text-secondary)] mt-1">Copy this key now — you won't be able to see it again.</p>
+            <p className="text-[13px] text-[var(--color-text-secondary)] mt-1">Copy this key now — you won&apos;t be able to see it again.</p>
           </div>
           <div className="flex items-center gap-2 p-3 bg-gray-900 rounded-xl mb-4">
             <code className="flex-1 text-[11px] font-mono text-emerald-400 break-all">{created.full_key}</code>

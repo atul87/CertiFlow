@@ -3,7 +3,6 @@
 import { useState } from "react";
 import {
   Type,
-  Tags,
   QrCode,
   Stamp,
   PenTool,
@@ -20,7 +19,6 @@ import {
   ChevronDown,
   GripVertical,
   Minus,
-  Sparkles,
 } from "lucide-react";
 import { useEditorStore } from "../use-editor-store";
 import { TEMPLATE_PRESETS } from "../sample-data";

@@ -13,7 +13,8 @@ from fastapi import (
 from app.api.deps import (
     get_current_user_and_org,
     get_client_ip,
-    get_client_user_agent
+    get_client_user_agent,
+    require_permission,
 )
 from app.schemas.common import APIResponse
 from app.schemas.imports import (
@@ -33,7 +34,8 @@ router = APIRouter(prefix="/imports", tags=["Imports & Datasets"])
     "",
     response_model=APIResponse[ImportResponse],
     status_code=status.HTTP_201_CREATED,
-    summary="Upload CSV or Excel recipient dataset for a certificate template"
+    summary="Upload CSV or Excel recipient dataset for a certificate template",
+    dependencies=[Depends(require_permission("imports.create"))],
 )
 async def upload_import(
     request: Request,
@@ -62,7 +64,8 @@ async def upload_import(
 @router.get(
     "",
     response_model=APIResponse[ImportListResponse],
-    summary="List organization dataset imports with pagination"
+    summary="List organization dataset imports with pagination",
+    dependencies=[Depends(require_permission("imports.read"))],
 )
 async def list_imports(
     page: int = Query(1, ge=1),
@@ -84,7 +87,8 @@ async def list_imports(
 @router.get(
     "/{import_id}",
     response_model=APIResponse[ImportResponse],
-    summary="Get import status, row counters, and column profiling"
+    summary="Get import status, row counters, and column profiling",
+    dependencies=[Depends(require_permission("imports.read"))],
 )
 async def get_import(
     import_id: str,
@@ -97,7 +101,8 @@ async def get_import(
 @router.get(
     "/{import_id}/progress",
     response_model=APIResponse[Dict[str, Any]],
-    summary="Get import processing and validation progress"
+    summary="Get import processing and validation progress",
+    dependencies=[Depends(require_permission("imports.read"))],
 )
 async def get_import_progress(
     import_id: str,
@@ -118,7 +123,8 @@ async def get_import_progress(
 @router.get(
     "/{import_id}/mapping",
     response_model=APIResponse[Dict[str, Any]],
-    summary="Get suggested or confirmed column-to-field mappings"
+    summary="Get suggested or confirmed column-to-field mappings",
+    dependencies=[Depends(require_permission("imports.read"))],
 )
 async def get_import_mapping(
     import_id: str,
@@ -131,7 +137,8 @@ async def get_import_mapping(
 @router.post(
     "/{import_id}/mapping",
     response_model=APIResponse[ImportResponse],
-    summary="Confirm column mapping and trigger row-level dataset validation"
+    summary="Confirm column mapping and trigger row-level dataset validation",
+    dependencies=[Depends(require_permission("imports.create"))],
 )
 async def confirm_mapping(
     import_id: str,
@@ -155,7 +162,8 @@ async def confirm_mapping(
 @router.post(
     "/{import_id}/validate",
     response_model=APIResponse[ImportResponse],
-    summary="Re-validate import rows against template requirements"
+    summary="Re-validate import rows against template requirements",
+    dependencies=[Depends(require_permission("imports.create"))],
 )
 async def revalidate_import(
     import_id: str,
@@ -182,7 +190,8 @@ async def revalidate_import(
 @router.get(
     "/{import_id}/preview",
     response_model=APIResponse[ImportPreviewResponse],
-    summary="Preview first 20 recipient rows with validation status"
+    summary="Preview first 20 recipient rows with validation status",
+    dependencies=[Depends(require_permission("imports.read"))],
 )
 async def preview_import(
     import_id: str,
@@ -195,7 +204,8 @@ async def preview_import(
 @router.get(
     "/{import_id}/rows",
     response_model=APIResponse[Dict[str, Any]],
-    summary="List paginated recipient records with filter by status (valid, warning, error)"
+    summary="List paginated recipient records with filter by status (valid, warning, error)",
+    dependencies=[Depends(require_permission("imports.read"))],
 )
 async def list_import_rows(
     import_id: str,
@@ -217,7 +227,8 @@ async def list_import_rows(
 @router.get(
     "/{import_id}/errors",
     response_model=APIResponse[List[ImportRowResponse]],
-    summary="Get all rows that failed validation with detailed error reasons"
+    summary="Get all rows that failed validation with detailed error reasons",
+    dependencies=[Depends(require_permission("imports.read"))],
 )
 async def get_import_errors(
     import_id: str,
@@ -229,7 +240,8 @@ async def get_import_errors(
 
 @router.get(
     "/{import_id}/errors/download",
-    summary="Download CSV error report for invalid rows"
+    summary="Download CSV error report for invalid rows",
+    dependencies=[Depends(require_permission("imports.read"))],
 )
 async def download_error_csv(
     import_id: str,
@@ -246,7 +258,8 @@ async def download_error_csv(
 @router.post(
     "/{import_id}/replace",
     response_model=APIResponse[ImportResponse],
-    summary="Replace current import dataset with a corrected file"
+    summary="Replace current import dataset with a corrected file",
+    dependencies=[Depends(require_permission("imports.create"))],
 )
 async def replace_import_file(
     import_id: str,
@@ -275,7 +288,8 @@ async def replace_import_file(
 @router.post(
     "/{import_id}/cancel",
     response_model=APIResponse[Dict[str, str]],
-    summary="Cancel active dataset import"
+    summary="Cancel active dataset import",
+    dependencies=[Depends(require_permission("imports.create"))],
 )
 async def cancel_import(
     import_id: str,

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, Sparkles, ArrowRight, QrCode } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
 import Link from "next/link";
 
 interface Template {

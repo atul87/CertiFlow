@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
-import { Menu, X, Play, ChevronRight, Award, Sparkles } from "lucide-react";
+import { Menu, X, Play, ChevronRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface NavbarProps {

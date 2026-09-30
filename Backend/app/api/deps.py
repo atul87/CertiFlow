@@ -12,6 +12,7 @@ from app.core.security import decode_access_token
 from app.security.api_keys import APIKeySecurity
 from app.security.authorization import AuthorizationService
 from app.security.token_blacklist import TokenBlacklist
+from app.security.csrf import validate_csrf_token
 from app.repositories.user_repository import UserRepository
 from app.repositories.organization_repository import OrganizationRepository
 from app.repositories.member_repository import MemberRepository
@@ -26,16 +27,26 @@ async def get_current_user_and_org(
     x_organization_id: Optional[str] = Header(None, alias="X-Organization-Id"),
 ) -> Dict[str, Any]:
     """
-    Validate authentication (Bearer JWT token OR Bearer API Key).
+    Validate authentication (Bearer JWT token, Bearer API Key, or Secure Session Cookie).
     Returns authenticated user context, active organization context, and API key scopes.
+    For cookie-authenticated browser sessions, enforces CSRF validation on state mutations (P13.1).
     """
-    if not credentials or not credentials.credentials:
+    token: Optional[str] = None
+    is_cookie_auth = False
+
+    if credentials and credentials.credentials:
+        token = credentials.credentials.strip()
+    elif request.cookies.get(settings.COOKIE_ACCESS_NAME):
+        token = request.cookies.get(settings.COOKIE_ACCESS_NAME)
+        is_cookie_auth = True
+        # Enforce CSRF protection for cookie-authenticated browser sessions (P13.1)
+        validate_csrf_token(request)
+
+    if not token:
         raise UnauthorizedError(
-            message="Missing or malformed Authorization header. Expected 'Bearer <token>'",
+            message="Authentication credentials required. Expected Bearer token or secure session cookie.",
             code="UNAUTHORIZED"
         )
-
-    token = credentials.credentials.strip()
 
     # ---------------------------------------------------------------------------
     # 1. API Key Authentication (ck_live_... / ck_test_...)
@@ -154,6 +165,7 @@ async def get_current_user_and_org(
         "org_id": org_id,
         "organization": org_doc or ({"id": org_id} if org_id else None),
         "is_api_key": False,
+        "is_cookie_auth": is_cookie_auth,
         "api_key_id": None,
         "api_key_scopes": [],
     }

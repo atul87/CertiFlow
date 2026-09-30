@@ -3,9 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Bell,
-  Award,
-  Zap,
-  Mail,
   AlertCircle,
   CheckCircle2,
   Info,
@@ -100,7 +97,7 @@ function NotificationItem({
 // ─────────────────────────────────────────────────────────────────────────────
 // Notification Bell + Panel
 // ─────────────────────────────────────────────────────────────────────────────
-export function NotificationBell({ isSidebarOpen = false }: { isSidebarOpen?: boolean }) {
+export function NotificationBell({ _isSidebarOpen = false }: { _isSidebarOpen?: boolean }) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>(DEMO_NOTIFICATIONS);
 

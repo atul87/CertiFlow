@@ -40,17 +40,26 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoMode = () => {
-    tokenStorage.setTokens("demo_access_token_2026");
-    tokenStorage.setDemoMode(true);
-    orgStorage.setOrgId("org_demo_01");
-    let target = "/app";
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const red = params.get("redirect");
-      if (red && red.startsWith("/")) target = red;
+  const handleDemoMode = async () => {
+    setLoading(true);
+    setErrorMessage(null);
+    try {
+      await api.auth.demoSession();
+      let target = "/app";
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        const red = params.get("redirect");
+        if (red && red.startsWith("/")) target = red;
+      }
+      window.location.href = target;
+    } catch (err: any) {
+      if (err instanceof ApiError && err.code === "DEMO_AUTH_DISABLED") {
+        setErrorMessage("Demo mode is disabled in production environments. Please sign in with your credentials.");
+      } else {
+        setErrorMessage("Unable to establish demo session. Ensure FastAPI backend is running.");
+      }
+      setLoading(false);
     }
-    window.location.href = target;
   };
 
   return (

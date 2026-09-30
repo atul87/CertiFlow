@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Award, ArrowRight, ShieldCheck, Check, Sparkles, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api, ApiError } from "@/lib/api-client";
 
 export default function SignupPage() {
+  const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,7 +41,7 @@ export default function SignupPage() {
         email: email.trim().toLowerCase(),
         password,
       });
-      window.location.href = "/app";
+      router.push("/app");
     } catch (err: any) {
       if (err instanceof ApiError) {
         setErrorMessage(err.message || "Registration failed. Please check your details.");
@@ -50,8 +52,13 @@ export default function SignupPage() {
     }
   };
 
-  const handleDemoMode = () => {
-    window.location.href = "/app";
+  const handleDemoMode = async () => {
+    try {
+      await api.auth.demoSession();
+      router.push("/app");
+    } catch {
+      router.push("/app");
+    }
   };
 
   return (

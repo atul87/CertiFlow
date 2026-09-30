@@ -1,8 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
-import { Upload, Sliders, Layers, FileSpreadsheet, FileImage, Sparkles, Check } from "lucide-react";
-import { staggerContainer, staggerItem, viewportOnce } from "@/lib/motion";
+import { Upload, Sliders, Layers, FileSpreadsheet, FileImage } from "lucide-react";
 
 const workflowSteps = [
   {

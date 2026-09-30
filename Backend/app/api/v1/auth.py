@@ -6,8 +6,9 @@ from app.api.deps import (
     get_client_user_agent
 )
 from app.core.config import settings
-from app.core.exceptions import UnauthorizedError
+from app.core.exceptions import UnauthorizedError, ForbiddenError
 from app.schemas.common import APIResponse
+from app.security.csrf import generate_csrf_token
 from app.schemas.auth import (
     TokenResponse,
     RefreshTokenRequest,
@@ -26,20 +27,62 @@ from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-COOKIE_NAME = "certiflow_refresh_token"
 
-
-def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
+def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> str:
+    """
+    Set hardened session cookies:
+    1. certiflow_access_token: HttpOnly, Secure (in non-dev), SameSite=Lax, Path=/
+    2. certiflow_refresh_token: HttpOnly, Secure, SameSite=Lax, Path=/api/v1/auth
+    3. certiflow_csrf_token: Accessible to client JS for Double Submit CSRF defense, Path=/
+    Returns the generated CSRF token.
+    """
     secure_cookie = settings.APP_ENV not in ("development", "test")
+    csrf_token = generate_csrf_token()
+
+    # 1. HttpOnly Access Token Cookie
     response.set_cookie(
-        key=COOKIE_NAME,
+        key=settings.COOKIE_ACCESS_NAME,
+        value=access_token,
+        httponly=True,
+        secure=secure_cookie,
+        samesite=settings.COOKIE_SAMESITE,
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/",
+        domain=settings.COOKIE_DOMAIN,
+    )
+
+    # 2. HttpOnly Refresh Token Cookie
+    response.set_cookie(
+        key=settings.COOKIE_REFRESH_NAME,
         value=refresh_token,
         httponly=True,
         secure=secure_cookie,
-        samesite="lax",
+        samesite=settings.COOKIE_SAMESITE,
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
         path="/api/v1/auth",
+        domain=settings.COOKIE_DOMAIN,
     )
+
+    # 3. Client-readable CSRF Cookie (for X-CSRF-Token header in mutating requests)
+    response.set_cookie(
+        key=settings.COOKIE_CSRF_NAME,
+        value=csrf_token,
+        httponly=False,
+        secure=secure_cookie,
+        samesite=settings.COOKIE_SAMESITE,
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/",
+        domain=settings.COOKIE_DOMAIN,
+    )
+
+    return csrf_token
+
+
+def _clear_auth_cookies(response: Response) -> None:
+    """Clear all session and CSRF cookies on logout."""
+    response.delete_cookie(key=settings.COOKIE_ACCESS_NAME, path="/", domain=settings.COOKIE_DOMAIN)
+    response.delete_cookie(key=settings.COOKIE_REFRESH_NAME, path="/api/v1/auth", domain=settings.COOKIE_DOMAIN)
+    response.delete_cookie(key=settings.COOKIE_CSRF_NAME, path="/", domain=settings.COOKIE_DOMAIN)
 
 
 @router.post(
@@ -56,7 +99,7 @@ async def register(
     ip = get_client_ip(request)
     ua = get_client_user_agent(request)
     token_response = await AuthService.register(data, ip_address=ip, user_agent=ua)
-    _set_refresh_cookie(response, token_response.refresh_token)
+    _set_auth_cookies(response, token_response.access_token, token_response.refresh_token)
     return APIResponse.ok(token_response)
 
 
@@ -74,7 +117,36 @@ async def login(
     ip = get_client_ip(request)
     ua = get_client_user_agent(request)
     token_response = await AuthService.login(data, ip_address=ip, user_agent=ua)
-    _set_refresh_cookie(response, token_response.refresh_token)
+    _set_auth_cookies(response, token_response.access_token, token_response.refresh_token)
+    return APIResponse.ok(token_response)
+
+
+@router.post(
+    "/demo-session",
+    response_model=APIResponse[TokenResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Server-controlled demo session (development/staging only — P13.1)"
+)
+async def create_demo_session(
+    request: Request,
+    response: Response,
+):
+    """
+    Server-controlled demo session endpoint.
+    Strictly forbidden in production environments.
+    Issues cryptographically valid tokens and HttpOnly session cookies for the demo tenant.
+    """
+    env = (settings.APP_ENV or "").lower().strip()
+    if env in ("production", "prod") or not settings.ALLOW_DEMO_AUTH:
+        raise ForbiddenError(
+            message="Demo authentication is disabled in production environments.",
+            code="DEMO_AUTH_DISABLED"
+        )
+
+    ip = get_client_ip(request)
+    ua = get_client_user_agent(request)
+    token_response = await AuthService.create_or_get_demo_session(ip_address=ip, user_agent=ua)
+    _set_auth_cookies(response, token_response.access_token, token_response.refresh_token)
     return APIResponse.ok(token_response)
 
 
@@ -89,11 +161,11 @@ async def refresh_tokens(
     response: Response,
     data: Optional[RefreshTokenRequest] = None,
 ):
-    token = (data.refresh_token if data else None) or request.cookies.get(COOKIE_NAME)
+    token = (data.refresh_token if data else None) or request.cookies.get(settings.COOKIE_REFRESH_NAME)
     if not token:
         raise UnauthorizedError(message="Refresh token missing from body and cookies", code="REFRESH_TOKEN_REQUIRED")
     token_response = await AuthService.refresh(token)
-    _set_refresh_cookie(response, token_response.refresh_token)
+    _set_auth_cookies(response, token_response.access_token, token_response.refresh_token)
     return APIResponse.ok(token_response)
 
 
@@ -112,13 +184,15 @@ async def logout(
     ip = get_client_ip(request)
     ua = get_client_user_agent(request)
     user_id = context.get("user_id") if context else None
-    token = (data.refresh_token if data else None) or request.cookies.get(COOKIE_NAME)
+    token = (data.refresh_token if data else None) or request.cookies.get(settings.COOKIE_REFRESH_NAME)
 
-    # Extract Bearer access token for JTI blacklisting — P12.10
+    # Extract access token from Bearer header or HttpOnly cookie for JTI revocation — P12.10 / P13.1
     raw_access_token = None
     auth_header = request.headers.get("Authorization") or request.headers.get("authorization")
     if auth_header and auth_header.startswith("Bearer "):
         raw_access_token = auth_header[7:].strip()
+    elif request.cookies.get(settings.COOKIE_ACCESS_NAME):
+        raw_access_token = request.cookies.get(settings.COOKIE_ACCESS_NAME)
 
     await AuthService.logout(
         raw_refresh_token=token,
@@ -127,7 +201,7 @@ async def logout(
         ip_address=ip,
         user_agent=ua
     )
-    response.delete_cookie(key=COOKIE_NAME, path="/api/v1/auth")
+    _clear_auth_cookies(response)
     return APIResponse.ok({"message": "Successfully logged out"})
 
 

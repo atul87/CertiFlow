@@ -1,7 +1,6 @@
 "use client";
 
-import { GraduationCap, Ticket, BookOpen, Building2, Check, ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { GraduationCap, Ticket, BookOpen, Building2 } from "lucide-react";
 
 const useCases = [
   {

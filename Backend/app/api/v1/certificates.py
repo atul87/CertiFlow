@@ -165,6 +165,7 @@ async def list_certificates(
     "/certificates/{cert_id}",
     response_model=APIResponse[CertificateResponse],
     summary="Get certificate by ID",
+    dependencies=[Depends(require_permission("certificates.read"))],
 )
 async def get_certificate(
     cert_id: str,
@@ -182,6 +183,7 @@ async def get_certificate(
 @router.get(
     "/certificates/{cert_id}/pdf",
     summary="Download certificate PDF",
+    dependencies=[Depends(require_permission("certificates.read"))],
 )
 async def download_pdf(
     cert_id: str,
@@ -203,6 +205,7 @@ async def download_pdf(
 @router.get(
     "/certificates/{cert_id}/preview",
     summary="Download certificate preview PNG",
+    dependencies=[Depends(require_permission("certificates.read"))],
 )
 async def download_preview(
     cert_id: str,
@@ -234,6 +237,7 @@ from app.schemas.verification import (
     "/certificates/{cert_id}/revoke",
     response_model=APIResponse[CertificateResponse],
     summary="Revoke a certificate",
+    dependencies=[Depends(require_permission("certificates.revoke"))],
 )
 async def revoke_certificate(
     cert_id: str,
@@ -264,6 +268,7 @@ async def revoke_certificate(
     "/certificates/{cert_id}/restore",
     response_model=APIResponse[CertificateResponse],
     summary="Restore a revoked certificate to active status",
+    dependencies=[Depends(require_permission("certificates.restore"))],
 )
 async def restore_certificate(
     cert_id: str,
@@ -292,6 +297,7 @@ async def restore_certificate(
     "/certificates/bulk-revoke",
     response_model=APIResponse[BulkRevokeResponse],
     summary="Bulk revoke multiple certificates",
+    dependencies=[Depends(require_permission("certificates.revoke"))],
 )
 async def bulk_revoke_certificates(
     data: BulkRevokeRequest,
@@ -317,6 +323,7 @@ async def bulk_revoke_certificates(
     "/certificates/{cert_id}/integrity",
     response_model=APIResponse[IntegrityCheckResponse],
     summary="Verify cryptographic SHA-256 integrity of stored certificate PDF",
+    dependencies=[Depends(require_permission("certificates.read"))],
 )
 async def check_certificate_integrity(
     cert_id: str,
@@ -335,6 +342,7 @@ async def check_certificate_integrity(
     "/certificates/{cert_id}/timeline",
     response_model=APIResponse[CertificateTimelineResponse],
     summary="Get complete unified lifecycle, audit, delivery, and scan timeline for a certificate",
+    dependencies=[Depends(require_permission("certificates.read"))],
 )
 async def get_certificate_timeline(
     cert_id: str,
@@ -354,12 +362,19 @@ async def get_certificate_timeline(
     "/certificates/{cert_id}/verification-events",
     response_model=APIResponse[List[VerificationEventResponse]],
     summary="List verification scans for a certificate",
+    dependencies=[Depends(require_permission("certificates.read"))],
 )
 async def get_certificate_verification_events(
     cert_id: str,
     limit: int = Query(50, ge=1, le=200),
     context: Dict[str, Any] = Depends(get_current_user_and_org),
 ):
+    org_id = context.get("org_id") or context["organization"]["id"]
+    cert = await CertificateRepository.get_by_id(cert_id, org_id)
+    if not cert:
+        from app.core.exceptions import NotFoundError
+        raise NotFoundError(message="Certificate not found", code="CERTIFICATE_NOT_FOUND")
+
     events = await VerificationEventRepository.list_by_certificate(cert_id, limit=limit)
     return APIResponse.ok([VerificationEventResponse(**e) for e in events])
 
@@ -411,6 +426,7 @@ async def verify_certificate(code: str, request: Request, response: Response):
     response_model=APIResponse[EmailDeliveryResponse],
     status_code=status.HTTP_201_CREATED,
     summary="Send certificate by email",
+    dependencies=[Depends(require_permission("emails.send"))],
 )
 async def send_certificate_email(
     cert_id: str,
@@ -440,6 +456,7 @@ async def send_certificate_email(
     response_model=APIResponse[EmailDeliveryResponse],
     status_code=status.HTTP_201_CREATED,
     summary="Resend certificate by email",
+    dependencies=[Depends(require_permission("emails.send"))],
 )
 async def resend_certificate_email(
     cert_id: str,

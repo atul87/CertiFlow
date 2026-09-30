@@ -4,17 +4,8 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  Maximize,
-  Sliders,
-  Type,
-  Lock,
   Trash2,
   Sparkles,
-  QrCode,
-  Stamp,
-  Palette,
-  Layers,
-  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEditorStore } from "../use-editor-store";

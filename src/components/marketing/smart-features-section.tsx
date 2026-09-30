@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { Type, Sparkles, Send, Check, Search, Download, ExternalLink, ShieldCheck, Mail } from "lucide-react";
+import { motion } from "motion/react";
+import { Type, Sparkles, Send, Search, ShieldCheck, Mail } from "lucide-react";
 import { staggerContainer, staggerItem, viewportOnce } from "@/lib/motion";
 
 export function SmartFeaturesSection() {

@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldCheck, Lock, HardDrive, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Lock, HardDrive } from "lucide-react";
 
 const privacyPillars = [
   {

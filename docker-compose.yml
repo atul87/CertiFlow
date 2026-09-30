@@ -1,0 +1,152 @@
+version: "3.8"
+
+services:
+  # 1. Next.js SaaS & Public Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: certiflow-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - NODE_ENV=production
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - certiflow-network
+
+  # 2. FastAPI Backend Core Engine
+  api:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: certiflow-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_NAME=CertiFlow API
+      - APP_ENV=development
+      - DEBUG=true
+      - API_V1_PREFIX=/api/v1
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_DATABASE=certificate_platform
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-certiflow-local-dev-jwt-secret-key-must-be-long-and-secure-32chars}
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - REFRESH_TOKEN_EXPIRE_DAYS=30
+      - CORS_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000"]
+      - EMAIL_PROVIDER=smtp
+      - SMTP_HOST=mailhog
+      - SMTP_PORT=1025
+      - STORAGE_DIR=/app/storage
+      - ALLOW_DEMO_AUTH=true
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./Backend/storage:/app/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - certiflow-network
+
+  # 3. Arq Background Queue Worker (PDF Generation, Verification Hash, Email Delivery)
+  worker:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: certiflow-worker
+    restart: unless-stopped
+    command: ["arq", "app.workers.worker.WorkerSettings"]
+    environment:
+      - APP_NAME=CertiFlow Worker
+      - APP_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_DATABASE=certificate_platform
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-certiflow-local-dev-jwt-secret-key-must-be-long-and-secure-32chars}
+      - EMAIL_PROVIDER=smtp
+      - SMTP_HOST=mailhog
+      - SMTP_PORT=1025
+      - STORAGE_DIR=/app/storage
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./Backend/storage:/app/storage
+    networks:
+      - certiflow-network
+
+  # 4. MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: certiflow-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=certificate_platform
+    volumes:
+      - certiflow_mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - certiflow-network
+
+  # 5. Redis Queue & Rate Limiter Cache
+  redis:
+    image: redis:7-alpine
+    container_name: certiflow-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - certiflow_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - certiflow-network
+
+  # 6. MailHog Local SMTP & Web UI for Email Testing
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: certiflow-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP port
+      - "8025:8025" # Web UI port
+    networks:
+      - certiflow-network
+
+networks:
+  certiflow-network:
+    driver: bridge
+
+volumes:
+  certiflow_mongodb_data:
+    driver: local
+  certiflow_redis_data:
+    driver: local

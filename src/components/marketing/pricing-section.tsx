@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Minus, ArrowRight, Sparkles } from "lucide-react";
+import { Check, Minus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 

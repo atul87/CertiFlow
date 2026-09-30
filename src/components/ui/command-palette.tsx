@@ -16,8 +16,6 @@ import {
   ShieldCheck,
   Settings,
   ArrowRight,
-  Clock,
-  Hash,
   X,
 } from "lucide-react";
 
@@ -223,7 +221,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
           {groups.length === 0 && query.trim() ? (
             <div className="px-4 py-12 text-center">
               <Search className="w-8 h-8 text-gray-200 mx-auto mb-3" />
-              <p className="text-[13px] font-medium text-[var(--color-text-secondary)]">No results for "{query}"</p>
+              <p className="text-[13px] font-medium text-[var(--color-text-secondary)]">No results for &ldquo;{query}&rdquo;</p>
               <p className="text-[12px] text-[var(--color-text-tertiary)] mt-1">Try searching for a page, template, or team member</p>
             </div>
           ) : (

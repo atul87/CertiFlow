@@ -51,6 +51,8 @@ async def registered_user(client: AsyncClient):
     response = await client.post("/api/v1/auth/register", json=payload)
     assert response.status_code == 201
     data = response.json()["data"]
+    # Clear ambient cookies on test client so explicit unauth and header-based tests run cleanly
+    client.cookies.clear()
     return {
         "user": data["user"],
         "organization": data["organization"],

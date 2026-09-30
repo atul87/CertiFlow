@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { AlertTriangle, RefreshCw, Home, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +12,7 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const router = useRouter();
   useEffect(() => {
     // Log to your error monitoring service (Sentry, etc.)
     console.error("[CertiFlow Error]", error);
@@ -71,7 +73,7 @@ export default function Error({
         </Button>
         <Button
           variant="secondary"
-          onClick={() => (window.location.href = "/app")}
+          onClick={() => router.push("/app")}
           className="gap-2"
         >
           <Home className="w-4 h-4" />
@@ -80,7 +82,7 @@ export default function Error({
         {isAuthError && (
           <Button
             variant="secondary"
-            onClick={() => (window.location.href = "/login")}
+            onClick={() => router.push("/login")}
             className="gap-2"
           >
             Log in again <ChevronRight className="w-4 h-4" />

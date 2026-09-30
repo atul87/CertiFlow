@@ -114,6 +114,14 @@ class Settings(BaseSettings):
     W3C_VC_CONTEXT_URL: str = "https://www.w3.org/ns/credentials/v2"
     PUBLIC_CREDENTIAL_URL_PREFIX: str = "https://verify.certiflow.io/credentials"
 
+    # Session, Cookie & CSRF Security (P13.1)
+    COOKIE_ACCESS_NAME: str = "certiflow_access_token"
+    COOKIE_REFRESH_NAME: str = "certiflow_refresh_token"
+    COOKIE_CSRF_NAME: str = "certiflow_csrf_token"
+    COOKIE_DOMAIN: Optional[str] = None
+    COOKIE_SAMESITE: str = "lax"
+    ALLOW_DEMO_AUTH: bool = False
+
     # CORS
     CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
@@ -172,6 +180,13 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "CRITICAL PRODUCTION CONFIGURATION ERROR: DEBUG cannot be True in production environment."
                 )
+
+            if self.ALLOW_DEMO_AUTH:
+                raise ValueError(
+                    "CRITICAL PRODUCTION SECURITY ERROR: ALLOW_DEMO_AUTH must be False in production/staging environments — P13.1."
+                )
+        elif env in ("development", "test") and "ALLOW_DEMO_AUTH" not in self.model_fields_set:
+            self.ALLOW_DEMO_AUTH = True
 
         return self
 

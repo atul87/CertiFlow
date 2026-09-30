@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { useEditorStore } from "../use-editor-store";
 import { Layer } from "../types";
-import { Sparkles, QrCode as QrIcon, ShieldCheck } from "lucide-react";
+import { Sparkles, ShieldCheck } from "lucide-react";
 
 export function EditorCanvas() {
   const canvasRef = useRef<HTMLDivElement>(null);
