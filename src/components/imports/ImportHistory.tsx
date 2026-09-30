@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { FileSpreadsheet, Clock, RefreshCw } from "lucide-react";
 import { api } from "@/lib/api";
+import { tokenStorage } from "@/lib/api-client";
 import type { ImportRecord } from "@/types";
 
 function Skeleton({ className = "" }: { className?: string }) {
@@ -15,6 +16,24 @@ export function ImportHistory() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    if (tokenStorage.isDemoMode()) {
+      setImports([
+        {
+          id: "imp-001",
+          original_filename: "students_batch_01.xlsx",
+          status: "confirmed",
+          total_rows: 5000,
+          valid_rows: 4932,
+          invalid_rows: 68,
+          column_headers: ["Student Name", "Email", "Course", "Date"],
+          created_at: "2026-09-27T12:00:00.000Z",
+          updated_at: "2026-09-27T12:00:00.000Z",
+        } as ImportRecord,
+      ]);
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await api.imports.list({ limit: 20 });
       setImports(res?.items || (Array.isArray(res) ? res : []));
@@ -132,9 +151,8 @@ export function ImportHistory() {
                 </div>
                 <div className="col-span-2">
                   <span
-                    className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
-                      statusColors[imp.status] || "bg-gray-50 text-gray-600 border-gray-200"
-                    }`}
+                    className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${statusColors[imp.status] || "bg-gray-50 text-gray-600 border-gray-200"
+                      }`}
                   >
                     {imp.status.replace(/_/g, " ")}
                   </span>

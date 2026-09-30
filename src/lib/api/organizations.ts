@@ -2,7 +2,7 @@ import { apiRequest } from "./client";
 import { Organization, OrganizationMember } from "@/types";
 
 export const organizationsApi = {
-  list: () => apiRequest<Organization[]>("/api/v1/organizations"),
+  list: () => apiRequest<Organization>("/api/v1/organizations/me"),
 
   get: (id: string) => apiRequest<Organization>(`/api/v1/organizations/${id}`),
 

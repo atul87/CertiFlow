@@ -164,7 +164,11 @@ export async function apiRequest<T = any>(
     });
 
     // Handle token refresh on 401 Unauthorized
-    if (response.status === 401 && (tokenStorage.getAccess() || tokenStorage.getRefresh())) {
+    if (
+      response.status === 401 &&
+      !tokenStorage.isDemoMode() &&
+      (tokenStorage.getAccess() || tokenStorage.getRefresh())
+    ) {
       const refreshed = await tryRefreshToken();
       if (refreshed) {
         headers.set("Authorization", `Bearer ${tokenStorage.getAccess()}`);

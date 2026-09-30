@@ -68,10 +68,15 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       return;
     }
 
+    if (tokenStorage.isDemoMode()) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       const res = await api.organizations.list();
-      const orgList: Organization[] = Array.isArray(res) ? res : (res as any)?.items || DEMO_ORGANIZATIONS;
+      const orgList: Organization[] = Array.isArray(res) ? res : res ? [res] : DEMO_ORGANIZATIONS;
       if (orgList.length > 0) {
         setOrganizations(orgList);
         const savedId = typeof window !== "undefined" ? localStorage.getItem("certiflow_org_id") : null;

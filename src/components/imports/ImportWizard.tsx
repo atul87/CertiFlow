@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { CheckCircle2, X } from "lucide-react";
 import { api } from "@/lib/api";
+import { tokenStorage } from "@/lib/api-client";
 import type { ImportRecord, Template } from "@/types";
 import { ImportUploadStep } from "./ImportUploadStep";
 import { ImportMappingStep } from "./ImportMappingStep";
@@ -42,6 +43,14 @@ export function ImportWizard() {
   const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
+    if (tokenStorage.isDemoMode()) {
+      setTemplates([
+        { id: "tmpl-001", name: "Academic Honors Certificate", status: "published" } as Template,
+        { id: "tmpl-002", name: "ML Workshop Completion", status: "published" } as Template,
+      ]);
+      return;
+    }
+
     api.templates
       .list({ status: "published" })
       .then((res) => setTemplates(res?.items || (Array.isArray(res) ? res : [])))
@@ -147,33 +156,30 @@ export function ImportWizard() {
             <div key={i} className="flex items-center">
               <div className="flex flex-col items-center">
                 <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold border-2 transition-all ${
-                    i < step
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold border-2 transition-all ${i < step
                       ? "bg-emerald-500 border-emerald-500 text-white"
                       : i === step
-                      ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white"
-                      : "bg-white border-gray-200 text-gray-400"
-                  }`}
+                        ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white"
+                        : "bg-white border-gray-200 text-gray-400"
+                    }`}
                 >
                   {i < step ? <CheckCircle2 className="w-3.5 h-3.5" /> : i + 1}
                 </div>
                 <span
-                  className={`text-[11px] font-semibold mt-1 whitespace-nowrap ${
-                    i === step
+                  className={`text-[11px] font-semibold mt-1 whitespace-nowrap ${i === step
                       ? "text-[var(--color-primary)]"
                       : i < step
-                      ? "text-emerald-600"
-                      : "text-gray-400"
-                  }`}
+                        ? "text-emerald-600"
+                        : "text-gray-400"
+                    }`}
                 >
                   {s}
                 </span>
               </div>
               {i < STEPS.length - 1 && (
                 <div
-                  className={`h-0.5 w-12 sm:w-20 mx-2 mb-4 transition-colors ${
-                    i < step ? "bg-emerald-400" : "bg-gray-200"
-                  }`}
+                  className={`h-0.5 w-12 sm:w-20 mx-2 mb-4 transition-colors ${i < step ? "bg-emerald-400" : "bg-gray-200"
+                    }`}
                 />
               )}
             </div>
