@@ -33,6 +33,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAppRoute = pathname.startsWith("/app");
 
   const refreshUser = useCallback(async () => {
+    if (tokenStorage.isDemoMode()) {
+      setUser({
+        id: "usr_demo_01",
+        email: "admin@certiflow.io",
+        name: "Admin User",
+        role: "owner",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const resp = await api.auth.me();
       const u = (resp as any)?.user || resp;
@@ -52,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isLoading) return;
 
-    const authenticated = !!user;
+    const authenticated = !!user || tokenStorage.isDemoMode();
 
     if (isAppRoute && !authenticated) {
       router.push(`/login?redirect=${encodeURIComponent(pathname)}`);

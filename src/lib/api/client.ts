@@ -48,15 +48,27 @@ export function getCsrfToken(): string | null {
 export const tokenStorage = {
   getAccess: (): string | null => null,
   getRefresh: (): string | null => null,
-  setTokens: (_access: string, _refresh?: string | null) => {},
-  clearTokens: () => {},
-  isAuthenticated: (): boolean => {
-    // Session presence indicated by CSRF token cookie existence
-    if (typeof document === "undefined") return false;
-    return !!getCsrfToken();
+  setTokens: (_access: string, _refresh?: string | null) => { },
+  clearTokens: () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("certiflow_demo_mode");
+    }
   },
-  isDemoMode: (): boolean => false,
-  setDemoMode: (_enabled: boolean) => {},
+  isAuthenticated: (): boolean => {
+    return tokenStorage.isDemoMode() || (typeof document !== "undefined" && !!getCsrfToken());
+  },
+  isDemoMode: (): boolean => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("certiflow_demo_mode") === "true";
+  },
+  setDemoMode: (enabled: boolean) => {
+    if (typeof window === "undefined") return;
+    if (enabled) {
+      localStorage.setItem("certiflow_demo_mode", "true");
+    } else {
+      localStorage.removeItem("certiflow_demo_mode");
+    }
+  },
 };
 
 // Organization context helper
