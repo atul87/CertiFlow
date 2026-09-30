@@ -64,6 +64,18 @@ export const tokenStorage = {
   isAuthenticated: (): boolean => {
     return !!tokenStorage.getAccess();
   },
+  isDemoMode: (): boolean => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("certiflow_demo_mode") === "true";
+  },
+  setDemoMode: (enabled: boolean) => {
+    if (typeof window === "undefined") return;
+    if (enabled) {
+      localStorage.setItem("certiflow_demo_mode", "true");
+    } else {
+      localStorage.removeItem("certiflow_demo_mode");
+    }
+  },
 };
 
 // Organization context helper

@@ -9,6 +9,7 @@ test.describe("E2E: Import Wizard End-to-End Flow", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.addInitScript(() => {
       localStorage.setItem("certiflow_access_token", "demo_access_token_2026");
+      localStorage.setItem("certiflow_demo_mode", "true");
       localStorage.setItem("certiflow_org_id", "org_demo_01");
     });
   });

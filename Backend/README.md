@@ -17,7 +17,7 @@ Enterprise-grade FastAPI + MongoDB + Redis backend microservice for automated ce
 - **Data Ingestion**: Streaming CSV parser with automatic delimiter & encoding detection, OpenPyXL for Excel `.xlsx`
 - **Email Delivery**: Pluggable adapters for SMTP, SendGrid, Amazon SES, and Mock provider with Jinja2 templating
 - **Billing & Metering**: Stripe checkout & webhooks, multi-tier subscriptions, hard/soft quota enforcement, monthly metered usage
-- **Testing**: `pytest` + `pytest-asyncio` + `httpx` (**247/247 automated tests passing, 0 regressions**)
+- **Testing**: `pytest` + `pytest-asyncio` + `pytest-cov` + `httpx` (**279/279 automated tests passing, 82% line coverage baseline**)
 - **Containerization**: Docker + Docker Compose
 
 ---
@@ -71,10 +71,12 @@ Backend/
 ## 3. Quick Start & Local Setup
 
 ### Prerequisites
+
 - Python 3.12+ (or 3.13)
 - MongoDB running locally on `mongodb://localhost:27017` (e.g. Windows MongoDB Service)
 
 ### Installation
+
 ```bash
 # 1. Activate virtual environment
 .\.venv\Scripts\Activate.ps1
@@ -90,6 +92,7 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 Interactive Swagger Documentation:
+
 - Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
 - ReDoc: [http://localhost:8000/redoc](http://localhost:8000/redoc)
 
@@ -97,7 +100,7 @@ Interactive Swagger Documentation:
 
 ## 4. Running Automated Tests
 
-CertiFlow Backend features an exhaustive test harness of **247 automated tests** spanning unit, integration, cryptographic security, and end-to-end continuous workflows:
+CertiFlow Backend features an automated test harness of **279 tests** spanning unit, integration, cryptographic security, and end-to-end continuous workflows:
 
 ```bash
 # 1. Pure Unit Tests (Fast, in-memory, no MongoDB required)
@@ -109,32 +112,35 @@ pytest tests/unit/test_credentials_and_cryptography.py tests/integration/test_cr
 # 3. Grand End-to-End P0 to P11 Continuous Journey
 pytest tests/integration/test_full_e2e_p0_to_p11.py -v
 
-# 4. Run the entire test suite (247 tests passing, 0 failures, 0 regressions)
-pytest -v
+# 4. Run the entire test suite with the coverage gate used by CI
+pytest --cov=app --cov-report=term-missing --cov-fail-under=80 -v
 ```
 
 All integration and security test cases run against the isolated `certificate_platform_test` database and clean up automatically.
-
 
 ---
 
 ## 5. P1 Template Management Features
 
 ### Version Immutability
+
 - Once a template version is **published**, it is strictly locked and immutable.
 - Edits require creating a new draft version (e.g., `v2`). This guarantees historical certificate reproducibility.
 
 ### Placeholder Architecture
+
 - Syntax: `{{variable_name}}`
 - System fields automatically classified: `{{certificate_id}}`, `{{verification_code}}`, `{{verification_url}}`, `{{issued_at}}`.
 - Recipient fields automatically extracted: `{{recipient_name}}`, `{{program_name}}`, `{{issue_date}}`, etc.
 - Duplicate placeholders supported: 1 logical field, multiple visual positions.
 
 ### Asset Validation & Storage
+
 - Assets (backgrounds, logos, signatures, seals) are validated by MIME type, magic bytes, and dimensions before storage.
 - Stored on disk under `storage/assets/{org_id}/{template_id}/` outside MongoDB.
 
 ### High-Fidelity Preview
+
 - `POST /api/v1/templates/{id}/preview` renders a PNG preview with sample data substitution, font rendering, and dynamic QR code generation.
 
 ---
@@ -171,7 +177,7 @@ Status: `ready` (Trusted bridge to Phase P3 Certificate Engine)
 ### MongoDB Collections Added in P2
 
 | Collection | Key Fields | Indexes |
-|---|---|---|
+| --- | --- | --- |
 | `imports` | `organization_id`, `template_id`, `template_version_id`, `filename`, `status`, `total_rows`, `valid_rows`, `invalid_rows`, `warning_rows` | `organization_id` + `created_at`, `organization_id` + `status`, `organization_id` + `template_id` |
 | `import_mappings` | `import_id`, `template_version_id`, `organization_id`, `mappings` (source_column, target_field, confidence, method) | `import_id`, `organization_id` + `template_version_id` |
 | `import_rows` | `import_id`, `organization_id`, `row_number`, `data`, `status` (valid, warning, error), `errors`, `warnings` | `import_id` + `row_number`, `import_id` + `status` |
@@ -180,7 +186,7 @@ Status: `ready` (Trusted bridge to Phase P3 Certificate Engine)
 ### P2 API Endpoints
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | `POST` | `/api/v1/imports` | Upload CSV/XLSX recipient file & trigger automated column profiling & auto-mapping |
 | `GET` | `/api/v1/imports` | List imports with pagination and status/template filtering |
 | `GET` | `/api/v1/imports/{id}` | Get detailed import status and summary |
@@ -207,7 +213,7 @@ P3 provides high-fidelity canvas rendering, smart-fit auto font sizing, QR code 
 ### P3 API Endpoints
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | `POST` | `/api/v1/certificates/preview` | Render preview PNG without persisting certificate record |
 | `POST` | `/api/v1/certificates/generate` | Official certificate issuance (idempotent, atomic sequence) |
 | `GET` | `/api/v1/certificates` | List organization certificates with filtering |
@@ -247,14 +253,14 @@ Progress / ZIP Stream Export
 ### P4 Collections
 
 | Collection | Key Fields | Indexes |
-|---|---|---|
+| --- | --- | --- |
 | `issuance_jobs` | `organization_id`, `template_id`, `template_version_id`, `import_id`, `status`, `total`, `pending`, `processing`, `completed`, `failed`, `cancelled`, `progress` | `organization_id` + `created_at`, `organization_id` + `status`, `import_id`, `template_id` |
 | `issuance_job_items` | `job_id`, `organization_id`, `import_row_id`, `row_number`, `status`, `certificate_id`, `attempts`, `error`, `recipient`, `data` | `job_id` + `status`, `job_id` + `row_number`, `job_id` + `certificate_id`, `job_id` + `import_row_id` (unique) |
 
 ### P4 API Endpoints
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | `POST` | `/api/v1/issuance-jobs` | Create and enqueue a bulk issuance job |
 | `GET` | `/api/v1/issuance-jobs` | List organization issuance jobs |
 | `GET` | `/api/v1/issuance-jobs/{id}` | Get details of an issuance job |
@@ -319,7 +325,7 @@ Redis Cache     MongoDB Lookup
 #### Public Endpoints (No Authentication Required)
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | `GET` | `/api/v1/public/verify/{code}` | Verify certificate by public code (cached in Redis, rate-limited) |
 | `POST` | `/api/v1/public/verify-file` | Verify original PDF file by cryptographic SHA-256 hash match |
 | `GET` | `/api/v1/public/certificates/{code}/download` | Public certificate PDF download (if enabled by issuer) |
@@ -327,7 +333,7 @@ Redis Cache     MongoDB Lookup
 #### Authenticated Lifecycle & Trust Endpoints
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | `POST` | `/api/v1/certificates/{id}/revoke` | Revoke certificate with structured reason, notes & cache invalidation |
 | `POST` | `/api/v1/certificates/{id}/restore` | Restore revoked certificate to active status |
 | `POST` | `/api/v1/certificates/bulk-revoke` | Bulk revoke multiple certificates by IDs |
@@ -385,7 +391,7 @@ Recipient           Recipient
 #### Email Templates
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | `POST` | `/api/v1/email/templates` | Create reusable email template with variable validation |
 | `GET` | `/api/v1/email/templates` | List organization email templates |
 | `GET` | `/api/v1/email/templates/{id}` | Get email template details |
@@ -395,7 +401,7 @@ Recipient           Recipient
 #### Settings, Preview & Suppression List
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | `GET` | `/api/v1/email/settings` | Get organization email settings (secrets masked) |
 | `PUT` | `/api/v1/email/settings` | Update email provider settings (admin/owner only) |
 | `POST` | `/api/v1/email/preview` | Preview email rendering with certificate context |
@@ -407,14 +413,14 @@ Recipient           Recipient
 #### Certificate Email Issuance
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | `POST` | `/api/v1/certificates/{id}/email` | Queue certificate email delivery |
 | `POST` | `/api/v1/certificates/{id}/resend-email` | Resend certificate email (preserves audit history) |
 
 #### Bulk Email Jobs & Deliveries
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | `POST` | `/api/v1/email-jobs` | Create and start bulk email job |
 | `GET` | `/api/v1/email-jobs` | List bulk email jobs with pagination |
 | `GET` | `/api/v1/email-jobs/{id}` | Get bulk email job details |
@@ -429,7 +435,7 @@ Recipient           Recipient
 #### Provider Webhooks
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | `POST` | `/api/v1/webhooks/email/{provider}` | Webhook for delivery, bounce, and complaint notifications |
 
 ---
@@ -441,7 +447,7 @@ P7 turns the platform into a multi-tenant SaaS control center. It computes preci
 ### Analytics Endpoints
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | `GET` | `/api/v1/analytics/dashboard` | Main organization dashboard with KPIs, deltas, trend chart, status distribution, recent jobs |
 | `GET` | `/api/v1/analytics/certificates` | Certificate issuance trends, by template, by program, status counts |
 | `GET` | `/api/v1/analytics/issuance` | Bulk issuance throughput (certs/min), average duration, failure classification |
@@ -456,7 +462,7 @@ P7 turns the platform into a multi-tenant SaaS control center. It computes preci
 ### Report Endpoints
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | `POST` | `/api/v1/reports` | Create asynchronous background report job (CSV or ReportLab PDF) |
 | `GET` | `/api/v1/reports` | List generated reports with pagination |
 | `GET` | `/api/v1/reports/{id}` | Get report job status and signed download URL |
@@ -465,7 +471,7 @@ P7 turns the platform into a multi-tenant SaaS control center. It computes preci
 ### Activity Feed & Advanced Search
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | `GET` | `/api/v1/activity` | Paginated organization activity and audit log feed |
 | `GET` | `/api/v1/certificates` | Advanced certificate search by query, status, template, program, date range |
 | `GET` | `/api/v1/certificates/{id}/timeline` | Complete unified lifecycle timeline combining generation, verification, and email webhooks |
@@ -492,7 +498,7 @@ P8 evolves CertiFlow from a single-organization application into a full multi-us
              UI         API       Webhooks
 ```
 
-### Key Capabilities
+### Organization Key Capabilities
 
 1. **Multi-Organization & Switching**: Users can belong to multiple organizations with distinct roles. Active organization context is switchable via `POST /api/v1/organization/switch` or client-controlled `X-Organization-Id` header validated against server-side membership.
 2. **Secure Invitations & Member Lifecycle**: Single-use cryptographically secure invitation tokens (SHA-256 hashed in database). Member suspension restricts operational actions while preserving historical audit logs. Sole organization owners cannot be deleted without prior explicit ownership transfer.
@@ -506,7 +512,7 @@ P8 evolves CertiFlow from a single-organization application into a full multi-us
 ### P8 API Endpoints
 
 | Category | Method | Endpoint | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Members** | `GET` | `/api/v1/organization/members` | List members with status filtering & pagination |
 | | `PATCH` | `/api/v1/organization/members/{id}` | Update member role or suspension status |
 | | `DELETE` | `/api/v1/organization/members/{id}` | Remove member (soft removal preserving audit logs) |
@@ -561,7 +567,7 @@ P9 elevates CertiFlow from a functional multi-tenant application to a battle-tes
 ### 13.1 Security Threat Model & Protections
 
 | Attack Vector | Threat | Applied P9 Production Defense |
-|---|---|---|
+| --- | --- | --- |
 | **Credential Attacks** | Brute force login | IP + account rate limiting with progressive controls |
 | **Account Enumeration** | Timing & response side-channel | Generic timing-safe forgot-password responses |
 | **Password Reset** | Token prediction & replay | 32-byte cryptographically secure token, SHA-256 hash storage, 15-min TTL, single-use, revokes all sessions upon reset |
@@ -590,7 +596,7 @@ P9 elevates CertiFlow from a functional multi-tenant application to a battle-tes
 ### 13.3 P9 Production Endpoints Summary
 
 | Category | Method | Endpoint | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Auth Hardening** | `POST` | `/api/v1/auth/forgot-password` | Request password reset token (account-enumeration protected) |
 | | `POST` | `/api/v1/auth/reset-password` | Reset password using single-use token; invalidates active sessions |
 | **Diagnostics** | `GET` | `/health` | Root process liveness check |
@@ -626,7 +632,7 @@ UsageService.record_usage()
 ### 15.2 Plan Catalog & Entitlement Matrix
 
 | Feature / Limit | Free Community | Starter | Professional | Business | Enterprise |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | **Monthly Price (INR)** | ₹0 | ₹499 | ₹1,999 | ₹7,999 | Custom |
 | **Certificates / Mo** | 100 | 1,000 | 5,000 | 25,000 | 100,000+ |
 | **Asset Storage** | 1 GB | 5 GB | 25 GB | 100 GB | 1 TB |
@@ -672,7 +678,7 @@ UsageService.record_usage()
 ### 15.6 P10 Production Endpoints Summary
 
 | Category | Method | Endpoint | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Plans** | `GET` | `/api/v1/plans` | Public catalog of active plans and full entitlement matrices |
 | | `GET` | `/api/v1/plans/{plan_id}` | Detailed plan features and limits |
 | **Subscriptions** | `GET` | `/api/v1/subscription` | Current organization subscription, status, and trial timeline |
@@ -747,7 +753,7 @@ P11 elevates CertiFlow from a certificate generator into a **standards-compliant
 ### 17.2 P11 Credential Endpoints Summary
 
 | Category | Method | Endpoint | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Issuers** | `GET` | `/api/v1/issuers/profile` | Retrieve organization issuer profile and active key |
 | | `PUT` | `/api/v1/issuers/profile` | Update issuer legal name, website, and public metadata |
 | | `POST` | `/api/v1/issuers/keys/rotate` | Provision new active Ed25519 key while retiring prior key |
@@ -784,10 +790,6 @@ P11 elevates CertiFlow from a certificate generator into a **standards-compliant
 # Run Grand End-to-End P0-P11 Continuous Journey
 .venv\Scripts\pytest tests/integration/test_full_e2e_p0_to_p11.py -v
 
-# Run complete platform test suite (247 tests passing, 0 regressions)
-.venv\Scripts\pytest
+# Run complete platform test suite (279 tests passing, 82% coverage gate)
+.venv\Scripts\pytest --cov=app --cov-report=term-missing --cov-fail-under=80
 ```
-
-
-
-

@@ -75,7 +75,7 @@ jobs:
           BILLING_SECRET_KEY: ci_test_billing_secret_key
           BILLING_WEBHOOK_SECRET: ci_test_billing_webhook_secret
         run: |
-          pytest --cov=app --cov-report=term-missing tests/
+          pytest --cov=app --cov-report=term-missing --cov-fail-under=80 tests/
 
   backend-docker-build:
     name: Backend Docker Build Verification
@@ -122,3 +122,15 @@ jobs:
 
       - name: Run Next.js Build
         run: npm run build
+
+      - name: Run TypeScript Check
+        run: npm run typecheck
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Install Playwright Browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Frontend E2E Tests
+        run: npm run test:e2e -- --project=chromium

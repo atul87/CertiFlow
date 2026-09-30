@@ -5,6 +5,7 @@ test.describe("E2E: Certificate Editor Mutations & Controls", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.addInitScript(() => {
       localStorage.setItem("certiflow_access_token", "test_jwt_session_token");
+      localStorage.setItem("certiflow_demo_mode", "true");
       localStorage.setItem("certiflow_org_id", "org_default_01");
     });
     await page.goto("/app/projects/proj-ai-2026/editor");

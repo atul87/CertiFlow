@@ -14,6 +14,7 @@ test.describe("P12: CertiFlow SaaS Golden Path", () => {
     // Seed authenticated session in localStorage
     await page.addInitScript(() => {
       localStorage.setItem("certiflow_access_token", "test_jwt_session_token");
+      localStorage.setItem("certiflow_demo_mode", "true");
       localStorage.setItem("certiflow_org_id", "org_default_01");
     });
 

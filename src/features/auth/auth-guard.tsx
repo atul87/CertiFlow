@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { api, tokenStorage } from "@/lib/api-client";
-import { Award } from "lucide-react";
 
 export interface AuthUser {
   id: string;
@@ -26,7 +25,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -40,23 +39,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    if (tokenStorage.isDemoMode()) {
+      setUser({
+        id: "usr_demo_01",
+        email: "admin@certiflow.io",
+        name: "Admin User",
+        role: "owner",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const u = await api.auth.me();
       setUser(u);
     } catch {
-      // In demo mode or if offline, provide a demo fallback user rather than crashing
-      const storedToken = tokenStorage.getAccess();
-      if (storedToken) {
-        setUser({
-          id: "usr_demo_01",
-          email: "admin@certiflow.io",
-          name: "Admin User",
-          role: "owner",
-        });
-      } else {
-        tokenStorage.clearTokens();
-        setUser(null);
-      }
+      tokenStorage.clearTokens();
+      tokenStorage.setDemoMode(false);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -73,13 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const authenticated = tokenStorage.isAuthenticated() || !!user;
 
     if (isAppRoute && !authenticated) {
-      // Allow bypass in local development if desired, or redirect to login
-      const isDev = process.env.NODE_ENV === "development";
-      // In production or strict mode, redirect:
-      // For smooth demo experience if no token is saved yet, save a demo token or redirect
-      if (!tokenStorage.getAccess()) {
-        router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
-      }
+      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
     } else if (isAuthRoute && authenticated) {
       router.push("/app");
     }
@@ -92,6 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // ignore
     } finally {
       tokenStorage.clearTokens();
+      tokenStorage.setDemoMode(false);
       setUser(null);
       router.push("/login");
     }

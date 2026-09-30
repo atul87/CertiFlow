@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:frontend": "npm run typecheck && npm run lint && npm run test:e2e",
+    "test:backend": "python -m pytest Backend/tests -q",
+    "check": "npm run typecheck && npm run lint && npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5",

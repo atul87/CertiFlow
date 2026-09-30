@@ -42,6 +42,7 @@ export default function LoginPage() {
 
   const handleDemoMode = () => {
     tokenStorage.setTokens("demo_access_token_2026");
+    tokenStorage.setDemoMode(true);
     orgStorage.setOrgId("org_demo_01");
     let target = "/app";
     if (typeof window !== "undefined") {
