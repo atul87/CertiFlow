@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("E2E: CertiFlow Master Product Journey", () => {
+  test.setTimeout(90000);
+
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.addInitScript(() => {

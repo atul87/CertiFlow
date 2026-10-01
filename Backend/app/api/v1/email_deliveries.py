@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, Query, status
 import asyncio
 
 from app.api.deps import get_current_user_and_org
+from app.core.config import settings
 from app.core.exceptions import NotFoundError, ValidationError
 from app.schemas.common import APIResponse
 from app.schemas.email import (

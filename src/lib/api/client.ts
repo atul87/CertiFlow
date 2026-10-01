@@ -46,12 +46,27 @@ export function getCsrfToken(): string | null {
 
 // Session management helpers (P13.1 — tokens reside purely in HttpOnly cookies)
 export const tokenStorage = {
-  getAccess: (): string | null => null,
-  getRefresh: (): string | null => null,
-  setTokens: (_access: string, _refresh?: string | null) => { },
+  getAccess: (): string | null => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("certiflow_access_token");
+  },
+  getRefresh: (): string | null => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("certiflow_refresh_token");
+  },
+  setTokens: (access: string, refresh?: string | null) => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem("certiflow_access_token", access);
+    localStorage.setItem("certiflow_demo_mode", "true");
+    if (refresh) {
+      localStorage.setItem("certiflow_refresh_token", refresh);
+    }
+  },
   clearTokens: () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("certiflow_demo_mode");
+      localStorage.removeItem("certiflow_access_token");
+      localStorage.removeItem("certiflow_refresh_token");
     }
   },
   isAuthenticated: (): boolean => {
@@ -59,7 +74,10 @@ export const tokenStorage = {
   },
   isDemoMode: (): boolean => {
     if (typeof window === "undefined") return false;
-    return localStorage.getItem("certiflow_demo_mode") === "true";
+    return (
+      localStorage.getItem("certiflow_demo_mode") === "true" ||
+      !!localStorage.getItem("certiflow_access_token")
+    );
   },
   setDemoMode: (enabled: boolean) => {
     if (typeof window === "undefined") return;

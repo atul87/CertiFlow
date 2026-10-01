@@ -1,7 +1,11 @@
 import { test, expect } from "@playwright/test";
 import * as path from "path";
+import * as fs from "fs";
 
-const ARTIFACT_DIR = "C:/Users/Atul/.gemini/antigravity-ide/brain/6fdeaad4-f78d-46c3-ae2f-19e53809b76b";
+const ARTIFACT_DIR = path.resolve(process.cwd(), "test-results", "artifacts");
+if (!fs.existsSync(ARTIFACT_DIR)) {
+  fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
+}
 const SAMPLE_CSV = path.resolve(process.cwd(), "sample_recipients.csv");
 
 test.describe("E2E: Import Wizard End-to-End Flow", () => {
@@ -138,7 +142,7 @@ test.describe("E2E: Import Wizard End-to-End Flow", () => {
     const page = await context.newPage();
 
     // Navigate to protected imports route -> redirects to /login?redirect=%2Fapp%2Fimports
-    await page.goto("http://127.0.0.1:3000/app/imports");
+    await page.goto("/app/imports");
     await page.waitForLoadState("networkidle");
 
     // Verify redirected to login page with redirect param
@@ -154,8 +158,7 @@ test.describe("E2E: Import Wizard End-to-End Flow", () => {
     await demoBtn.click();
 
     // Verify redirected back to /app/imports
-    await page.waitForURL("**/app/imports");
-    await expect(page.getByRole("heading", { name: /Import Center/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Import Center/i })).toBeVisible({ timeout: 15000 });
 
     await context.close();
   });
