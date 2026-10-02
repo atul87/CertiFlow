@@ -5,6 +5,7 @@ import { AnnouncementBar } from "@/components/navigation/announcement-bar";
 import { Navbar } from "@/components/navigation/navbar";
 import { HeroSection } from "@/components/marketing/hero-section";
 import { TrustStrip } from "@/components/marketing/trust-strip";
+import { InteractiveDemoSection } from "@/components/marketing/interactive-demo-section";
 import { ProblemSection } from "@/components/marketing/problem-section";
 import { WorkflowSection } from "@/components/marketing/workflow-section";
 import {
@@ -16,7 +17,6 @@ import {
   FeatureDelivery,
   FeatureBatchDashboard,
 } from "@/components/marketing/feature-sections";
-import { InteractiveDemoSection } from "@/components/marketing/interactive-demo-section";
 import { UseCasesSection } from "@/components/marketing/use-cases-section";
 import { TemplateGallery } from "@/components/marketing/template-gallery";
 import { SecuritySection } from "@/components/marketing/security-section";
@@ -34,10 +34,10 @@ export default function LandingPage() {
       {/* 1. Announcement Bar */}
       <AnnouncementBar />
 
-      {/* 2. Navbar */}
+      {/* 2. Frosted / Sticky Navbar */}
       <Navbar onWatchDemo={() => setIsVideoModalOpen(true)} />
 
-      {/* Main Page Flow */}
+      {/* Main High-Conversion Page Flow */}
       <main className="flex-1">
         {/* 3. Hero Section (50/50 Desktop Two-Column Layout + Live Animation) */}
         <HeroSection onWatchDemo={() => setIsVideoModalOpen(true)} />
@@ -45,14 +45,19 @@ export default function LandingPage() {
         {/* 4. Trust Strip */}
         <TrustStrip />
 
-        {/* 5. Problem Section (Manual vs Automated) */}
+        {/* 5. Interactive Demo (Hero -> Interactive Demo instant hands-on preview) */}
+        <div id="demo" className="scroll-mt-20">
+          <InteractiveDemoSection />
+        </div>
+
+        {/* 6. Problem Section & Three-Step Workflow */}
         <ProblemSection />
+        <div id="workflow" className="scroll-mt-20">
+          <WorkflowSection />
+        </div>
 
-        {/* 6. Three-Step Workflow */}
-        <WorkflowSection />
-
-        {/* 7. Feature Showcases (Large alternating 50/50 editorial sections) */}
-        <div id="features">
+        {/* 7. Product Features (Editorial showcases: AutoFit, Dynamic Fields, Delivery, RBAC) */}
+        <div id="features" className="scroll-mt-20">
           <FeatureBulk />
           <FeatureEditor />
           <FeatureDynamicFields />
@@ -62,41 +67,36 @@ export default function LandingPage() {
           <FeatureBatchDashboard />
         </div>
 
-        {/* 8. Interactive Demo (No signup required) */}
-        <div id="demo">
-          <InteractiveDemoSection />
-        </div>
-
-        {/* 9. Segmented Use Cases */}
-        <div id="solutions">
+        {/* 8. Segmented Solutions & Use Cases */}
+        <div id="solutions" className="scroll-mt-20">
           <UseCasesSection />
         </div>
 
-        {/* 10. Template Gallery (4 cards/row desktop) */}
-        <div id="templates">
+        {/* 9. Template Gallery (High-DPI Vector Previews) */}
+        <div id="templates" className="scroll-mt-20">
           <TemplateGallery />
         </div>
 
-        {/* 11. Security & Privacy Governance */}
-        <div id="security">
+        {/* 10. Security & Cryptographic Verification (SHA-256 + QR + W3C VC) */}
+        <div id="security" className="scroll-mt-20">
           <SecuritySection />
         </div>
 
-        {/* 12. Transparent Pricing */}
-        <div id="pricing">
+        {/* 11. Transparent Pricing (Correct ₹1,999/mo tier + 15-row comparison matrix) */}
+        <div id="pricing" className="scroll-mt-20">
           <PricingSection />
         </div>
 
-        {/* 13. FAQ Accordion */}
-        <div id="faq">
+        {/* 12. Accessible FAQ Accordion */}
+        <div id="faq" className="scroll-mt-20">
           <FAQSection />
         </div>
 
-        {/* 14. Final High-Conversion CTA */}
+        {/* 13. High-Conversion Final CTA */}
         <FinalCTASection />
       </main>
 
-      {/* 15. SaaS Footer */}
+      {/* 14. Enterprise Footer */}
       <Footer />
 
       {/* 60-Second Video Walkthrough Modal */}

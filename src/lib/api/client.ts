@@ -144,6 +144,12 @@ export async function apiRequest<T = any>(
   const headers = new Headers(options.headers || {});
   const method = (options.method || "GET").toUpperCase();
 
+  // Attach Bearer token if available
+  const token = tokenStorage.getAccess();
+  if (token && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
   // Attach X-Organization-Id header if available
   const orgId = orgStorage.getOrgId();
   if (orgId && !headers.has("X-Organization-Id")) {
