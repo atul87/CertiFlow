@@ -1,10 +1,15 @@
 import { test, expect } from "@playwright/test";
 import path from "path";
 
+import fs from "fs";
+
 test.describe("Browser Connectivity & Platform Validation", () => {
   test.setTimeout(90000);
 
-  const ARTIFACT_DIR = "C:/Users/Atul/.gemini/antigravity-ide/brain/b270ac41-5078-4aeb-9804-1a78aed71f23";
+  const ARTIFACT_DIR = process.env.ARTIFACT_DIR || path.resolve(process.cwd(), "test-results", "artifacts");
+  if (!fs.existsSync(ARTIFACT_DIR)) {
+    fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
+  }
 
   test("validates landing page, interactive demo, pricing, dashboard, templates, certificates and verification", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });

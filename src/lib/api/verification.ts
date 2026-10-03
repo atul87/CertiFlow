@@ -12,10 +12,10 @@ export const verificationApi = {
     }),
 
   verifyPublic: (code: string) =>
-    apiRequest<VerificationResult>(`/api/v1/public/certificates/${code}`),
+    apiRequest<VerificationResult>(`/api/v1/public/verify/${code}`),
 
   verifyCode: (code: string) =>
-    apiRequest<VerificationResult>(`/api/v1/public/certificates/${code}`),
+    apiRequest<VerificationResult>(`/api/v1/public/verify/${code}`),
 
   getVC: (id: string) =>
     apiRequest<any>(`/api/v1/public/credentials/${id}`),
@@ -23,15 +23,15 @@ export const verificationApi = {
   verifyFile: (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-    return apiRequest<any>("/api/v1/public/verify/file", {
+    return apiRequest<any>("/api/v1/public/verify-file", {
       method: "POST",
       body: formData,
     });
   },
 
   verifyPayload: (payload: any) =>
-    apiRequest<any>("/api/v1/public/verify/payload", {
+    apiRequest<any>("/api/v1/public/credentials/verify", {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ credential_payload: payload }),
     }),
 };

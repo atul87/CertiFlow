@@ -221,7 +221,22 @@ class VerificationService:
         """
         Public verification by uploading the original PDF.
         Calculates SHA-256 and searches for an authentic matching record.
+        Rate-limited to prevent computation exhaustion attacks.
         """
+        # Rate limiting check for file uploads
+        rate_key = f"verify_file_ip:{_hash_ip(ip_address) or 'unknown'}"
+        is_allowed = await RateLimiter.is_allowed(
+            rate_key,
+            max_requests=30,
+            window_seconds=60,
+        )
+        if not is_allowed:
+            raise AppException(
+                code="RATE_LIMIT_EXCEEDED",
+                message="Too many file verification requests. Please try again in a moment.",
+                status_code=429,
+            )
+
         file_sha256 = HashService.sha256(file_bytes)
         doc = await CertificateRepository.get_by_sha256(file_sha256)
 

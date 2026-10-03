@@ -12,7 +12,7 @@ test.describe("Security: XSS, Input Sanitization & Secret Leak Prevention", () =
     });
 
     await page.goto("/verify/%3Cscript%3Ealert(1)%3C%2Fscript%3E");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Ensure raw <script> does not execute and alert was not fired
     expect(alertTriggered).toBe(false);
@@ -30,14 +30,14 @@ test.describe("Security: XSS, Input Sanitization & Secret Leak Prevention", () =
     });
 
     await page.goto('/verify/%3Cimg%20src=x%20onerror=alert(1)%3E');
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     expect(alertTriggered).toBe(false);
   });
 
   test("handles arbitrary non-existent or tampered certificate IDs gracefully", async ({ page }) => {
     await page.goto("/verify/TAMPERED-FAKE-ID-99999");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Page must load safely without 500 error or crash
     await expect(page.getByText("Public Ledger Active")).toBeVisible();

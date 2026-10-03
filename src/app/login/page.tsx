@@ -44,7 +44,13 @@ export default function LoginPage() {
     setLoading(true);
     setErrorMessage(null);
     try {
-      await api.auth.demoSession();
+      const data = await api.auth.demoSession();
+      if (data?.access_token) {
+        tokenStorage.setTokens(data.access_token, data.refresh_token);
+      }
+      if ((data as any)?.organization?.id) {
+        orgStorage.setOrgId((data as any).organization.id);
+      }
     } catch (err: any) {
       if (err instanceof ApiError && err.code === "DEMO_AUTH_DISABLED") {
         setErrorMessage("Demo mode is disabled in production environments. Please sign in with your credentials.");

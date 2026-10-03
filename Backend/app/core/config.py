@@ -14,6 +14,7 @@ class Settings(BaseSettings):
 
     APP_NAME: str = "CertiFlow API"
     APP_ENV: str = "development"
+    ENVIRONMENT: Optional[str] = None
     DEBUG: bool = True
     VERSION: str = "0.1.0"
     APP_BASE_URL: str = "http://localhost:3000"
@@ -141,7 +142,7 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_production_secrets(self) -> "Settings":
         """Fail startup immediately if production/staging uses default or insecure secrets — P12.04."""
-        env = (self.APP_ENV or "").lower().strip()
+        env = (self.ENVIRONMENT or self.APP_ENV or "").lower().strip()
         if env in ("production", "prod", "staging"):
             insecure_jwt_defaults = {
                 "certiflow-local-dev-jwt-secret-key-must-be-long-and-secure-32chars",
@@ -174,6 +175,13 @@ class Settings(BaseSettings):
             ):
                 raise ValueError(
                     "CRITICAL PRODUCTION SECURITY ERROR: Insecure or default WEBHOOK_SIGNING_SECRET configured in production/staging."
+                )
+
+            if self.BILLING_PROVIDER != "mock" and (
+                "mock" in self.BILLING_SECRET_KEY or len(self.BILLING_SECRET_KEY) < 20
+            ):
+                raise ValueError(
+                    "CRITICAL PRODUCTION SECURITY ERROR: Live billing provider configured without valid high-entropy BILLING_SECRET_KEY."
                 )
 
             if env in ("production", "prod") and self.DEBUG:

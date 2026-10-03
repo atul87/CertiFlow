@@ -24,7 +24,7 @@ services:
   api:
     build:
       context: ./Backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.api
     container_name: certiflow-api
     restart: unless-stopped
     ports:
@@ -67,7 +67,7 @@ services:
   worker:
     build:
       context: ./Backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.worker
     container_name: certiflow-worker
     restart: unless-stopped
     command: ["arq", "app.workers.worker.WorkerSettings"]

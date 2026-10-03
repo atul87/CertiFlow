@@ -81,18 +81,31 @@ export default function VerificationPage({
               isLiveFromBackend: true,
             });
           } else {
-            // Certificate not found in backend DB; preserve fallback demo record
+            // Certificate not found in backend DB
+            const isDemo = id === "CERT-AF72K9" || id === "demo" || id === "CERT-001";
             setRecord((prev) => ({
               ...prev,
               id: id,
               isLiveFromBackend: false,
+              isAuthentic: isDemo,
+              status: isDemo ? "valid" : "not_found",
+              recipient: isDemo ? prev.recipient : "Unknown / Unverified Recipient",
+              event: isDemo ? prev.event : "Credential Not Found on Platform",
             }));
           }
         }
-
       } catch {
         if (isMounted) {
-          setRecord((prev) => ({ ...prev, isLiveFromBackend: false }));
+          const isDemo = id === "CERT-AF72K9" || id === "demo" || id === "CERT-001";
+          setRecord((prev) => ({
+            ...prev,
+            id: id,
+            isLiveFromBackend: false,
+            isAuthentic: isDemo,
+            status: isDemo ? "valid" : "not_found",
+            recipient: isDemo ? prev.recipient : "Unknown / Unverified Recipient",
+            event: isDemo ? prev.event : "Credential Not Found on Platform",
+          }));
         }
       }
 
@@ -165,8 +178,9 @@ export default function VerificationPage({
     }
   };
 
-  const isValid = record.status === "valid" || record.isAuthentic;
+  const isValid = record.status === "valid" && record.isAuthentic;
   const isRevoked = record.status === "revoked";
+  const isNotFound = record.status === "not_found";
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)] flex flex-col justify-between">
@@ -259,7 +273,13 @@ export default function VerificationPage({
                         : "text-amber-700 bg-amber-50"
                     }`}
                   >
-                    {isValid ? "✓ Verified Authentic" : isRevoked ? "⚠ Revoked Credential" : "Status: " + record.status}
+                    {isValid
+                      ? "✓ Verified Authentic"
+                      : isRevoked
+                      ? "⚠ Revoked Credential"
+                      : isNotFound
+                      ? "✕ Credential Not Found"
+                      : "Status: " + record.status}
                   </span>
                   <span className="text-[12px] font-mono text-[var(--color-text-tertiary)]">
                     {record.id}

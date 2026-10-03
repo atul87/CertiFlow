@@ -34,7 +34,7 @@ test.describe("Responsive & Accessibility Gate", () => {
     test(`renders verification badge cleanly at ${vp.name}`, async ({ page }) => {
       await page.setViewportSize({ width: vp.width, height: vp.height });
       await page.goto("/verify/CERT-AF72K9");
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("domcontentloaded");
 
       await expect(page.getByText("Public Ledger Active")).toBeVisible();
       await expect(page.getByText("Atul Kumar").first()).toBeVisible();

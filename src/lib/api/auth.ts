@@ -31,9 +31,16 @@ export const authApi = {
   },
 
   demoSession: async () => {
-    return apiRequest<AuthTokens>("/api/v1/auth/demo-session", {
+    const data = await apiRequest<any>("/api/v1/auth/demo-session", {
       method: "POST",
     });
+    if (data?.access_token) {
+      tokenStorage.setTokens(data.access_token, data.refresh_token);
+    }
+    if (data?.organization?.id) {
+      orgStorage.setOrgId(data.organization.id);
+    }
+    return data as AuthTokens;
   },
 
   logout: async () => {
