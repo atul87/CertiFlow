@@ -2,6 +2,13 @@
 
 Enterprise-grade FastAPI + MongoDB + Redis backend microservice for automated certificate generation and portable digital credentials (**W3C Verifiable Credentials Data Model v2.0** and **1EdTech Open Badges 3.0**).
 
+> **Full Documentation Suite**:
+> - [**System Architecture & Separation of Authority**](file:///e:/Certificate/docs/ARCHITECTURE.md)
+> - [**Unified 18-Domain REST API Reference**](file:///e:/Certificate/docs/API_REFERENCE.md)
+> - [**Developer Setup, Config & Test Manual**](file:///e:/Certificate/docs/DEVELOPER_GUIDE.md)
+> - [**Standards Compliance & Cryptography Spec**](file:///e:/Certificate/docs/STANDARDS_COMPLIANCE.md)
+> - [**Product & Operator Handbook**](file:///e:/Certificate/docs/USER_AND_PRODUCT_MANUAL.md)
+
 ---
 
 ## 1. Technology Stack

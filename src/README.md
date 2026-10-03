@@ -1,11 +1,12 @@
 # CertiFlow — Frontend Web Application & Visual Studio
 
-[![Framework](https://img.shields.io/badge/Framework-Next.js%2015%20%2F%20React%2019-black.svg?style=flat-square)](https://nextjs.org/)
+[![Framework](https://img.shields.io/badge/Framework-Next.js%2016%20Turbopack%20%2F%20React%2019-black.svg?style=flat-square)](https://nextjs.org/)
 [![Styling](https://img.shields.io/badge/Styling-Tailwind%20CSS%20v4-blue.svg?style=flat-square)](https://tailwindcss.com/)
 [![State](https://img.shields.io/badge/State-Zustand%20v5-purple.svg?style=flat-square)](https://github.com/pmndrs/zustand)
-[![E2E Tests](https://img.shields.io/badge/Tests-Playwright%201.63-green.svg?style=flat-square)](https://playwright.dev/)
+[![E2E Tests](https://img.shields.io/badge/Tests-114%20Playwright%20Passing-green.svg?style=flat-square)](https://playwright.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-0%20Errors-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
 
-The frontend of CertiFlow is an enterprise web application and visual certificate design studio built with **Next.js 15 (App Router)**, **React 19**, **Tailwind CSS v4**, and **Zustand v5**.
+The frontend of CertiFlow is an enterprise web application and visual certificate design studio built with **Next.js 16 (App Router with Turbopack)**, **React 19**, **Tailwind CSS v4**, and **Zustand v5**. For full system architecture and API documentation, refer to [`docs/ARCHITECTURE.md`](file:///e:/Certificate/docs/ARCHITECTURE.md) and [`docs/API_REFERENCE.md`](file:///e:/Certificate/docs/API_REFERENCE.md).
 
 ---
 

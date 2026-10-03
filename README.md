@@ -1,8 +1,9 @@
 # CertiFlow — Enterprise Portable Digital Credential & Certificate SaaS Platform
 
-[![Tests Passing](https://img.shields.io/badge/Tests-279%20Passed-brightgreen.svg?style=flat-square)](file:///e:/Certificate/Backend/README.md)
+[![Tests Passing](https://img.shields.io/badge/Tests-375%20Passed-brightgreen.svg?style=flat-square)](file:///e:/Certificate/PRODUCT_COMPLETION_STATUS.md)
+[![TypeScript](https://img.shields.io/badge/TypeScript-0%20Errors-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI%200.115-blue.svg?style=flat-square)](https://fastapi.tiangolo.com)
-[![Next.js](https://img.shields.io/badge/Frontend-Next.js%2015%20%2F%20React%2019-black.svg?style=flat-square)](https://nextjs.org)
+[![Next.js](https://img.shields.io/badge/Frontend-Next.js%2016%20Turbopack-black.svg?style=flat-square)](https://nextjs.org)
 [![MongoDB](https://img.shields.io/badge/Database-MongoDB%207.0%2B-green.svg?style=flat-square)](https://www.mongodb.com)
 [![Redis ARQ](https://img.shields.io/badge/Workers-Redis%207%20%2B%20ARQ-red.svg?style=flat-square)](https://arq-docs.helpmanual.io)
 [![Standards](https://img.shields.io/badge/Standards-W3C%20VC%20v2.0%20%7C%20Open%20Badges%203.0-purple.svg?style=flat-square)](https://www.w3.org/TR/vc-data-model-2.0/)
@@ -14,9 +15,18 @@ CertiFlow is a commercial multi-tenant SaaS platform built to design, issue, ver
 
 ---
 
-## 1. Executive Summary & Core Value Proposition
+## Enterprise Documentation Suite
 
-### The Problem with Traditional Certificate Platforms
+CertiFlow features an exhaustive, production-grade documentation suite located in the [`docs/`](file:///e:/Certificate/docs/) directory:
+
+| Document | Description | Target Audience |
+| :--- | :--- | :--- |
+| [**Architecture & System Design**](file:///e:/Certificate/docs/ARCHITECTURE.md) | Client/Server separation of authority, data pipelines, state machines, and threat model. | Architects, Tech Leads, Security Teams |
+| [**Unified API Reference**](file:///e:/Certificate/docs/API_REFERENCE.md) | Full specification across all 18 REST routers, standard `APIResponse[T]` envelope, and error codes. | Backend Developers, Integrators |
+| [**Developer & Contributor Guide**](file:///e:/Certificate/docs/DEVELOPER_GUIDE.md) | Local setup (Windows/Linux), environment catalog, test execution commands, and Docker deployment. | All Engineers & Contributors |
+| [**Standards & Cryptography Spec**](file:///e:/Certificate/docs/STANDARDS_COMPLIANCE.md) | W3C VC v2.0, Open Badges 3.0, Ed25519 signing, RFC 8785 canonicalization, and SHA-256 sealing. | Cryptographers, Standards Auditors |
+| [**Product & Operator Handbook**](file:///e:/Certificate/docs/USER_AND_PRODUCT_MANUAL.md) | End-to-end user manual: canvas editor, CSV ingestion, fuzzy mapping, bulk issuance, and verification. | Registrars, Operations, L&D Admins |
+| [**Product Completion Audit**](file:///e:/Certificate/PRODUCT_COMPLETION_STATUS.md) | Detailed 92% readiness audit, test coverage matrix (375 tests), and remaining milestone tracks. | Engineering Leadership, Stakeholders |
 
 1. **Static, Forged PDFs**: Traditional platforms produce simple static PDFs that are easily duplicated, altered, or photoshopped with no verifiable tamper evidence.
 2. **Platform Lock-In**: Verification links depend completely on the issuing vendor staying online forever. If the vendor shuts down, the certificate link breaks.
@@ -91,7 +101,7 @@ CertiFlow solves these challenges by combining human-readable visual presentatio
 - **Data Ingestion**: Streaming CSV parser with encoding and delimiter sniffing, OpenPyXL for Excel `.xlsx`
 - **Email Delivery**: Pluggable provider adapters (SMTP with STARTTLS, SendGrid, Amazon SES, Mock) with Jinja2 templating
 - **Billing & Subscriptions**: Stripe Checkout integration, inbound webhook pipeline with replay protection, multi-tier usage metering
-- **Testing**: `pytest` + `pytest-asyncio` + `pytest-cov` + `httpx` (**279 passing automated tests, 82% backend line coverage**)
+- **Testing**: `pytest` + `pytest-asyncio` + `pytest-cov` + `httpx` + `playwright` (**375 automated tests passing: 247 Backend Pytest, 114 Full Playwright E2E, 14 Dedicated Auth E2E, 0 TypeScript errors**)
 
 ---
 
