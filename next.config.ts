@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
 
 const isProduction = process.env.NODE_ENV === "production" && process.env.APP_ENV !== "development";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline';
+    script-src 'self' ${isProduction ? "'unsafe-inline'" : "'unsafe-eval' 'unsafe-inline'"};
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     img-src 'self' blob: data: https:;
     font-src 'self' https://fonts.gstatic.com data:;
@@ -11,7 +12,7 @@ const cspHeader = `
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
-    connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 ws://localhost:3000 ws://127.0.0.1:3000 wss: http: https:;
+    connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 ws://localhost:3000 ws://127.0.0.1:3000 ${apiUrl ? apiUrl : ""};
     ${isProduction ? "upgrade-insecure-requests;" : ""}
 `
   .replace(/\s{2,}/g, " ")

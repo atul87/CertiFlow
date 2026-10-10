@@ -57,7 +57,6 @@ export const tokenStorage = {
   setTokens: (access: string, refresh?: string | null) => {
     if (typeof window === "undefined") return;
     localStorage.setItem("certiflow_access_token", access);
-    localStorage.setItem("certiflow_demo_mode", "true");
     if (refresh) {
       localStorage.setItem("certiflow_refresh_token", refresh);
     }
@@ -74,10 +73,7 @@ export const tokenStorage = {
   },
   isDemoMode: (): boolean => {
     if (typeof window === "undefined") return false;
-    return (
-      localStorage.getItem("certiflow_demo_mode") === "true" ||
-      !!localStorage.getItem("certiflow_access_token")
-    );
+    return localStorage.getItem("certiflow_demo_mode") === "true";
   },
   setDemoMode: (enabled: boolean) => {
     if (typeof window === "undefined") return;
@@ -98,6 +94,11 @@ export const orgStorage = {
   setOrgId: (orgId: string) => {
     if (typeof window === "undefined") return;
     localStorage.setItem("certiflow_org_id", orgId);
+  },
+  clearOrgId: () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("certiflow_org_id");
+    }
   },
 };
 

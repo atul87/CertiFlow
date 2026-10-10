@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { api, tokenStorage } from "@/lib/api-client";
+import { api, tokenStorage, orgStorage } from "@/lib/api-client";
 
 export interface AuthUser {
   id: string;
@@ -78,6 +78,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore
     } finally {
+      tokenStorage.clearTokens();
+      orgStorage.clearOrgId();
       setUser(null);
       router.push("/login");
     }

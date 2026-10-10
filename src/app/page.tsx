@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { AnnouncementBar } from "@/components/navigation/announcement-bar";
 import { Navbar } from "@/components/navigation/navbar";
 import { HeroSection } from "@/components/marketing/hero-section";
@@ -17,14 +18,30 @@ import {
   FeatureDelivery,
   FeatureBatchDashboard,
 } from "@/components/marketing/feature-sections";
-import { UseCasesSection } from "@/components/marketing/use-cases-section";
-import { TemplateGallery } from "@/components/marketing/template-gallery";
-import { SecuritySection } from "@/components/marketing/security-section";
-import { PricingSection } from "@/components/marketing/pricing-section";
-import { FAQSection } from "@/components/marketing/faq-section";
-import { FinalCTASection } from "@/components/marketing/final-cta-section";
 import { Footer } from "@/components/marketing/footer";
-import { DemoVideoModal } from "@/components/marketing/demo-video-modal";
+
+const UseCasesSection = dynamic(
+  () => import("@/components/marketing/use-cases-section").then((mod) => mod.UseCasesSection)
+);
+const TemplateGallery = dynamic(
+  () => import("@/components/marketing/template-gallery").then((mod) => mod.TemplateGallery)
+);
+const SecuritySection = dynamic(
+  () => import("@/components/marketing/security-section").then((mod) => mod.SecuritySection)
+);
+const PricingSection = dynamic(
+  () => import("@/components/marketing/pricing-section").then((mod) => mod.PricingSection)
+);
+const FAQSection = dynamic(
+  () => import("@/components/marketing/faq-section").then((mod) => mod.FAQSection)
+);
+const FinalCTASection = dynamic(
+  () => import("@/components/marketing/final-cta-section").then((mod) => mod.FinalCTASection)
+);
+const DemoVideoModal = dynamic(
+  () => import("@/components/marketing/demo-video-modal").then((mod) => mod.DemoVideoModal),
+  { ssr: false }
+);
 
 export default function LandingPage() {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);

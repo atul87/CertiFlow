@@ -1,0 +1,10 @@
+.next/
+node_modules/
+build/
+out/
+dist/
+coverage/
+test-results/
+playwright-report/
+storage/
+Backend/

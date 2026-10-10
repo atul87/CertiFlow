@@ -40,10 +40,6 @@ class DatabaseManager:
                     raise
 
     @classmethod
-    def get_collection(cls, name: str) -> AsyncIOMotorCollection:
-        return cls.get_db()[name]
-
-    @classmethod
     async def connect(cls) -> None:
         """Connect to local or remote MongoDB instance."""
         if cls.client is None:
@@ -56,8 +52,9 @@ class DatabaseManager:
             # Test ping
             await cls.client.admin.command("ping")
             logger.info("Successfully connected to MongoDB database '%s'", settings.MONGODB_DATABASE)
-            # Initialize required collections & indexes
-            await cls.init_indexes()
+            # Initialize required collections & indexes if enabled
+            if settings.AUTO_INIT_INDEXES:
+                await cls.init_indexes()
 
     @classmethod
     async def close(cls) -> None:

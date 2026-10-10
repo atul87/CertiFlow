@@ -20,6 +20,8 @@ async def test_db_lifecycle(request):
         yield
         return
 
+    original_db = settings.MONGODB_DATABASE
+    original_env = settings.APP_ENV
     settings.MONGODB_DATABASE = TEST_DB_NAME
     settings.APP_ENV = "test"
     await DatabaseManager.connect()
@@ -32,6 +34,8 @@ async def test_db_lifecycle(request):
         yield
     finally:
         await DatabaseManager.close()
+        settings.MONGODB_DATABASE = original_db
+        settings.APP_ENV = original_env
 
 
 @pytest_asyncio.fixture

@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     # Database
     MONGODB_URI: str = "mongodb://localhost:27017"
     MONGODB_DATABASE: str = "certificate_platform"
+    AUTO_INIT_INDEXES: bool = True
 
     # Security & JWT
     JWT_SECRET_KEY: str = "certiflow-local-dev-jwt-secret-key-must-be-long-and-secure-32chars"

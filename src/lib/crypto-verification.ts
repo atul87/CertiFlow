@@ -1,5 +1,3 @@
-import { createHash } from "crypto";
-
 export interface CertificateSignaturePayload {
   id: string;
   name: string;
@@ -9,12 +7,17 @@ export interface CertificateSignaturePayload {
 }
 
 /**
- * Computes deterministic SHA-256 HMAC digital signature for a certificate credential
+ * Computes deterministic SHA-256 digital signature for a certificate credential
+ * using the standard Web Crypto API (browser and edge safe, zero Node.js polyfill bloat).
  */
-export function generateCertificateSignature(
+export async function generateCertificateSignature(
   payload: CertificateSignaturePayload,
-  secretKey: string = "certiflow_default_issuer_secret_2026"
-): string {
+  secretKey: string
+): Promise<string> {
+  if (!secretKey) {
+    throw new Error("Secret key is required for certificate signature generation");
+  }
+
   const normalizedString = [
     payload.id.trim(),
     payload.name.trim(),
@@ -24,18 +27,25 @@ export function generateCertificateSignature(
     secretKey,
   ].join("|");
 
-  return createHash("sha256").update(normalizedString, "utf8").digest("hex");
+  const msgUint8 = new TextEncoder().encode(normalizedString);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 /**
  * Validates whether a provided digital signature matches the claimed payload
  */
-export function verifyCertificateSignature(
+export async function verifyCertificateSignature(
   payload: CertificateSignaturePayload,
   signature: string,
-  secretKey: string = "certiflow_default_issuer_secret_2026"
-): { isValid: boolean; computedHash: string } {
-  const computedHash = generateCertificateSignature(payload, secretKey);
+  secretKey: string
+): Promise<{ isValid: boolean; computedHash: string }> {
+  if (!secretKey) {
+    throw new Error("Secret key is required for certificate signature verification");
+  }
+
+  const computedHash = await generateCertificateSignature(payload, secretKey);
   const isValid = computedHash.toLowerCase() === signature.trim().toLowerCase();
 
   return {
