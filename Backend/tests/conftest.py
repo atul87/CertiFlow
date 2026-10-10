@@ -1,9 +1,14 @@
+import os
+os.environ["APP_ENV"] = "test"
+
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from app.core.config import settings
 from app.core.database import DatabaseManager
 from app.main import app
+
+settings.APP_ENV = "test"
 
 TEST_DB_NAME = "certificate_platform_test"
 
