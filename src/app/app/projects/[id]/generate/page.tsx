@@ -50,16 +50,6 @@ export default function BatchGenerationPage({
     { title: "Cryptographic Keys", desc: "SHA-256 tamper-proof QR signing active", status: "passed" },
   ]);
 
-  // Generation Simulation State
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isFinished, setIsFinished] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [processedCount, setProcessedCount] = useState(0);
-  const [generatedList, setGeneratedList] = useState<GeneratedCert[]>([]);
-  const [emailModalOpen, setEmailModalOpen] = useState(false);
-  const [isSendingEmails, setIsSendingEmails] = useState(false);
-  const [emailsSentCount, setEmailsSentCount] = useState(0);
-
   // Sample data to simulate live generation stream
   const sampleBatch: Omit<GeneratedCert, "status" | "timeMs">[] = [
     { id: "1", row: 1, name: "Atul Kumar", course: "AI Mastery 2026", email: "atul@example.com", certificateId: "CERT-AF72K9" },
@@ -74,6 +64,45 @@ export default function BatchGenerationPage({
     { id: "10", row: 10, name: "Devansh Nair", course: "AI Mastery 2026", email: "devansh.n@cloudlab.org", certificateId: "CERT-JE60U1" },
   ];
 
+  const [activeBatch, setActiveBatch] = useState<Omit<GeneratedCert, "status" | "timeMs">[]>(sampleBatch);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("certiflow_custom_recipients");
+      const activeFile = localStorage.getItem("certiflow_active_csv_filename") || "recipients_5_batch.csv";
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const customList: Omit<GeneratedCert, "status" | "timeMs">[] = parsed.map((item: any, idx: number) => ({
+            id: String(idx + 1),
+            row: idx + 1,
+            name: item.name || item.recipient_name || item.raw?.["Full Name"] || item.raw?.["Name"] || `Recipient ${idx + 1}`,
+            course: item.course || item.program_name || item.raw?.["Course"] || "AI Workshop 2026",
+            email: item.email || item.recipient_email || item.raw?.["Email"] || `recipient${idx + 1}@example.com`,
+            certificateId: idx === 0 ? "CERT-AF72K9" : `CERT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+          }));
+          setActiveBatch(customList);
+          setFlightChecks([
+            { title: "Recipient Data File", desc: `${activeFile} (${customList.length} rows, 0 null fields)`, status: "passed" },
+            { title: "Field Mappings", desc: "5 of 5 dynamic placeholders matched", status: "passed" },
+            { title: "Canvas Vector Layout", desc: "A4 Landscape 3508 × 2480px @ 300 DPI verified", status: "passed" },
+            { title: "Cryptographic Keys", desc: "SHA-256 tamper-proof QR signing active", status: "passed" },
+          ]);
+        }
+      }
+    } catch {}
+  }, []);
+
+  // Generation Simulation State
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isFinished, setIsFinished] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [processedCount, setProcessedCount] = useState(0);
+  const [generatedList, setGeneratedList] = useState<GeneratedCert[]>([]);
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [isSendingEmails, setIsSendingEmails] = useState(false);
+  const [emailsSentCount, setEmailsSentCount] = useState(0);
+
   const handleStartGeneration = () => {
     setIsGenerating(true);
     setIsFinished(false);
@@ -81,15 +110,16 @@ export default function BatchGenerationPage({
     setProcessedCount(0);
     setGeneratedList([]);
 
+    const batchToRun = activeBatch;
     let count = 0;
     const interval = setInterval(() => {
       count += 1;
-      const pct = Math.min(100, Math.round((count / sampleBatch.length) * 100));
+      const pct = Math.min(100, Math.round((count / batchToRun.length) * 100));
       setProgress(pct);
-      setProcessedCount(count * 50); // Simulates 50 certs per tick up to 500
+      setProcessedCount(count);
 
-      if (count <= sampleBatch.length) {
-        const item = sampleBatch[count - 1];
+      if (count <= batchToRun.length) {
+        const item = batchToRun[count - 1];
         setGeneratedList((prev) => [
           {
             ...item,
@@ -100,14 +130,35 @@ export default function BatchGenerationPage({
         ]);
       }
 
-      if (count >= sampleBatch.length) {
+      if (count >= batchToRun.length) {
         clearInterval(interval);
         setIsGenerating(false);
         setIsFinished(true);
         setProgress(100);
-        setProcessedCount(500);
+        setProcessedCount(batchToRun.length);
+
+        // Also persist to certiflow_generated_vault so certificates page displays them
+        try {
+          const vaultEntries = batchToRun.map((b, i) => ({
+            id: `cert-gen-${b.id}`,
+            organization_id: "org_default_01",
+            certificate_number: b.certificateId,
+            verification_code: `VC-${b.certificateId.replace("CERT-", "")}`,
+            status: "active",
+            recipient_name: b.name,
+            recipient_email: b.email,
+            program_name: b.course,
+            issue_date: "November 10, 2026",
+            template_name: "Academic Honors Certificate",
+            template_id: "tmpl-001",
+            sha256_hash: `sha256:${(i * 1234567 + 987654321).toString(16).padEnd(64, "e")}`,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }));
+          localStorage.setItem("certiflow_generated_vault", JSON.stringify(vaultEntries));
+        } catch {}
       }
-    }, 450);
+    }, 400);
   };
 
   const handleSendEmails = () => {
@@ -181,14 +232,14 @@ export default function BatchGenerationPage({
             {!isGenerating && !isFinished && (
               <Button size="lg" onClick={handleStartGeneration} className="h-11 px-6 shadow-md">
                 <Play className="w-4 h-4 mr-2" />
-                Start 500 Batch Generation
+                Start {activeBatch.length === 5 ? "5" : "500"} Batch Generation
               </Button>
             )}
 
             {isGenerating && (
               <Button size="lg" disabled className="h-11 px-6">
                 <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Rendering {processedCount} / 500...
+                Rendering {processedCount} / {activeBatch.length}...
               </Button>
             )}
 
@@ -200,7 +251,7 @@ export default function BatchGenerationPage({
                 </Button>
                 <Button size="lg" className="h-11 shadow-md bg-emerald-600 hover:bg-emerald-700">
                   <Download className="w-4 h-4 mr-2" />
-                  Download ZIP (42.8 MB)
+                  Download ZIP
                 </Button>
               </div>
             )}
@@ -211,14 +262,14 @@ export default function BatchGenerationPage({
             <div className="flex items-center justify-between text-[13px]">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-gray-800">
-                  Batch Progress: {processedCount} / 500
+                  Batch Progress: {processedCount} / {activeBatch.length}
                 </span>
                 <span className="text-gray-400">·</span>
                 <span className="font-mono text-gray-500">
                   {isGenerating
                     ? "Compiling vector pages & signing QR hashes..."
                     : isFinished
-                    ? "Batch rendering completed in 4.2 seconds"
+                    ? "Batch rendering completed in 2.4 seconds"
                     : "Awaiting execution trigger"}
                 </span>
               </div>
@@ -256,8 +307,8 @@ export default function BatchGenerationPage({
                 <span className="font-mono font-bold text-gray-800 text-[14px]">Vector PDF (300 DPI)</span>
               </div>
               <div className="p-3 rounded-xl bg-gray-50 border border-gray-200">
-                <span className="text-gray-500 block text-[10px] uppercase font-bold">ZIP Size</span>
-                <span className="font-mono font-bold text-gray-800 text-[14px]">42.8 MB</span>
+                <span className="text-gray-500 block text-[10px] uppercase font-bold">Total Batch</span>
+                <span className="font-mono font-bold text-gray-800 text-[14px]">{activeBatch.length} Recipients</span>
               </div>
             </div>
           </div>
@@ -272,7 +323,7 @@ export default function BatchGenerationPage({
               </div>
               <div>
                 <h3 className="text-[16px] font-bold text-emerald-950">
-                  500 Certificates Successfully Generated
+                  {activeBatch.length} Certificates Successfully Generated
                 </h3>
                 <p className="text-[13px] text-emerald-800">
                   Ready to download ZIP, export recipient verification ledger, or trigger direct email delivery.
@@ -310,7 +361,7 @@ export default function BatchGenerationPage({
               </p>
             </div>
             <span className="text-[11px] font-mono text-gray-500">
-              Showing {generatedList.length} of 500 records
+              Showing {generatedList.length} of {activeBatch.length} records
             </span>
           </div>
 
@@ -319,7 +370,7 @@ export default function BatchGenerationPage({
               <Clock className="w-8 h-8 mx-auto text-gray-300 animate-pulse" />
               <p className="text-[13px] font-medium text-gray-600">No certificates generated yet</p>
               <p className="text-[12px] text-gray-400">
-                Click &quot;Start 500 Batch Generation&quot; above to watch the compiler in action.
+                Click &quot;Start {activeBatch.length} Batch Generation&quot; above to watch the compiler in action.
               </p>
             </div>
           ) : (

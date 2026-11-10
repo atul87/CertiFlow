@@ -70,6 +70,10 @@ export default function ProjectDataPage({
       }));
 
       setDataRows(mappedRows);
+      try {
+        localStorage.setItem("certiflow_custom_recipients", JSON.stringify(mappedRows));
+        localStorage.setItem("certiflow_active_csv_filename", file.name);
+      } catch {}
       setUploadNotice(`Worker processed ${mappedRows.length} records from ${file.name} (Valid: ${parsed.validRows})`);
       setTimeout(() => setUploadNotice(null), 5000);
     } catch {

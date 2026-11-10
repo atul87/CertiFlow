@@ -71,8 +71,8 @@ test.describe("E2E: Import Wizard End-to-End Flow", () => {
     await expect(page.getByText("Confidence")).toBeVisible();
 
     // Verify fields like Recipient Name and Email Address are mapped
-    await expect(page.getByText("Recipient Name").first()).toBeVisible();
-    await expect(page.getByText("Email Address").first()).toBeVisible();
+    await expect(page.locator("span", { hasText: /^Recipient Name/ }).first()).toBeVisible();
+    await expect(page.locator("span", { hasText: /^Email Address/ }).first()).toBeVisible();
 
     // Screenshot mapping step
     await page.screenshot({ path: `${ARTIFACT_DIR}/step1_mapping.png` });

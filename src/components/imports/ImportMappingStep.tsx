@@ -62,8 +62,8 @@ export function ImportMappingStep({
       {/* Mapping rows */}
       <div className="rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-xs">
         <div className="px-4 py-2.5 bg-gray-50 border-b border-[var(--color-border)] grid grid-cols-5 text-[11px] font-bold uppercase tracking-wider text-[var(--color-text-tertiary)]">
-          <span className="col-span-2">CSV Column</span>
           <span className="col-span-2">CertiFlow Field</span>
+          <span className="col-span-2">CSV Column</span>
           <span className="col-span-1 text-right">Confidence</span>
         </div>
         <div className="divide-y divide-[var(--color-border)] bg-white">
@@ -72,6 +72,13 @@ export function ImportMappingStep({
             const confidence = mappedCol ? (field.required ? 98 : 91) : 0;
             return (
               <div key={field.key} className="px-4 py-3 grid grid-cols-5 items-center gap-2">
+                <div className="col-span-2 flex items-center gap-1.5">
+                  <Shuffle className="w-3.5 h-3.5 text-gray-300 shrink-0" />
+                  <span className="text-[13px] font-medium text-[var(--color-text)]">
+                    {field.label}
+                  </span>
+                  {field.required && <span className="text-[10px] text-red-500 font-bold">*</span>}
+                </div>
                 <div className="col-span-2">
                   <select
                     value={mappedCol || ""}
@@ -85,13 +92,6 @@ export function ImportMappingStep({
                       </option>
                     ))}
                   </select>
-                </div>
-                <div className="col-span-2 flex items-center gap-1.5">
-                  <Shuffle className="w-3.5 h-3.5 text-gray-300 shrink-0" />
-                  <span className="text-[13px] font-medium text-[var(--color-text)]">
-                    {field.label}
-                  </span>
-                  {field.required && <span className="text-[10px] text-red-500 font-bold">*</span>}
                 </div>
                 <div className="col-span-1 flex justify-end">
                   {mappedCol ? (

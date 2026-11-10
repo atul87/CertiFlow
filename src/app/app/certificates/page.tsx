@@ -62,6 +62,19 @@ export default function CertificatesPage() {
   const [revokeTarget, setRevokeTarget] = useState<Certificate | null>(null);
 
   const [demoLoaded, setDemoLoaded] = useState(true);
+  const [customCerts, setCustomCerts] = useState<Certificate[]>([]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("certiflow_generated_vault");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCustomCerts(parsed);
+        }
+      }
+    } catch {}
+  }, []);
 
   // TanStack Query for certificates list
   const {
@@ -77,9 +90,11 @@ export default function CertificatesPage() {
   const revokeMutation = useRevokeCertificate();
   const restoreMutation = useRestoreCertificate();
 
-  const certificates: Certificate[] =
+  const baseCerts: Certificate[] =
     (certsData as any)?.items ||
     (Array.isArray(certsData) && certsData.length > 0 ? certsData : (demoLoaded ? DEMO_CERTS : []));
+
+  const certificates: Certificate[] = [...customCerts, ...baseCerts];
 
   const filteredCerts = certificates.filter((c) => {
     if (filter !== "all" && c.status !== filter) return false;

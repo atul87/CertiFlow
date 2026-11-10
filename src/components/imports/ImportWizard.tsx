@@ -5,6 +5,7 @@ import { CheckCircle2, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { tokenStorage } from "@/lib/api-client";
 import type { ImportRecord, Template } from "@/types";
+import { parseRecipientCSV } from "@/lib/csv-engine";
 import { ImportUploadStep } from "./ImportUploadStep";
 import { ImportMappingStep } from "./ImportMappingStep";
 import { ImportValidationStep } from "./ImportValidationStep";
@@ -68,11 +69,32 @@ export function ImportWizard() {
     setUploadError(null);
 
     try {
-      const res = await api.imports.upload(selectedFile, selectedTemplate || undefined);
-      setImportId(res.id);
-      setImportRecord(res);
-      const cols: string[] = res.column_headers || [];
-      if (cols.length > 0) setColumns(cols);
+      let cols: string[] = [];
+      try {
+        const text = await selectedFile.text();
+        const parsedLocal = parseRecipientCSV(text);
+        if (parsedLocal && parsedLocal.headers.length > 0) {
+          cols = parsedLocal.headers;
+        }
+      } catch {}
+
+      if (!tokenStorage.isDemoMode()) {
+        try {
+          const res = await api.imports.upload(selectedFile, selectedTemplate || undefined);
+          setImportId(res.id);
+          setImportRecord(res);
+          if (res.column_headers && res.column_headers.length > 0) {
+            cols = res.column_headers;
+          }
+        } catch {
+          // Fall back gracefully to client-parsed file columns
+        }
+      }
+
+      if (cols.length === 0) {
+        cols = ["Full Name", "Course", "Date", "Score", "Email"];
+      }
+      setColumns(cols);
 
       // Auto-detect default mappings
       const detected: Record<string, string> = {};
@@ -82,12 +104,13 @@ export function ImportWizard() {
         if (lc.includes("email") || lc.includes("mail")) detected.email = col;
         if (lc.includes("course") || lc.includes("program")) detected.program_name = col;
         if (lc.includes("date")) detected.issue_date = col;
+        if (lc.includes("score") || lc.includes("grade")) detected.grade = col;
       }
       setMapping((prev) => ({ ...prev, ...detected }));
       setStep(1);
     } catch {
       // Offline fallback
-      setColumns(["Student Name", "Email", "Course", "Date", "Grade"]);
+      setColumns(["Full Name", "Course", "Date", "Score", "Email"]);
       setStep(1);
     } finally {
       setUploading(false);
@@ -100,25 +123,25 @@ export function ImportWizard() {
       if (importId) {
         await api.imports.mapColumns(importId, mapping);
         const res = await api.imports.get(importId);
-        setValidRows(res.valid_rows || 4932);
-        setInvalidRows(res.invalid_rows || 68);
+        setValidRows(res.valid_rows || 5);
+        setInvalidRows(res.invalid_rows || 0);
+        setErrors([]);
+      } else if (selectedFile) {
+        const text = await selectedFile.text();
+        const parsed = parseRecipientCSV(text);
+        setValidRows(parsed.validRows || parsed.records.length || 5);
+        setInvalidRows(parsed.errors.length);
+        setErrors(parsed.errors);
       } else {
-        setValidRows(4932);
-        setInvalidRows(68);
+        setValidRows(5);
+        setInvalidRows(0);
+        setErrors([]);
       }
-      setErrors([
-        { row: 14, field: "email", message: "Invalid email format: 'alex@@domain..com'" },
-        { row: 38, field: "recipient_name", message: "Recipient name is missing or blank" },
-        { row: 92, field: "issue_date", message: "Unparseable date value: 'N/A'" },
-      ]);
       setStep(2);
     } catch {
-      setValidRows(4932);
-      setInvalidRows(68);
-      setErrors([
-        { row: 14, field: "email", message: "Invalid email format: 'alex@@domain..com'" },
-        { row: 38, field: "recipient_name", message: "Recipient name is missing or blank" },
-      ]);
+      setValidRows(5);
+      setInvalidRows(0);
+      setErrors([]);
       setStep(2);
     } finally {
       setSavingMapping(false);
@@ -130,6 +153,16 @@ export function ImportWizard() {
     try {
       if (importId) {
         await api.imports.confirm(importId);
+      }
+      if (selectedFile) {
+        try {
+          const text = await selectedFile.text();
+          const parsed = parseRecipientCSV(text);
+          if (parsed.records.length > 0) {
+            localStorage.setItem("certiflow_custom_recipients", JSON.stringify(parsed.records));
+            localStorage.setItem("certiflow_active_csv_filename", selectedFile.name);
+          }
+        } catch {}
       }
       setStep(3);
     } catch {
