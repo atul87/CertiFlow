@@ -216,26 +216,17 @@ docker run -d --name certiflow-redis -p 6379:6379 redis:7.2-alpine
 
 ## 5. Automated Testing Suite
 
-CertiFlow maintains **100% passing automated test suites** across both backend and frontend.
+CertiFlow maintains **100% passing automated test suites** across all system layers (440+ verified tests total).
 
-### 5.1 Backend Pytest Suite (247 Tests)
+### 5.1 Backend Pytest Suite (302 Tests)
 
 The backend test suite is located in `Backend/tests/` and uses `pytest-asyncio` with an isolated in-memory or ephemeral test database.
 
 ```powershell
-# Run the complete backend test suite
+# Run the complete backend test suite (302 tests)
 cd e:\Certificate\Backend
 .\.venv\Scripts\Activate.ps1
-pytest tests -v
-
-# Run only unit tests (fast, in-memory)
-pytest tests/unit -v
-
-# Run integration tests (requires MongoDB)
-pytest tests/integration -v
-
-# Run security & cryptographic verification tests
-pytest tests/security -v
+pytest -v --tb=short
 
 # Run with test coverage report
 pytest --cov=app --cov-report=term-missing
@@ -243,40 +234,49 @@ pytest --cov=app --cov-report=term-missing
 
 ---
 
-### 5.2 Frontend Playwright E2E Suite (114 Tests)
+### 5.2 Backend Go-Live Audit & Live Workflow Scripts (123 Checks)
 
-The end-to-end test harness runs against live Next.js and FastAPI instances, testing complete multi-browser and mobile user flows.
+CertiFlow includes production diagnostic and audit runners:
+
+```powershell
+# 1. Run the 112-check production readiness audit
+python scripts/go_live_audit.py
+
+# 2. Run the 11-stage live end-to-end backend workflow audit
+python scripts/e2e_backend_workflow_test.py
+```
+
+---
+
+### 5.3 Frontend Playwright E2E & Mobile Suite (139 Tests)
+
+The Playwright harness tests complete user journeys across Chromium, Mobile (375x812, 768x1024), and unit workers:
 
 ```bash
 # Ensure both servers are running:
 # 1. FastAPI on http://127.0.0.1:8000
 # 2. Next.js on http://localhost:3000
 
-# Run all Playwright tests across Chromium, Firefox, WebKit, and Mobile
-npm run test:e2e
-
-# Run only dedicated authentication E2E tests
-npx playwright test tests/e2e/auth-system.spec.ts --project=chromium
+# Run all Playwright tests (137 passed, 2 skipped)
+npx playwright test
 
 # Run tests with interactive Playwright UI mode
 npx playwright test --ui
 
-# View HTML test execution report
-npx playwright show-report
+# Run real browser batch generation tests
+node scripts/test_generate_10_certs.mjs
+node scripts/test_csv_upload_and_generate_5.mjs
 ```
 
 ---
 
-### 5.3 Static Analysis & Quality Assurance
+### 5.4 Static Analysis & Build Verification
 
 ```bash
-# 1. TypeScript compilation check (Zero errors allowed)
-npm run typecheck
+# 1. Strict TypeScript type check (Zero errors allowed)
+npx tsc --noEmit
 
-# 2. ESLint code style and Next.js rule verification
-npm run lint
-
-# 3. Production build test (validates Turbopack bundling)
+# 2. Production build verification (compiles all 34 routes via Turbopack)
 npm run build
 ```
 

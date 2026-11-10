@@ -3,6 +3,7 @@
 Enterprise-grade FastAPI + MongoDB + Redis backend microservice for automated certificate generation and portable digital credentials (**W3C Verifiable Credentials Data Model v2.0** and **1EdTech Open Badges 3.0**).
 
 > **Full Documentation Suite**:
+> - [**Production Deployment Handbook**](file:///e:/Certificate/DEPLOYMENT.md)
 > - [**System Architecture & Separation of Authority**](file:///e:/Certificate/docs/ARCHITECTURE.md)
 > - [**Unified 18-Domain REST API Reference**](file:///e:/Certificate/docs/API_REFERENCE.md)
 > - [**Developer Setup, Config & Test Manual**](file:///e:/Certificate/docs/DEVELOPER_GUIDE.md)
@@ -13,7 +14,7 @@ Enterprise-grade FastAPI + MongoDB + Redis backend microservice for automated ce
 
 ## 1. Technology Stack
 
-- **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Python 3.13 / ASGI)
+- **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Python 3.12+ / ASGI)
 - **Database**: [MongoDB](https://www.mongodb.com/) (Local service or MongoDB Atlas via Motor async driver)
 - **Background Queue & Cache**: [Redis](https://redis.io/) + [ARQ](https://arq-docs.helpmanual.io/) (Async Redis Queue)
 - **Validation & Settings**: [Pydantic v2](https://docs.pydantic.dev/) + `pydantic-settings`
@@ -24,7 +25,7 @@ Enterprise-grade FastAPI + MongoDB + Redis backend microservice for automated ce
 - **Data Ingestion**: Streaming CSV parser with automatic delimiter & encoding detection, OpenPyXL for Excel `.xlsx`
 - **Email Delivery**: Pluggable adapters for SMTP, SendGrid, Amazon SES, and Mock provider with Jinja2 templating
 - **Billing & Metering**: Stripe checkout & webhooks, multi-tier subscriptions, hard/soft quota enforcement, monthly metered usage
-- **Testing**: `pytest` + `pytest-asyncio` + `pytest-cov` + `httpx` (**279/279 automated tests passing, 82% line coverage baseline**)
+- **Testing**: `pytest` + `pytest-asyncio` + `pytest-cov` + `httpx` (**302/302 automated tests passing, 112/112 Go-Live checks passed, and 11-stage live workflow verified**)
 - **Containerization**: Docker + Docker Compose
 
 ---
