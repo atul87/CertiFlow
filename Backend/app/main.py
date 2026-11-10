@@ -56,6 +56,8 @@ def create_app() -> FastAPI:
             "X-CSRF-Token",
             "X-Request-ID",
             "Idempotency-Key",
+            "X-Organization-Id",
+            "x-organization-id",
         ],
         expose_headers=["X-Request-ID"]
     )

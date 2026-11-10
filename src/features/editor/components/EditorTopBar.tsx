@@ -8,7 +8,6 @@ import {
   Grid,
   ShieldCheck,
   Download,
-  Play,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -122,6 +121,7 @@ export function EditorTopBar({
           <button
             onClick={handlePrevRecipient}
             disabled={activeRecipientIndex === 0}
+            title="Previous Recipient"
             className="p-1 rounded text-gray-500 hover:text-black hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent"
           >
             <ChevronLeft className="w-3.5 h-3.5" />
@@ -142,6 +142,7 @@ export function EditorTopBar({
           <button
             onClick={handleNextRecipient}
             disabled={activeRecipientIndex === recipients.length - 1}
+            title="Next Recipient"
             className="p-1 rounded text-gray-500 hover:text-black hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent"
           >
             <ChevronRight className="w-3.5 h-3.5" />
@@ -219,11 +220,11 @@ export function EditorTopBar({
           Sample PDF
         </Button>
 
-        {/* Next step: Batch Generation */}
-        <Button size="sm" className="h-8 text-[12px]" asChild>
-          <Link href={`/app/projects/${projectId}/generate`}>
-            <Play className="w-3 h-3 mr-1" />
-            Batch Engine
+        {/* Next step: Step 4 Live Preview Studio */}
+        <Button size="sm" className="h-8 text-[12px] font-semibold gap-1.5 shadow-xs" asChild>
+          <Link href={`/app/projects/${projectId}/preview`}>
+            <span>Step 4: Live Preview</span>
+            <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </Button>
       </div>

@@ -1,32 +1,46 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { useEditorStore } from "../use-editor-store";
 import { Layer } from "../types";
-import { Sparkles, ShieldCheck } from "lucide-react";
+import {
+  Sparkles,
+  ShieldCheck,
+  AlignCenter,
+  AlignVerticalSpaceAround,
+  AlignLeft,
+  AlignRight,
+  Trash2,
+} from "lucide-react";
 
 export function EditorCanvas() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragLayerId, setDragLayerId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [snapGuideX, setSnapGuideX] = useState<number | null>(null);
+  const [snapGuideY, setSnapGuideY] = useState<number | null>(null);
 
   const {
     layers,
     selectedLayerId,
     selectLayer,
     updateLayer,
+    removeLayer,
     zoom,
     showGrid,
     showSafeMargin,
     recipients,
     activeRecipientIndex,
+    undo,
+    redo,
   } = useEditorStore();
 
   const currentRecipient = recipients[activeRecipientIndex] || recipients[0];
+  const selectedLayer = layers.find((l) => l.id === selectedLayerId);
 
   // Substitute dynamic variable placeholders with active recipient data
-  const renderLayerContent = (layer: Layer) => {
+  const renderLayerContent = useCallback((layer: Layer) => {
     let text = layer.content;
     if (layer.variableKey) {
       switch (layer.variableKey) {
@@ -49,7 +63,6 @@ export function EditorCanvas() {
           text = currentRecipient.name;
       }
     } else {
-      // General replacement for embedded tags like "Issued: {{DATE}}"
       text = text
         .replace(/\{\{NAME\}\}/g, currentRecipient.name)
         .replace(/\{\{COURSE\}\}/g, currentRecipient.course)
@@ -58,23 +71,101 @@ export function EditorCanvas() {
         .replace(/\{\{CERTIFICATE_ID\}\}/g, currentRecipient.certificateId);
     }
     return text;
-  };
+  }, [currentRecipient]);
 
   // Compute auto-fitted font size for long recipient names
-  const getComputedFontSize = (layer: Layer, text: string) => {
+  const getComputedFontSize = useCallback((layer: Layer, text: string) => {
     if (!layer.autoFit) return layer.fontSize;
     const baseSize = layer.fontSize;
     const minSize = layer.minFontSize || 16;
 
-    // Scale down proportionally if string length exceeds standard threshold
     if (text.length > 28) {
       const scale = Math.max(minSize / baseSize, 1 - (text.length - 28) * 0.02);
       return Math.round(baseSize * scale);
     }
     return baseSize;
-  };
+  }, []);
 
-  // Dragging logic
+  // Keyboard navigation & nudging
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is currently typing inside an input, textarea, or contentEditable
+      const target = e.target as HTMLElement;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      // Undo / Redo shortcuts
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
+        e.preventDefault();
+        redo();
+        return;
+      }
+
+      if (!selectedLayerId || !selectedLayer || selectedLayer.locked) return;
+
+      const step = e.shiftKey ? 2.5 : 0.5;
+
+      switch (e.key) {
+        case "ArrowLeft":
+          e.preventDefault();
+          updateLayer(selectedLayerId, {
+            x: Math.max(5, Math.min(95, Math.round((selectedLayer.x - step) * 10) / 10)),
+          });
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          updateLayer(selectedLayerId, {
+            x: Math.max(5, Math.min(95, Math.round((selectedLayer.x + step) * 10) / 10)),
+          });
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          updateLayer(selectedLayerId, {
+            y: Math.max(5, Math.min(95, Math.round((selectedLayer.y - step) * 10) / 10)),
+          });
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          updateLayer(selectedLayerId, {
+            y: Math.max(5, Math.min(95, Math.round((selectedLayer.y + step) * 10) / 10)),
+          });
+          break;
+        case "Delete":
+        case "Backspace":
+          e.preventDefault();
+          removeLayer(selectedLayerId);
+          break;
+        case "Escape":
+          e.preventDefault();
+          selectLayer(null);
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedLayerId, selectedLayer, updateLayer, removeLayer, selectLayer, undo, redo]);
+
+  // Dragging logic with multi-axis magnetic snapping
   const handleMouseDown = (e: React.MouseEvent, layer: Layer) => {
     if (layer.locked) return;
     e.stopPropagation();
@@ -102,10 +193,36 @@ export function EditorCanvas() {
     let newX = mouseX - dragOffset.x;
     let newY = mouseY - dragOffset.y;
 
-    // Magnetic snapping to horizontal center (50%)
-    if (Math.abs(newX - 50) < 1.5) {
+    let activeGuideX: number | null = null;
+    let activeGuideY: number | null = null;
+
+    // 1. Center Snapping (Horizontal Center: X = 50%)
+    if (Math.abs(newX - 50) < 1.6) {
       newX = 50;
+      activeGuideX = 50;
     }
+
+    // 2. Middle Snapping (Vertical Center: Y = 50%)
+    if (Math.abs(newY - 50) < 1.6) {
+      newY = 50;
+      activeGuideY = 50;
+    }
+
+    // 3. Peer Layer Snapping (Align to other visible layers)
+    for (const other of layers) {
+      if (other.id === dragLayerId || !other.visible) continue;
+      if (Math.abs(newX - other.x) < 1.2 && activeGuideX === null) {
+        newX = other.x;
+        activeGuideX = other.x;
+      }
+      if (Math.abs(newY - other.y) < 1.2 && activeGuideY === null) {
+        newY = other.y;
+        activeGuideY = other.y;
+      }
+    }
+
+    setSnapGuideX(activeGuideX);
+    setSnapGuideY(activeGuideY);
 
     // Keep within bounds
     newX = Math.max(5, Math.min(95, newX));
@@ -120,6 +237,29 @@ export function EditorCanvas() {
   const handleMouseUp = () => {
     setIsDragging(false);
     setDragLayerId(null);
+    setSnapGuideX(null);
+    setSnapGuideY(null);
+  };
+
+  // Quick Alignment Handlers
+  const handleAlignHorizontalCenter = () => {
+    if (!selectedLayerId) return;
+    updateLayer(selectedLayerId, { x: 50 });
+  };
+
+  const handleAlignVerticalMiddle = () => {
+    if (!selectedLayerId) return;
+    updateLayer(selectedLayerId, { y: 50 });
+  };
+
+  const handleAlignLeft = () => {
+    if (!selectedLayerId) return;
+    updateLayer(selectedLayerId, { x: 25 });
+  };
+
+  const handleAlignRight = () => {
+    if (!selectedLayerId) return;
+    updateLayer(selectedLayerId, { x: 75 });
   };
 
   return (
@@ -136,7 +276,7 @@ export function EditorCanvas() {
           transformOrigin: "center center",
           transition: "transform 0.15s ease-out",
         }}
-        className="shrink-0"
+        className="shrink-0 relative"
       >
         {/* Certificate Container: A4 Landscape Ratio (1.414 : 1) */}
         <div
@@ -186,9 +326,27 @@ export function EditorCanvas() {
             />
           )}
 
-          {/* CENTER MAGNETIC GUIDELINE (Visible during drag if near center) */}
-          {isDragging && (
-            <div className="absolute left-1/2 top-0 bottom-0 w-px bg-indigo-500/70 pointer-events-none z-30" />
+          {/* DYNAMIC MAGNETIC GUIDELINES */}
+          {snapGuideX !== null && (
+            <div
+              style={{ left: `${snapGuideX}%` }}
+              className="absolute top-0 bottom-0 w-0.5 border-l-2 border-dashed border-cyan-500 pointer-events-none z-50 shadow-sm"
+            >
+              <div className="bg-cyan-600 text-white font-mono text-[9px] px-1 py-0.5 rounded-xs absolute top-2 left-1">
+                X: {Math.round(snapGuideX)}%
+              </div>
+            </div>
+          )}
+
+          {snapGuideY !== null && (
+            <div
+              style={{ top: `${snapGuideY}%` }}
+              className="absolute left-0 right-0 h-0.5 border-t-2 border-dashed border-cyan-500 pointer-events-none z-50 shadow-sm"
+            >
+              <div className="bg-cyan-600 text-white font-mono text-[9px] px-1 py-0.5 rounded-xs absolute left-2 top-1">
+                Y: {Math.round(snapGuideY)}%
+              </div>
+            </div>
           )}
 
           {/* LAYERS RENDERING PIPELINE */}
@@ -271,23 +429,17 @@ export function EditorCanvas() {
                 {/* 3. QR VERIFICATION CODE LAYER */}
                 {layer.type === "qr" && (
                   <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-white/90 border border-gray-200/80 shadow-xs select-none">
-                    {/* High-fidelity SVG QR representation */}
                     <svg className="w-16 h-16" viewBox="0 0 100 100" fill="none">
-                      {/* Outer boundary */}
                       <rect width="100" height="100" fill="white" />
-                      {/* Top-left locator */}
                       <rect x="5" y="5" width="28" height="28" fill="#111111" rx="2" />
                       <rect x="10" y="10" width="18" height="18" fill="white" />
                       <rect x="14" y="14" width="10" height="10" fill="#111111" />
-                      {/* Top-right locator */}
                       <rect x="67" y="5" width="28" height="28" fill="#111111" rx="2" />
                       <rect x="72" y="10" width="18" height="18" fill="white" />
                       <rect x="76" y="14" width="10" height="10" fill="#111111" />
-                      {/* Bottom-left locator */}
                       <rect x="5" y="67" width="28" height="28" fill="#111111" rx="2" />
                       <rect x="10" y="72" width="18" height="18" fill="white" />
                       <rect x="14" y="76" width="10" height="10" fill="#111111" />
-                      {/* Dense mock data blocks */}
                       <rect x="40" y="8" width="6" height="6" fill="#111111" />
                       <rect x="52" y="8" width="6" height="6" fill="#111111" />
                       <rect x="40" y="20" width="6" height="6" fill="#111111" />
@@ -318,9 +470,7 @@ export function EditorCanvas() {
                 {layer.type === "badge" && (
                   <div className="flex flex-col items-center justify-center select-none">
                     <div className="relative w-20 h-20 flex items-center justify-center">
-                      {/* Scalloped Gold Medal SVG */}
                       <svg className="w-20 h-20 filter drop-shadow-md" viewBox="0 0 100 100">
-                        {/* 16-point star seal */}
                         <polygon
                           points="50,0 62,20 85,15 80,38 100,50 80,62 85,85 62,80 50,100 38,80 15,85 20,62 0,50 20,38 15,15 38,20"
                           fill="#FDE68A"
@@ -362,8 +512,10 @@ export function EditorCanvas() {
                     <div className="absolute -bottom-2 -right-2 w-3.5 h-3.5 bg-white border-2 border-[var(--color-primary)] rounded-full shadow-xs cursor-nwse-resize" />
 
                     {/* Coordinate indicator tooltip */}
-                    <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[9px] font-mono px-1.5 py-0.5 rounded shadow pointer-events-none whitespace-nowrap z-50">
-                      X: {Math.round(layer.x)}% · Y: {Math.round(layer.y)}%
+                    <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[9px] font-mono px-2 py-0.5 rounded shadow pointer-events-none whitespace-nowrap z-50 flex items-center gap-1.5">
+                      <span>X: {Math.round(layer.x)}% · Y: {Math.round(layer.y)}%</span>
+                      <span className="text-gray-400">|</span>
+                      <span className="text-gray-300">Nudge: Arrow keys</span>
                     </div>
                   </>
                 )}
@@ -371,6 +523,51 @@ export function EditorCanvas() {
             );
           })}
         </div>
+
+        {/* FLOATING QUICK ALIGNMENT TOOLBAR (Visible when a layer is selected) */}
+        {selectedLayer && (
+          <div className="absolute -bottom-14 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md border border-[var(--color-border)] px-3 py-1.5 rounded-xl shadow-lg flex items-center gap-1 z-50 text-[12px]">
+            <span className="text-[11px] font-semibold text-gray-500 mr-1.5 border-r border-gray-200 pr-2">
+              {selectedLayer.name}
+            </span>
+            <button
+              onClick={handleAlignHorizontalCenter}
+              title="Center Horizontally (X: 50%)"
+              className="p-1.5 rounded-lg text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+            >
+              <AlignCenter className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleAlignVerticalMiddle}
+              title="Center Vertically (Y: 50%)"
+              className="p-1.5 rounded-lg text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+            >
+              <AlignVerticalSpaceAround className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleAlignLeft}
+              title="Align Left (X: 25%)"
+              className="p-1.5 rounded-lg text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+            >
+              <AlignLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleAlignRight}
+              title="Align Right (X: 75%)"
+              className="p-1.5 rounded-lg text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+            >
+              <AlignRight className="w-4 h-4" />
+            </button>
+            <div className="h-4 w-px bg-gray-200 mx-1" />
+            <button
+              onClick={() => removeLayer(selectedLayer.id)}
+              title="Delete Layer (Del)"
+              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

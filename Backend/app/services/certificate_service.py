@@ -343,6 +343,23 @@ class CertificateService:
         )
 
         recipient_input = dict(request.data or {})
+
+        # Normalize common aliases so both uppercase tags ({{NAME}}) and snake_case fields work
+        if "NAME" in recipient_input and "recipient_name" not in recipient_input:
+            recipient_input["recipient_name"] = recipient_input["NAME"]
+        elif "recipient_name" in recipient_input and "NAME" not in recipient_input:
+            recipient_input["NAME"] = recipient_input["recipient_name"]
+
+        if "COURSE" in recipient_input and "program_name" not in recipient_input:
+            recipient_input["program_name"] = recipient_input["COURSE"]
+        elif "program_name" in recipient_input and "COURSE" not in recipient_input:
+            recipient_input["COURSE"] = recipient_input["program_name"]
+
+        if "EMAIL" in recipient_input and "recipient_email" not in recipient_input:
+            recipient_input["recipient_email"] = recipient_input["EMAIL"]
+        elif "recipient_email" in recipient_input and "EMAIL" not in recipient_input:
+            recipient_input["EMAIL"] = recipient_input["recipient_email"]
+
         resolved_data: dict[str, Any] = {**recipient_input, **system_vars}
 
         # 4. Validate required fields — P3.10

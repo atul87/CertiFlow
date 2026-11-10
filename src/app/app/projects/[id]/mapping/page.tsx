@@ -10,10 +10,13 @@ import {
   Sliders,
   Check,
   RotateCcw,
-  Zap,
+  Palette,
+  Eye,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ProjectPipelineHeader } from "@/components/project/ProjectPipelineHeader";
 
 interface MappingItem {
   tag: string;
@@ -100,65 +103,54 @@ export default function FieldMappingPage({
     setTimeout(() => setAutoMatchedNotice(false), 3000);
   };
 
+  const allMapped = mappings.every((m) => m.selectedColumn !== "— Do not map —");
+
   return (
     <div className="min-h-screen bg-[var(--color-background)] flex flex-col">
-      {/* Top Header */}
-      <header className="border-b border-[var(--color-border)] bg-white sticky top-0 z-30">
-        <div className="container-marketing h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              href={`/app/projects/${id || "proj-ai-2026"}/data`}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-black hover:bg-gray-100 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-            <div className="w-8 h-8 rounded-lg bg-[var(--color-primary-light)] text-[var(--color-primary)] flex items-center justify-center font-bold">
-              <Sparkles className="w-4 h-4" />
+      {/* 5-Step Pipeline Header */}
+      <ProjectPipelineHeader
+        projectId={id || "proj-ai-2026"}
+        projectName="AI Workshop 2026"
+        currentStep="mapping"
+        recipientCount={500}
+      />
+
+      {/* Main Content */}
+      <main className="container-marketing py-8 flex-1 space-y-6 max-w-4xl mx-auto">
+        {/* Step Guide Banner */}
+        <div className="bg-white rounded-2xl border border-[var(--color-border)] p-6 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-50 text-indigo-700">
+                Step 2 of 5
+              </span>
+              <h1 className="text-[18px] font-bold text-gray-900">
+                Field Mapping Studio
+              </h1>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-[16px] font-bold text-gray-900">
-                  Field Mapping Studio
-                </h1>
-                <Badge variant="success" className="text-[11px]">
-                  All Fields Connected
-                </Badge>
-              </div>
-              <p className="text-[11px] text-gray-500">
-                5 Template Variables · 5 CSV Columns
-              </p>
-            </div>
+            <p className="text-[13px] text-gray-500 max-w-2xl">
+              Connect template placeholders to your CSV headers with intelligent 5-tier fuzzy matching.
+            </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="secondary" onClick={handleAutoMatch}>
-              <RotateCcw className="w-3.5 h-3.5 mr-1" />
-              Auto-Match Columns
+          <div className="flex items-center gap-2 shrink-0">
+            <Button size="sm" variant="secondary" onClick={handleAutoMatch} className="gap-1.5 text-[12px] h-9">
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Auto-Match All</span>
             </Button>
-            <Button size="sm" asChild>
-              <Link href={`/app/projects/${id || "proj-ai-2026"}/preview`}>
-                Continue to Preview <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            <Button size="sm" asChild className="gap-1.5 text-[12px] h-9 font-semibold">
+              <Link href={`/app/projects/${id || "proj-ai-2026"}/editor`}>
+                <Palette className="w-3.5 h-3.5" />
+                <span>Step 3: Studio</span>
               </Link>
             </Button>
           </div>
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container-marketing py-8 flex-1 space-y-6 max-w-4xl mx-auto">
-        <div className="space-y-1">
-          <h2 className="text-[22px] font-bold text-gray-900">
-            Connect Template Placeholders to Spreadsheet Columns
-          </h2>
-          <p className="text-[13px] text-gray-500">
-            CertiFlow automatically detects matching headers. Review and confirm dynamic tag bindings below.
-          </p>
-        </div>
 
         {autoMatchedNotice && (
           <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>Auto-matching algorithm successfully connected all 5 variables with &gt;90% confidence.</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Fuzzy matching algorithm successfully mapped all template variables with &gt;90% confidence.</span>
           </div>
         )}
 
@@ -168,7 +160,7 @@ export default function FieldMappingPage({
             <div className="col-span-4">Certificate Template Tag</div>
             <div className="col-span-1 text-center"></div>
             <div className="col-span-4">Spreadsheet Column (CSV)</div>
-            <div className="col-span-3 text-right">Sample Preview</div>
+            <div className="col-span-3 text-right">Resolved Value</div>
           </div>
 
           <div className="divide-y divide-[var(--color-border)]">
@@ -197,7 +189,7 @@ export default function FieldMappingPage({
                   <select
                     value={m.selectedColumn}
                     onChange={(e) => handleColumnChange(m.tag, e.target.value)}
-                    className="w-full text-[13px] bg-[var(--color-background)] border border-[var(--color-border)] rounded-xl p-2 font-medium text-gray-800 focus:outline-none focus:border-[var(--color-primary)]"
+                    className="w-full text-[13px] bg-[var(--color-background)] border border-[var(--color-border)] rounded-xl p-2 font-medium text-gray-800 focus:outline-none focus:border-[var(--color-primary)] cursor-pointer"
                   >
                     {CSV_COLUMNS.map((col) => (
                       <option key={col} value={col}>
@@ -219,19 +211,35 @@ export default function FieldMappingPage({
         </div>
 
         {/* Verification Banner */}
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] flex items-center justify-between">
+        <div className="p-5 rounded-2xl bg-white border border-[var(--color-border)] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-            <span>
-              All template tags are mapped. Ready to verify rendering in the live preview studio.
-            </span>
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[14px] font-bold text-gray-900">
+                {allMapped ? "All 5 Dynamic Tags Successfully Mapped" : "Review Incomplete Field Mappings"}
+              </p>
+              <p className="text-[12px] text-gray-500">
+                Next: Customize the certificate vector layout in the Canvas Studio, or skip directly to Live Preview.
+              </p>
+            </div>
           </div>
 
-          <Button size="sm" asChild>
-            <Link href={`/app/projects/${id || "proj-ai-2026"}/preview`}>
-              Inspect Preview <ArrowRight className="w-3.5 h-3.5 ml-1" />
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button size="sm" variant="secondary" asChild className="h-9 text-[12px]">
+              <Link href={`/app/projects/${id || "proj-ai-2026"}/editor`}>
+                <Palette className="w-3.5 h-3.5 mr-1 text-indigo-600" />
+                <span>Open Canvas Studio</span>
+              </Link>
+            </Button>
+            <Button size="sm" asChild className="h-9 text-[12px] font-semibold gap-1">
+              <Link href={`/app/projects/${id || "proj-ai-2026"}/preview`}>
+                <span>Step 4: Live Preview</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </main>
     </div>

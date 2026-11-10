@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api-client";
 import {
   Award,
@@ -16,17 +17,23 @@ import {
   ChevronRight,
   Sparkles,
   FileSpreadsheet,
+  Palette,
+  Eye,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 
 export default function ProjectsDirectoryPage() {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "completed" | "draft">("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectDesc, setNewProjectDesc] = useState("");
+  const [selectedTemplate, setSelectedTemplate] = useState("Academic Honors Landscape (A4)");
+  const [includeDemoData, setIncludeDemoData] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
 
   const [projectsList, setProjectsList] = useState<any[]>([
@@ -126,9 +133,9 @@ export default function ProjectsDirectoryPage() {
       id: createdId,
       name: newProjectName,
       description: newProjectDesc || "Custom certification project",
-      count: 0,
-      status: "Active Template",
-      template: "Academic Honors Landscape (A4)",
+      count: includeDemoData ? 50 : 0,
+      status: "Ready for Generation",
+      template: selectedTemplate,
       updated: "Just now",
       verified: 0,
     };
@@ -138,8 +145,10 @@ export default function ProjectsDirectoryPage() {
     setIsCreateModalOpen(false);
     setNewProjectName("");
     setNewProjectDesc("");
-  };
 
+    // Direct transition to the project's data step
+    router.push(`/app/projects/${createdId}/data`);
+  };
 
   const filtered = projectsList.filter((p) => {
     const matchesSearch =
@@ -182,6 +191,9 @@ export default function ProjectsDirectoryPage() {
               <Link href="/templates" className="px-3 py-1.5 text-[var(--color-text-secondary)] hover:text-[var(--color-text)] rounded-md transition-colors">
                 Templates
               </Link>
+              <Link href="/verify" className="px-3 py-1.5 text-[var(--color-text-secondary)] hover:text-[var(--color-text)] rounded-md transition-colors">
+                Public Ledger
+              </Link>
               <Link href="/app/settings" className="px-3 py-1.5 text-[var(--color-text-secondary)] hover:text-[var(--color-text)] rounded-md transition-colors">
                 Settings
               </Link>
@@ -194,7 +206,7 @@ export default function ProjectsDirectoryPage() {
               New Project
             </Button>
             <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-[13px] border border-indigo-200">
-              AK
+              CF
             </div>
           </div>
         </div>
@@ -202,32 +214,13 @@ export default function ProjectsDirectoryPage() {
 
       {/* Main Content */}
       <main className="container-marketing py-10 flex-1 space-y-6">
-        {/* P12 Migration Notice */}
-        <div className="bg-indigo-50/80 border border-indigo-100 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-[13px] font-bold text-indigo-950">Templates is now the central design workspace</p>
-              <p className="text-[12px] text-indigo-700">Project presets and canvas designs have migrated to the new Templates & Issuance centers.</p>
-            </div>
-          </div>
-          <Link
-            href="/app/templates"
-            className="px-4 py-2 rounded-xl bg-[#635BFF] text-white text-[12px] font-semibold hover:bg-indigo-600 transition-colors shrink-0 text-center shadow-xs"
-          >
-            Open Templates Center →
-          </Link>
-        </div>
-
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-[28px] font-bold text-[var(--color-text)] tracking-tight">
               All Certification Projects
             </h1>
             <p className="text-[14px] text-[var(--color-text-secondary)] mt-1">
-              Manage design templates, recipient datasets, field mapping, and batch issuance.
+              Follow our 5-step pipeline: Data ➔ Mapping ➔ Studio ➔ Preview ➔ Batch Issuance.
             </p>
           </div>
 
@@ -254,7 +247,7 @@ export default function ProjectsDirectoryPage() {
             <div className="flex bg-gray-100 p-0.5 rounded-lg text-[12px]">
               <button
                 onClick={() => setFilter("all")}
-                className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-md font-medium transition-colors cursor-pointer ${
                   filter === "all" ? "bg-white text-black shadow-2xs font-semibold" : "text-gray-600"
                 }`}
               >
@@ -262,7 +255,7 @@ export default function ProjectsDirectoryPage() {
               </button>
               <button
                 onClick={() => setFilter("completed")}
-                className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-md font-medium transition-colors cursor-pointer ${
                   filter === "completed" ? "bg-white text-emerald-700 shadow-2xs font-semibold" : "text-gray-600"
                 }`}
               >
@@ -270,7 +263,7 @@ export default function ProjectsDirectoryPage() {
               </button>
               <button
                 onClick={() => setFilter("draft")}
-                className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-md font-medium transition-colors cursor-pointer ${
                   filter === "draft" ? "bg-white text-amber-700 shadow-2xs font-semibold" : "text-gray-600"
                 }`}
               >
@@ -304,6 +297,54 @@ export default function ProjectsDirectoryPage() {
                     {proj.description}
                   </p>
                 </div>
+
+                {/* 5-Step Pipeline Shortcuts */}
+                <div className="pt-2">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">
+                    Pipeline Steps:
+                  </span>
+                  <div className="flex items-center justify-between text-[11px] bg-gray-50 p-1.5 rounded-xl border border-gray-100">
+                    <Link
+                      href={`/app/projects/${proj.id}/data`}
+                      className="px-2 py-1 rounded hover:bg-white text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+                      title="Step 1: Recipient Data"
+                    >
+                      1. Data
+                    </Link>
+                    <span className="text-gray-300">›</span>
+                    <Link
+                      href={`/app/projects/${proj.id}/mapping`}
+                      className="px-2 py-1 rounded hover:bg-white text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+                      title="Step 2: Field Mapping"
+                    >
+                      2. Map
+                    </Link>
+                    <span className="text-gray-300">›</span>
+                    <Link
+                      href={`/app/projects/${proj.id}/editor`}
+                      className="px-2 py-1 rounded hover:bg-white text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+                      title="Step 3: Canvas Studio"
+                    >
+                      3. Studio
+                    </Link>
+                    <span className="text-gray-300">›</span>
+                    <Link
+                      href={`/app/projects/${proj.id}/preview`}
+                      className="px-2 py-1 rounded hover:bg-white text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+                      title="Step 4: Live Preview"
+                    >
+                      4. Preview
+                    </Link>
+                    <span className="text-gray-300">›</span>
+                    <Link
+                      href={`/app/projects/${proj.id}/generate`}
+                      className="px-2 py-1 rounded hover:bg-white text-indigo-700 font-bold transition-colors"
+                      title="Step 5: Batch Generation"
+                    >
+                      5. Issue
+                    </Link>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-4 pt-2 border-t border-[var(--color-border)]">
@@ -321,13 +362,14 @@ export default function ProjectsDirectoryPage() {
                 <div className="flex gap-2">
                   <Button size="sm" variant="secondary" className="flex-1 justify-center" asChild>
                     <Link href={`/app/projects/${proj.id}/editor`}>
-                      <Sliders className="w-3.5 h-3.5 mr-1" />
-                      Editor
+                      <Palette className="w-3.5 h-3.5 mr-1 text-indigo-600" />
+                      Studio
                     </Link>
                   </Button>
                   <Button size="sm" className="flex-1 justify-center" asChild>
-                    <Link href={`/app/projects/${proj.id}`}>
-                      Overview <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    <Link href={`/app/projects/${proj.id}/data`}>
+                      <span>Start Pipeline</span>
+                      <ArrowRight className="w-3.5 h-3.5 ml-1" />
                     </Link>
                   </Button>
                 </div>
@@ -342,7 +384,7 @@ export default function ProjectsDirectoryPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         title="Create New Certification Project"
-        description="Set up a new project workspace for template design and bulk issuance."
+        description="Set up your project with a pre-configured template and recipient dataset."
         size="md"
       >
         <form onSubmit={handleCreateProject} className="space-y-4 py-2">
@@ -353,11 +395,27 @@ export default function ProjectsDirectoryPage() {
             <input
               required
               type="text"
-              placeholder="e.g. Winter 2026 DevCon Certification"
+              placeholder="e.g. Winter 2026 AI Certification Summit"
               value={newProjectName}
               onChange={(e) => setNewProjectName(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-[var(--color-border)] text-[13px]"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--color-border)] text-[13px] bg-[var(--color-background)] focus:outline-none focus:border-[var(--color-primary)]"
             />
+          </div>
+
+          <div>
+            <label className="block text-[12px] font-semibold text-gray-700 mb-1">
+              Select Starting Template
+            </label>
+            <select
+              value={selectedTemplate}
+              onChange={(e) => setSelectedTemplate(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl border border-[var(--color-border)] text-[13px] bg-[var(--color-background)] focus:outline-none focus:border-[var(--color-primary)] cursor-pointer"
+            >
+              <option value="Academic Honors Landscape (A4)">Academic Honors Landscape (A4)</option>
+              <option value="Modern Tech Gradient">Modern Tech Gradient</option>
+              <option value="Prestige Roman Honors">Prestige Roman Honors</option>
+              <option value="Executive Minimalist">Executive Minimalist</option>
+            </select>
           </div>
 
           <div>
@@ -365,11 +423,28 @@ export default function ProjectsDirectoryPage() {
               Description (Optional)
             </label>
             <textarea
-              rows={3}
-              placeholder="Short note regarding cohort, organizers, or award criteria..."
+              rows={2}
+              placeholder="Cohort notes, program curriculum, or credential requirements..."
               value={newProjectDesc}
               onChange={(e) => setNewProjectDesc(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-[var(--color-border)] text-[13px]"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--color-border)] text-[13px] bg-[var(--color-background)] focus:outline-none focus:border-[var(--color-primary)]"
+            />
+          </div>
+
+          <div className="p-3 rounded-xl bg-indigo-50/80 border border-indigo-100 flex items-center justify-between">
+            <div className="space-y-0.5">
+              <span className="text-[12px] font-bold text-indigo-900 block">
+                Pre-populate Sample Recipient Dataset
+              </span>
+              <span className="text-[11px] text-indigo-700">
+                Loads 50 verified attendees so you can test the full pipeline right away.
+              </span>
+            </div>
+            <input
+              type="checkbox"
+              checked={includeDemoData}
+              onChange={(e) => setIncludeDemoData(e.target.checked)}
+              className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
             />
           </div>
 
@@ -377,7 +452,9 @@ export default function ProjectsDirectoryPage() {
             <Button variant="secondary" onClick={() => setIsCreateModalOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit">Create Workspace</Button>
+            <Button type="submit" disabled={isCreating || !newProjectName.trim()}>
+              {isCreating ? "Creating..." : "Create & Launch Pipeline →"}
+            </Button>
           </div>
         </form>
       </Modal>

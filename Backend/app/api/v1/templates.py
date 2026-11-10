@@ -30,6 +30,8 @@ from app.schemas.template import (
 from app.schemas.asset import AssetResponse
 from app.services.template_service import TemplateService
 from app.services.asset_service import AssetService
+from app.repositories.template_version_repository import TemplateVersionRepository
+from app.core.exceptions import NotFoundError
 
 router = APIRouter(prefix="/templates", tags=["Templates"])
 
@@ -276,6 +278,35 @@ async def publish_template_version(
         version_id=version_id,
         template_id=template_id,
         org_id=context["org_id"],
+        user_id=context["user_id"],
+        ip_address=ip,
+        user_agent=ua
+    )
+    return APIResponse.ok(published)
+
+
+@router.post(
+    "/{template_id}/publish",
+    response_model=APIResponse[Any],
+    summary="Publish latest draft version of template to production (Owner or Admin only)"
+)
+async def publish_template_latest(
+    template_id: str,
+    request: Request,
+    context: Dict[str, Any] = Depends(get_current_user_and_org),
+    _role: str = Depends(require_role(["owner", "admin"]))
+):
+    ip = get_client_ip(request)
+    ua = get_client_user_agent(request)
+    org_id = context["org_id"]
+    latest = await TemplateVersionRepository.get_latest_version(template_id)
+    if not latest:
+        raise NotFoundError(message="No draft version found for template", code="VERSION_NOT_FOUND")
+
+    published = await TemplateService.publish_version(
+        version_id=latest["id"],
+        template_id=template_id,
+        org_id=org_id,
         user_id=context["user_id"],
         ip_address=ip,
         user_agent=ua

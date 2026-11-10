@@ -1,6 +1,7 @@
 from __future__ import annotations
 import io
 from typing import Dict, Any, Optional
+from pydantic import BaseModel
 from fastapi import (
     APIRouter,
     Request,
@@ -21,6 +22,35 @@ from app.schemas.verification import (
 from app.services.verification_service import VerificationService
 
 router = APIRouter(prefix="/public", tags=["Public Verification"])
+
+
+class VerifyRequest(BaseModel):
+    verification_code: Optional[str] = None
+    code: Optional[str] = None
+    certificate_id: Optional[str] = None
+
+
+@router.post(
+    "/verify",
+    response_model=APIResponse[PublicVerificationResponse],
+    summary="Publicly verify a certificate via POST body",
+    description="Accepts verification_code or code in the JSON payload.",
+)
+async def public_verify_certificate_post(
+    payload: VerifyRequest,
+    request: Request,
+):
+    code = payload.verification_code or payload.code
+    if not code:
+        raise ValidationError(message="Either verification_code or code must be provided", code="MISSING_VERIFICATION_CODE")
+    ip = get_client_ip(request)
+    ua = get_client_user_agent(request)
+    result = await VerificationService.verify_by_code(
+        code=code,
+        user_agent=ua,
+        ip_address=ip,
+    )
+    return APIResponse.ok(result)
 
 
 @router.get(

@@ -22,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
+import { ProjectPipelineHeader } from "@/components/project/ProjectPipelineHeader";
 
 interface GeneratedCert {
   id: string;
@@ -126,43 +127,13 @@ export default function BatchGenerationPage({
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] flex flex-col">
-      {/* Top Header */}
-      <header className="border-b border-[var(--color-border)] bg-white sticky top-0 z-30">
-        <div className="container-marketing h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              href={`/app/projects/${id || "proj-ai-2026"}`}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-black hover:bg-gray-100 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-            <div className="w-8 h-8 rounded-lg bg-[var(--color-primary-light)] text-[var(--color-primary)] flex items-center justify-center font-bold">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-[16px] font-bold text-[var(--color-text)]">
-                  Batch Generation Engine
-                </h1>
-                <Badge variant={isFinished ? "success" : "primary"} className="text-[11px]">
-                  {isFinished ? "500 Certificates Ready" : isGenerating ? "Compiling..." : "Ready"}
-                </Badge>
-              </div>
-              <p className="text-[11px] text-gray-500">
-                Project: AI Workshop 2026 · Batch #BCH-8820
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="secondary" asChild>
-              <Link href={`/app/projects/${id || "proj-ai-2026"}/editor`}>
-                Edit Template Canvas
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      {/* 5-Step Pipeline Header */}
+      <ProjectPipelineHeader
+        projectId={id || "proj-ai-2026"}
+        projectName="AI Workshop 2026"
+        currentStep="generate"
+        recipientCount={500}
+      />
 
       {/* Main Content */}
       <main className="container-marketing py-8 flex-1 space-y-8 max-w-5xl mx-auto">
