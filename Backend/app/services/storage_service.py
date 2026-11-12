@@ -34,7 +34,7 @@ class StorageService:
 
     @classmethod
     def _safe_key(cls, storage_key: str) -> str:
-        key = str(storage_key).replace("\\\\", "/").lstrip("/")
+        key = str(storage_key).replace(chr(92), "/").lstrip("/")
         path = PurePosixPath(key)
         if not key or any(part in ("", ".", "..") for part in path.parts):
             raise ValueError("Invalid storage key")
