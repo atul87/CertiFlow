@@ -75,12 +75,11 @@ async def readiness_check():
 
     # 3. Storage Check
     try:
-        base_dir = StorageService.get_base_dir()
-        if not base_dir.exists():
-            base_dir.mkdir(parents=True, exist_ok=True)
-        test_file = base_dir / ".health_probe"
-        test_file.write_text("probe", encoding="utf-8")
-        test_file.unlink(missing_ok=True)
+        probe_key = f".health-probe/{os.urandom(8).hex()}"
+        StorageService.save_bytes(b"probe", probe_key, "text/plain")
+        if StorageService.read_file(probe_key) != b"probe":
+            raise RuntimeError("Storage probe read-back failed")
+        StorageService.delete_file(probe_key)
         dependencies["storage"] = "ok"
     except Exception as e:
         dependencies["storage"] = f"error: {str(e)}"
