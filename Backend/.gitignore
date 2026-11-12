@@ -25,5 +25,5 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-# Storage
-storage/
+# Storage uploads directory
+/storage/
