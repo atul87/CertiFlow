@@ -41,6 +41,7 @@ from app.services.analytics.date_range_helper import DateRangeHelper
 from app.core.database import DatabaseManager
 from app.queue.redis import QueueManager
 from app.core.config import settings
+from app.services.storage_service import StorageService
 import os
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
@@ -259,7 +260,11 @@ async def get_operational_health(
     # 3. Storage check
     storage_status = "healthy"
     try:
-        os.makedirs(settings.STORAGE_DIR, exist_ok=True)
+        probe_key = f".health-probe/{os.urandom(8).hex()}"
+        StorageService.save_bytes(b"probe", probe_key, "text/plain")
+        if StorageService.read_file(probe_key) != b"probe":
+            raise RuntimeError("Storage probe read-back failed")
+        StorageService.delete_file(probe_key)
     except Exception as e:
         storage_status = f"unhealthy: {str(e)}"
 

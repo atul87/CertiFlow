@@ -180,9 +180,11 @@ def test_production_validator_rejects_insecure_defaults():
 @pytest.mark.no_db
 def test_production_validator_passes_with_strong_secrets():
     """Settings must initialize cleanly in production when strong unique secrets are supplied."""
+    from cryptography.fernet import Fernet
     prod_settings = Settings(
         APP_ENV="production",
         JWT_SECRET_KEY="a-very-secure-random-jwt-secret-key-for-prod-9999",
+        ENCRYPTION_KEY=Fernet.generate_key().decode(),
         SIGNED_URL_SECRET="a-very-long-production-signed-url-secret-32ch",
         WEBHOOK_SIGNING_SECRET="a-very-long-production-webhook-secret-32ch",
         DEBUG=False

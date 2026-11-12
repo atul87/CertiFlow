@@ -112,14 +112,8 @@ class ReportService:
 
             # Save report to storage
             filename = f"report_{report_type}_{report_job_id}.{fmt}"
-            rel_dir = Path("reports") / org_id
-            target_dir = StorageService.get_base_dir() / rel_dir
-            target_dir.mkdir(parents=True, exist_ok=True)
-            target_path = target_dir / filename
-            with open(target_path, "wb") as f:
-                f.write(file_bytes)
-
-            storage_key = str((rel_dir / filename).as_posix())
+            rel_key = (Path("reports") / org_id / filename).as_posix()
+            storage_key = StorageService.save_bytes(file_bytes, rel_key, "text/csv" if fmt == "csv" else "application/pdf")
             file_size = len(file_bytes)
 
             updated = await ReportJobRepository.update_status(

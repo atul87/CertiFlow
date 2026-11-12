@@ -158,17 +158,13 @@ def _save_certificate_files(
     Returns (pdf_key, preview_key).
     """
     year = datetime.now(timezone.utc).year
-    base_dir = Path(StorageService.get_base_dir()) / "certificates" / org_id / str(year) / cert_id
-    base_dir.mkdir(parents=True, exist_ok=True)
-
-    pdf_path = base_dir / "certificate.pdf"
-    pdf_path.write_bytes(pdf_bytes)
-    pdf_key = str((Path("certificates") / org_id / str(year) / cert_id / "certificate.pdf").as_posix())
-
-    preview_path = base_dir / "preview.png"
-    preview_path.write_bytes(preview_bytes)
-    preview_key = str((Path("certificates") / org_id / str(year) / cert_id / "preview.png").as_posix())
-
+    prefix = Path("certificates") / org_id / str(year) / cert_id
+    pdf_key = StorageService.save_bytes(
+        pdf_bytes, (prefix / "certificate.pdf").as_posix(), "application/pdf"
+    )
+    preview_key = StorageService.save_bytes(
+        preview_bytes, (prefix / "preview.png").as_posix(), "image/png"
+    )
     return pdf_key, preview_key
 
 

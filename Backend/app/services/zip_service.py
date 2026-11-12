@@ -2,6 +2,7 @@ from __future__ import annotations
 import os
 import re
 import zipfile
+import io
 import logging
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -146,13 +147,11 @@ class ZipService:
                 raise ValidationError(message="No completed certificates found for this job", code="NO_CERTIFICATES")
 
             # 2. Setup zip target path
-            base_dir = Path(StorageService.get_base_dir()) / "zips" / org_id / job_id
-            base_dir.mkdir(parents=True, exist_ok=True)
-            zip_file_path = base_dir / "certificates.zip"
-            zip_storage_key = str((Path("zips") / org_id / job_id / "certificates.zip").as_posix())
+            zip_buffer = io.BytesIO()
+            zip_storage_key = (Path("zips") / org_id / job_id / "certificates.zip").as_posix()
 
-            # 3. Stream certificates into ZipFile
-            with zipfile.ZipFile(zip_file_path, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
+            # 3. Build the archive in memory, then persist it to shared storage.
+            with zipfile.ZipFile(zip_buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
                 seen_filenames = set()
 
                 for item in items:
@@ -186,7 +185,9 @@ class ZipService:
 
                     archive.writestr(unique_filename, pdf_bytes)
 
-            size_bytes = os.path.getsize(zip_file_path)
+            zip_bytes = zip_buffer.getvalue()
+            StorageService.save_bytes(zip_bytes, zip_storage_key, "application/zip")
+            size_bytes = len(zip_bytes)
             now = datetime.now(timezone.utc)
             expires_at = now + timedelta(hours=settings.ZIP_EXPIRY_HOURS)
 

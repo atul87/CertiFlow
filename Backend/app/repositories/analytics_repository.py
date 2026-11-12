@@ -7,6 +7,7 @@ from bson import ObjectId
 from app.core.database import DatabaseManager
 from app.core.config import settings
 from app.repositories.user_repository import serialize_doc
+from app.services.storage_service import StorageService
 
 
 class AnalyticsRepository:
@@ -629,25 +630,9 @@ class AnalyticsRepository:
     @classmethod
     async def get_storage_metrics(cls, org_id: str) -> Dict[str, Any]:
         """Calculates storage footprint in MB for the organization."""
-        base_dir = settings.STORAGE_DIR
-        org_cert_dir = os.path.join(base_dir, "certificates", org_id)
-        org_asset_dir = os.path.join(base_dir, "assets", org_id)
-        org_report_dir = os.path.join(base_dir, "reports", org_id)
-
-        def _dir_size(d: str) -> int:
-            if not os.path.isdir(d):
-                return 0
-            total = 0
-            for root, _, files in os.walk(d):
-                for f in files:
-                    fp = os.path.join(root, f)
-                    if os.path.isfile(fp):
-                        total += os.path.getsize(fp)
-            return total
-
-        certs_b = _dir_size(org_cert_dir)
-        assets_b = _dir_size(org_asset_dir)
-        reports_b = _dir_size(org_report_dir)
+        certs_b = StorageService.get_prefix_size(f"certificates/{org_id}")
+        assets_b = StorageService.get_prefix_size(f"assets/{org_id}")
+        reports_b = StorageService.get_prefix_size(f"reports/{org_id}")
         total_b = certs_b + assets_b + reports_b
 
         return {

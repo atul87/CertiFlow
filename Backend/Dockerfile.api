@@ -43,8 +43,9 @@ COPY --from=builder /root/.local /home/appuser/.local
 # Copy application source code
 COPY --chown=appuser:appgroup . .
 
-# Ensure storage directories exist with appropriate permissions
+# Ensure storage directories exist and scripts are executable
 RUN mkdir -p /app/storage/certificates /app/storage/templates /app/storage/imports /app/storage/fonts && \
+    chmod +x /app/scripts/start_api.sh && \
     chown -R appuser:appgroup /app/storage /home/appuser
 
 USER appuser
@@ -52,6 +53,6 @@ USER appuser
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8000/api/v1/health || exit 1
+    CMD curl -f http://localhost:${PORT:-8000}/api/v1/health || exit 1
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--proxy-headers"]
+CMD ["bash", "/app/scripts/start_api.sh"]
