@@ -27,6 +27,7 @@ from app.services.excel_parser import ExcelParser
 from app.services.data_profiler import DataProfiler
 from app.services.field_matcher import FieldMatcher
 from app.services.validation_service import ValidationService
+from app.services.storage_service import StorageService
 
 logger = logging.getLogger(__name__)
 
@@ -35,12 +36,8 @@ MAX_IMPORT_SIZE_BYTES = 25 * 1024 * 1024  # 25MB
 
 class ImportService:
     @classmethod
-    def _get_storage_path(cls, org_id: str, import_id: str, filename: str) -> Tuple[str, Path]:
-        base_dir = Path(settings.STORAGE_DIR) / "imports" / org_id / import_id
-        base_dir.mkdir(parents=True, exist_ok=True)
-        target_path = base_dir / filename
-        storage_key = str((Path("imports") / org_id / import_id / filename).as_posix())
-        return storage_key, target_path
+    def _get_storage_path(cls, org_id: str, import_id: str, filename: str) -> str:
+        return (Path("imports") / org_id / import_id / filename).as_posix()
 
     @classmethod
     async def create_and_parse_import(
@@ -107,9 +104,8 @@ class ImportService:
         import_id = import_record["id"]
 
         # 4. Save original file to storage
-        storage_key, file_path = cls._get_storage_path(org_id, import_id, filename)
-        with open(file_path, "wb") as f:
-            f.write(content)
+        storage_key = cls._get_storage_path(org_id, import_id, filename)
+        StorageService.save_bytes(content, storage_key, "text/csv" if file_type == "csv" else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
         await ImportRepository.update(import_id, org_id, {"storage_key": storage_key, "status": "parsing"})
 
@@ -293,12 +289,9 @@ class ImportService:
 
         # 4. Re-read original file and perform row-level validation
         storage_key = imp.get("storage_key")
-        full_path = Path(settings.STORAGE_DIR) / storage_key
-        if not full_path.is_file():
+        content = StorageService.read_file(storage_key) if storage_key else None
+        if content is None:
             raise NotFoundError(message="Original upload file is missing from storage", code="FILE_NOT_FOUND")
-
-        with open(full_path, "rb") as f:
-            content = f.read()
 
         if imp["file_type"] == "csv":
             _, raw_rows = CSVParser.parse(content)
