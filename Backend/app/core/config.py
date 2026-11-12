@@ -174,7 +174,9 @@ class Settings(BaseSettings):
             }
             if (
                 self.JWT_SECRET_KEY in insecure_jwt_defaults
-                or "local-dev" in self.JWT_SECRET_KEY
+                or "local-dev" in self.JWT_SECRET_KEY.lower()
+                or "replace-with" in self.JWT_SECRET_KEY.lower()
+                or "placeholder" in self.JWT_SECRET_KEY.lower()
                 or len(self.JWT_SECRET_KEY) < 32
             ):
                 raise ValueError(
@@ -196,6 +198,8 @@ class Settings(BaseSettings):
 
             if (
                 self.SIGNED_URL_SECRET == "certiflow-signed-download-url-secret-key-32chars!"
+                or "replace-with" in self.SIGNED_URL_SECRET.lower()
+                or "placeholder" in self.SIGNED_URL_SECRET.lower()
                 or len(self.SIGNED_URL_SECRET) < 16
             ):
                 raise ValueError(
@@ -204,6 +208,8 @@ class Settings(BaseSettings):
 
             if (
                 self.WEBHOOK_SIGNING_SECRET == "certiflow-webhook-signature-secret-key!"
+                or "replace-with" in self.WEBHOOK_SIGNING_SECRET.lower()
+                or "placeholder" in self.WEBHOOK_SIGNING_SECRET.lower()
                 or len(self.WEBHOOK_SIGNING_SECRET) < 16
             ):
                 raise ValueError(
