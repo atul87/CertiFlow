@@ -32,7 +32,7 @@ services:
       - key: ENCRYPTION_KEY
         sync: false
       - key: S3_ENDPOINT
-        sync: false
+        value: ""
       - key: S3_REGION
         sync: false
       - key: S3_BUCKET_NAME
