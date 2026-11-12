@@ -16,8 +16,10 @@ services:
         value: production
       - key: DEBUG
         value: "false"
+      # Temporary demo mode: Render's free filesystem is ephemeral.
+      # Switch to "s3" and configure the S3_* variables before production use.
       - key: STORAGE_TYPE
-        value: s3
+        value: local
       - key: EMBEDDED_WORKER
         value: "true"
       - key: MONGODB_URI
