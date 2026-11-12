@@ -165,6 +165,16 @@ class Settings(BaseSettings):
                 raise ValueError("S3 storage is enabled but required settings are missing: " + ", ".join(missing_storage))
 
         if env in ("production", "prod", "staging"):
+            if env in ("production", "prod") and self.DEBUG:
+                raise ValueError(
+                    "CRITICAL PRODUCTION CONFIGURATION ERROR: DEBUG cannot be True in production environment."
+                )
+
+            if self.ALLOW_DEMO_AUTH:
+                raise ValueError(
+                    "CRITICAL PRODUCTION SECURITY ERROR: ALLOW_DEMO_AUTH must be False in production/staging environments — P13.1."
+                )
+
             insecure_jwt_defaults = {
                 "certiflow-local-dev-jwt-secret-key-must-be-long-and-secure-32chars",
                 "secret",
@@ -221,16 +231,6 @@ class Settings(BaseSettings):
             ):
                 raise ValueError(
                     "CRITICAL PRODUCTION SECURITY ERROR: Live billing provider configured without valid high-entropy BILLING_SECRET_KEY."
-                )
-
-            if env in ("production", "prod") and self.DEBUG:
-                raise ValueError(
-                    "CRITICAL PRODUCTION CONFIGURATION ERROR: DEBUG cannot be True in production environment."
-                )
-
-            if self.ALLOW_DEMO_AUTH:
-                raise ValueError(
-                    "CRITICAL PRODUCTION SECURITY ERROR: ALLOW_DEMO_AUTH must be False in production/staging environments — P13.1."
                 )
         elif env in ("development", "test") and "ALLOW_DEMO_AUTH" not in self.model_fields_set:
             self.ALLOW_DEMO_AUTH = True
