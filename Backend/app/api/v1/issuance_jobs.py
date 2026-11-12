@@ -296,11 +296,10 @@ async def download_job_zip(
             code="ZIP_NOT_READY",
         )
 
-    zip_file_path = Path(StorageService.get_base_dir()) / "zips" / org_id / job_id / "certificates.zip"
-    if not zip_file_path.exists():
+    zip_storage_key = (Path("zips") / org_id / job_id / "certificates.zip").as_posix()
+    file_bytes = StorageService.read_file(zip_storage_key)
+    if file_bytes is None:
         raise NotFoundError(message="ZIP file not found on storage", code="ZIP_NOT_FOUND")
-
-    file_bytes = zip_file_path.read_bytes()
     return StreamingResponse(
         io.BytesIO(file_bytes),
         media_type="application/zip",
