@@ -35,6 +35,12 @@ class Settings(BaseSettings):
 
     # Storage & Assets
     STORAGE_DIR: str = "storage"
+    STORAGE_TYPE: str = "local"
+    S3_ENDPOINT: Optional[str] = None
+    S3_REGION: str = "auto"
+    S3_BUCKET_NAME: Optional[str] = None
+    S3_ACCESS_KEY_ID: Optional[str] = None
+    S3_SECRET_ACCESS_KEY: Optional[str] = None
     MAX_ASSET_SIZE_MB: int = 15
     ALLOWED_IMAGE_TYPES: List[str] = ["image/png", "image/jpeg", "image/jpg", "image/svg+xml"]
 
@@ -57,6 +63,7 @@ class Settings(BaseSettings):
     EMAIL_SEND_TIMEOUT: int = 30
     EMAIL_MAX_RETRIES: int = 3
     MAX_EMAIL_ATTACHMENT_SIZE_MB: int = 10
+    ENCRYPTION_KEY: Optional[str] = None
     SIGNED_URL_SECRET: str = "certiflow-signed-download-url-secret-key-32chars!"
     SIGNED_URL_EXPIRY_HOURS: int = 24
     WEBHOOK_SIGNING_SECRET: str = "certiflow-webhook-signature-secret-key!"
@@ -144,6 +151,19 @@ class Settings(BaseSettings):
     def validate_production_secrets(self) -> "Settings":
         """Fail startup immediately if production/staging uses default or insecure secrets — P12.04."""
         env = (self.ENVIRONMENT or self.APP_ENV or "").lower().strip()
+        if self.STORAGE_TYPE.lower() not in ("local", "s3"):
+            raise ValueError("STORAGE_TYPE must be either 'local' or 's3'.")
+        if self.STORAGE_TYPE.lower() == "s3":
+            missing_storage = [
+                name for name, value in (
+                    ("S3_BUCKET_NAME", self.S3_BUCKET_NAME),
+                    ("S3_ACCESS_KEY_ID", self.S3_ACCESS_KEY_ID),
+                    ("S3_SECRET_ACCESS_KEY", self.S3_SECRET_ACCESS_KEY),
+                ) if not value
+            ]
+            if missing_storage:
+                raise ValueError("S3 storage is enabled but required settings are missing: " + ", ".join(missing_storage))
+
         if env in ("production", "prod", "staging"):
             insecure_jwt_defaults = {
                 "certiflow-local-dev-jwt-secret-key-must-be-long-and-secure-32chars",
@@ -160,6 +180,11 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "CRITICAL PRODUCTION SECURITY ERROR: Insecure or default JWT_SECRET_KEY configured in production/staging. "
                     "Must be a cryptographically secure random secret at least 32 characters long."
+                )
+
+            if not self.ENCRYPTION_KEY:
+                raise ValueError(
+                    "CRITICAL PRODUCTION SECURITY ERROR: ENCRYPTION_KEY must be configured in production/staging."
                 )
 
             if (
