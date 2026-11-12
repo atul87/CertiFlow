@@ -157,6 +157,21 @@ class StorageService:
         return data
 
     @classmethod
+    def get_prefix_size(cls, prefix: str) -> int:
+        """Return total stored bytes under a logical prefix for usage reporting."""
+        clean_prefix = cls._safe_key(prefix).rstrip("/") + "/"
+        if cls._uses_s3():
+            total = 0
+            paginator = _s3_client().get_paginator("list_objects_v2")
+            for page in paginator.paginate(Bucket=settings.S3_BUCKET_NAME, Prefix=clean_prefix):
+                total += sum(item.get("Size", 0) for item in page.get("Contents", []))
+            return total
+        directory = cls.get_base_dir() / Path(*PurePosixPath(clean_prefix.rstrip("/")).parts)
+        if not directory.is_dir():
+            return 0
+        return sum(path.stat().st_size for path in directory.rglob("*") if path.is_file())
+
+    @classmethod
     def delete_file(cls, storage_key: str) -> bool:
         key = cls._safe_key(storage_key)
         if cls._uses_s3():
